@@ -20,7 +20,7 @@ public class TokenService {
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer("self")
                 .issuedAt(now)
-                .expiresAt(now.plus(1, ChronoUnit.HOURS))
+                .expiresAt(now.plus(1, ChronoUnit.DAYS))
                 .subject(email)
                 .build();
         return this.encoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();

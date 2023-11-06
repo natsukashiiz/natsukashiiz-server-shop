@@ -8,6 +8,6 @@ import org.springframework.data.repository.query.Param;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
     @Modifying
-    @Query("UPDATE sp_products SET quantity = quantity + :quantity WHERE id = :id")
-    void reduceQuantity(@Param("id") long id, @Param("quantity") int quantity);
+    @Query("UPDATE sp_products SET quantity = quantity - :quantity WHERE id = :id")
+    void decreaseQuantity(@Param("id") long id, @Param("quantity") int quantity);
 }
