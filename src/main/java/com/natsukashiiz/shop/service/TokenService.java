@@ -1,5 +1,6 @@
 package com.natsukashiiz.shop.service;
 
+import com.natsukashiiz.shop.utils.RandomUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
@@ -15,13 +16,15 @@ public class TokenService {
 
     private final JwtEncoder encoder;
 
-    public String gen(String email) {
+    public String gen(Long id, String email) {
         Instant now = Instant.now();
         JwtClaimsSet claims = JwtClaimsSet.builder()
-                .issuer("self")
+                .issuer("natsukashiiz-server-shop")
                 .issuedAt(now)
                 .expiresAt(now.plus(1, ChronoUnit.DAYS))
-                .subject(email)
+                .id(RandomUtils.UUIDNotDash())
+                .subject(String.valueOf(id))
+                .claim("email", email)
                 .build();
         return this.encoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
     }

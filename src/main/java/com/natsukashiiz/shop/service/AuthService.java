@@ -2,15 +2,17 @@ package com.natsukashiiz.shop.service;
 
 import com.natsukashiiz.shop.entity.Account;
 import com.natsukashiiz.shop.entity.Point;
+import com.natsukashiiz.shop.exception.BaseException;
+import com.natsukashiiz.shop.exception.LoginException;
+import com.natsukashiiz.shop.exception.SignUpException;
 import com.natsukashiiz.shop.model.request.LoginRequest;
 import com.natsukashiiz.shop.model.request.SignUpRequest;
 import com.natsukashiiz.shop.model.response.TokenResponse;
 import com.natsukashiiz.shop.repository.AccountRepository;
 import com.natsukashiiz.shop.repository.PointRepository;
+import com.natsukashiiz.shop.utils.ValidationUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -25,30 +27,36 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final PointRepository pointRepository;
 
-    public ResponseEntity<TokenResponse> login(LoginRequest req) {
+    public TokenResponse login(LoginRequest req) throws BaseException {
+        if (ValidationUtils.invalidEmail(req.getEmail())) {
+            log.warn("Login-[block]:(invalid email). req:{}", req);
+            throw LoginException.invalidEmail();
+        }
+
         Optional<Account> accountOptional = accountRepository.findByEmail(req.getEmail());
         if (!accountOptional.isPresent()) {
             log.warn("Login-[block]:(not found). req:{}", req);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            throw LoginException.invalid();
         }
 
         Account account = accountOptional.get();
         if (!passwordEncoder.matches(req.getPassword(), account.getPassword())) {
             log.warn("Login-[block]:(password not matches). req:{}", req);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            throw LoginException.invalid();
         }
 
-        return ResponseEntity.ok(
-                TokenResponse.builder()
-                        .token(tokenService.gen(req.getEmail()))
-                        .build()
-        );
+        return createTokenResponse(account);
     }
 
-    public ResponseEntity<TokenResponse> signUp(SignUpRequest req) {
+    public TokenResponse signUp(SignUpRequest req) throws BaseException {
+        if (ValidationUtils.invalidEmail(req.getEmail())) {
+            log.warn("SignUp-[block]:(invalid email). req:{}", req);
+            throw LoginException.invalidEmail();
+        }
+
         if (accountRepository.existsByEmail(req.getEmail())) {
             log.warn("SignUp-[block]:(exists email). req:{}", req);
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            throw SignUpException.existsEmail();
         }
 
         Account account = new Account();
@@ -61,10 +69,12 @@ public class AuthService {
         point.setPoint(0.00);
         pointRepository.save(point);
 
-        return ResponseEntity.ok(
-                TokenResponse.builder()
-                        .token(tokenService.gen(req.getEmail()))
-                        .build()
-        );
+        return createTokenResponse(account);
+    }
+
+    private TokenResponse createTokenResponse(Account account) {
+        return TokenResponse.builder()
+                .token(tokenService.gen(account.getId(), account.getEmail()))
+                .build();
     }
 }

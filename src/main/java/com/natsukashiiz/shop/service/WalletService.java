@@ -2,13 +2,14 @@ package com.natsukashiiz.shop.service;
 
 import com.natsukashiiz.shop.entity.Account;
 import com.natsukashiiz.shop.entity.Wallet;
+import com.natsukashiiz.shop.exception.BaseException;
+import com.natsukashiiz.shop.exception.WalletException;
 import com.natsukashiiz.shop.model.response.WalletResponse;
-import com.natsukashiiz.shop.repository.AccountRepository;
 import com.natsukashiiz.shop.repository.WalletRepository;
+import com.natsukashiiz.shop.utils.SecurityUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -18,18 +19,17 @@ import java.util.Optional;
 @Log4j2
 public class WalletService {
     private final WalletRepository walletRepository;
-    private final AccountRepository accountRepository;
 
-    public ResponseEntity<WalletResponse> create(Authentication authentication) {
-        Account account = accountRepository.findByEmail(authentication.getName()).get();
-        if (walletRepository.existsByAccount(account)) {
-            log.warn("Create-[block]-(not found). email:{}", authentication.getName());
-            return ResponseEntity.badRequest().build();
+    public ResponseEntity<WalletResponse> create() throws BaseException {
+        Account auth = SecurityUtils.getAuth();
+        if (walletRepository.existsByAccount(auth)) {
+            log.warn("Create-[block]-(exists). auth:{}", auth);
+            throw WalletException.invalid();
         }
 
         Wallet wallet = new Wallet();
         wallet.setBalance(0.00);
-        wallet.setAccount(account);
+        wallet.setAccount(auth);
 
         wallet = walletRepository.save(wallet);
         return ResponseEntity.ok(
@@ -40,12 +40,14 @@ public class WalletService {
         );
     }
 
-    public ResponseEntity<WalletResponse> get(Authentication authentication) {
-        Optional<Wallet> walletOptional = walletRepository.findByAccount(accountRepository.findByEmail(authentication.getName()).get());
+    public ResponseEntity<WalletResponse> get() throws BaseException {
+        Account auth = SecurityUtils.getAuth();
+
+        Optional<Wallet> walletOptional = walletRepository.findByAccount(auth);
 
         if (!walletOptional.isPresent()) {
-            log.warn("Get-[block]-(not found). email:{}", authentication.getName());
-            return ResponseEntity.badRequest().build();
+            log.warn("Get-[block]-(not found). auth:{}", auth);
+            throw WalletException.invalid();
         }
 
         Wallet wallet = walletOptional.get();

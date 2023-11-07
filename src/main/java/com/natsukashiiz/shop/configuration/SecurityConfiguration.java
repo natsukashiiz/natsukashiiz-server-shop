@@ -44,7 +44,7 @@ public class SecurityConfiguration {
                 .and()
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth ->
-                        auth.antMatchers("/v1/auth/**").permitAll()
+                        auth.antMatchers("/error", "/v1/auth/**").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
