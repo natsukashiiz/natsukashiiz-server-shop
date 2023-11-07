@@ -7,8 +7,12 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Optional;
+
 public interface PointRepository extends JpaRepository<Point, Long> {
     @Modifying
     @Query("UPDATE sp_point SET point = point + :point WHERE account.id = :accountId")
     void increasePoint(@Param("accountId") long accountId, @Param("point") double point);
+
+    Optional<Point> findByAccount(Account account);
 }

@@ -19,6 +19,9 @@ spring:
     type: redis
     redis:
       time-to-live: 60000 # 1 Minute
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
 shop:
   jwt:
     pvKey: classpath:app.key

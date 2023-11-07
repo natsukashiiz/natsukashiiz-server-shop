@@ -1,8 +1,7 @@
 package com.natsukashiiz.shop.controller;
 
+import com.natsukashiiz.shop.business.WalletBusiness;
 import com.natsukashiiz.shop.exception.BaseException;
-import com.natsukashiiz.shop.model.response.WalletResponse;
-import com.natsukashiiz.shop.service.WalletService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,15 +13,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/v1/wallet")
 @AllArgsConstructor
 public class WalletController {
-    private final WalletService walletService;
+    private final WalletBusiness walletBusiness;
 
     @GetMapping
-    public ResponseEntity<WalletResponse> get() throws BaseException {
-        return walletService.get();
+    public ResponseEntity<?> myWallet() throws BaseException {
+        return ResponseEntity.ok(walletBusiness.myWallet());
     }
 
     @PostMapping
-    public ResponseEntity<WalletResponse> create() throws BaseException {
-        return walletService.create();
+    public ResponseEntity<?> create() throws BaseException {
+        return ResponseEntity.ok(walletBusiness.create());
     }
 }

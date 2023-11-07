@@ -15,7 +15,6 @@ import com.natsukashiiz.shop.repository.OrderRepository;
 import com.natsukashiiz.shop.repository.PointRepository;
 import com.natsukashiiz.shop.repository.ProductRepository;
 import com.natsukashiiz.shop.repository.WalletRepository;
-import com.natsukashiiz.shop.utils.SecurityUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.cache.annotation.Cacheable;
@@ -51,12 +50,10 @@ public class ProductService {
     }
 
     @Transactional(rollbackOn = BaseException.class)
-    public BuyResponse buy(List<BuyRequest> requests) throws BaseException {
-        Account auth = SecurityUtils.getAuth();
-
-        Optional<Wallet> walletOptional = walletRepository.findByAccount(auth);
+    public BuyResponse buy(List<BuyRequest> requests, Account account) throws BaseException {
+        Optional<Wallet> walletOptional = walletRepository.findByAccount(account);
         if (!walletOptional.isPresent()) {
-            log.warn("Buy-[block]:(not found wallet). auth:{}", auth);
+            log.warn("Buy-[block]:(not found wallet). account:{}", account);
             throw WalletException.invalid();
         }
 
@@ -77,12 +74,12 @@ public class ProductService {
             }
 
             productRepository.decreaseQuantity(product.getId(), req.getQuantity());
-            pointRepository.increasePoint(auth.getId(), 10.25 * req.getQuantity());
+            pointRepository.increasePoint(account.getId(), 10.25 * req.getQuantity());
 
             double totalPrice = product.getPrice() * req.getQuantity();
 
             Order order = new Order();
-            order.setAccount(auth);
+            order.setAccount(account);
             order.setProductName(product.getName());
             order.setPrice(product.getPrice());
             order.setQuantity(req.getQuantity());
@@ -108,7 +105,7 @@ public class ProductService {
             throw WalletException.insufficient();
         }
 
-        walletRepository.decreaseBalance(auth.getId(), paid);
+        walletRepository.decreaseBalance(account.getId(), paid);
 
         return BuyResponse.builder()
                 .orders(orders)
