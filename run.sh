@@ -4,7 +4,7 @@ container_name="server-container"
 image_name="server"
 
 # Check if a Docker container with the name "server-container" is running
-if docker ps | grep -q $container_name; then
+if docker ps | grep -q "$container_name"; then
   echo "The "+$container_name+" is already running. Skipping docker-compose."
 else
   # Start Docker containers using docker-compose
