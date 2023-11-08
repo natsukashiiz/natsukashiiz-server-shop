@@ -2,16 +2,24 @@ version: '3'
 services:
   mysql:
     image: mysql:5.7
-    container_name: my-mysql
+    container_name: mysqldb
     environment:
-      MYSQL_ROOT_PASSWORD: my-secret-pw
+      MYSQL_DATABASE: shop_db
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_USER: dev
+      MYSQL_PASSWORD: 1234
     ports:
       - "3306:3306"
-    volumes:
-      - ./mysql-data:/var/lib/mysql
+    networks:
+      - server-net
 
   redis:
     image: redis
-    container_name: my-redis
+    container_name: redis
     ports:
       - "6379:6379"
+    networks:
+      - server-net
+
+networks:
+  server-net:

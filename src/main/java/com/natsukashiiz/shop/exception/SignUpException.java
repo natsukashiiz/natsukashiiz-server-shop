@@ -6,11 +6,11 @@ public class SignUpException extends BaseException {
         super("signUp." + code);
     }
 
-    public static SignUpException existsEmail() {
-        return new SignUpException("email.exists");
+    public static SignUpException emailDuplicate() {
+        return new SignUpException("email.duplicate");
     }
 
-    public static SignUpException invalidEmail() {
+    public static SignUpException emailInvalid() {
         return new SignUpException("email.invalid");
     }
 }

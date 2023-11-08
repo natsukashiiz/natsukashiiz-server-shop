@@ -30,7 +30,7 @@ public class AuthService {
     public TokenResponse login(LoginRequest req) throws BaseException {
         if (ValidationUtils.invalidEmail(req.getEmail())) {
             log.warn("Login-[block]:(invalid email). req:{}", req);
-            throw LoginException.invalidEmail();
+            throw LoginException.emailInvalid();
         }
 
         Optional<Account> accountOptional = accountRepository.findByEmail(req.getEmail());
@@ -51,12 +51,12 @@ public class AuthService {
     public TokenResponse signUp(SignUpRequest req) throws BaseException {
         if (ValidationUtils.invalidEmail(req.getEmail())) {
             log.warn("SignUp-[block]:(invalid email). req:{}", req);
-            throw LoginException.invalidEmail();
+            throw LoginException.emailInvalid();
         }
 
         if (accountRepository.existsByEmail(req.getEmail())) {
             log.warn("SignUp-[block]:(exists email). req:{}", req);
-            throw SignUpException.existsEmail();
+            throw SignUpException.emailDuplicate();
         }
 
         Account account = new Account();
