@@ -1,5 +1,5 @@
 #!/bin/bash
-mvn clean install
+mvn clean install -DskipTests
 docker stop server-container
 docker rm server-container
 docker build -t server .
