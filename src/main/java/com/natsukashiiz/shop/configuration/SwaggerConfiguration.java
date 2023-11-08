@@ -30,9 +30,9 @@ public class SwaggerConfiguration {
         return new ApiInfo(
                 "Shop API",
                 "Shop API",
-                "API TOS",
+                "API DEMO",
                 "Terms of service",
-                new Contact("John Doe", "www.example.com", "myeaddress@company.com"),
+                new Contact("natsukashiiz", "www.natsukashiiz.xyz", "natsukashiiz@gmail.com"),
                 "License of API", "API license URL", Collections.emptyList());
     }
 }
