@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Start Docker containers
-#docker-compose up -d
+docker-compose up -d
 
 # Wait for Docker containers to start (optional)
 # sleep 3
@@ -14,7 +14,6 @@ mvn clean install
 
 # Check if the Maven build was successful or if there were any errors
 if [ $? -eq 0 ]; then
-  echo "Maven build succeeded."
   # Build a Docker image
   docker build -t server .
 
