@@ -24,7 +24,7 @@ if [ $? -eq 0 ]; then
   docker build -t $image_name .
 
   # Run a Docker container
-  docker run --network $network_name --name $container_name -p 8080:8080 -d $image_name
+  docker run --network $network_name --name $container_name -p 8080:8080 -d $image_name -v ${PWD}/logs:/logs
 
   # Display a list of running Docker containers
   docker ps

@@ -33,4 +33,4 @@ logging:
     org.springframework.security: INFO
     com.natsukashiiz.shop: DEBUG
   file:
-    name: ./log/server.log
+    path: logs
