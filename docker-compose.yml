@@ -22,9 +22,8 @@ services:
       - "6379:6379"
     networks:
       - server-net
-      -
+
 volumes:
   mysql-data:
-
 networks:
   server-net:
