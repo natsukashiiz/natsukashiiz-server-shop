@@ -34,3 +34,4 @@ logging:
     com.natsukashiiz.shop: DEBUG
   file:
     path: logs
+    name: server.log
