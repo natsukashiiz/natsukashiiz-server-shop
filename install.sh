@@ -1,6 +1,6 @@
 #!/bin/bash
 docker-compose up -d
-wait
+sleep 2
 mvn clean install
 docker build -t server .
 docker stop server-container
