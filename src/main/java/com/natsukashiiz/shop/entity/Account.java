@@ -1,6 +1,7 @@
 package com.natsukashiiz.shop.entity;
 
 import lombok.Data;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -17,6 +18,7 @@ public class Account {
     @Column(unique = true, nullable = false)
     private String email;
 
+    @ToString.Exclude
     @Column(nullable = false)
     private String password;
 

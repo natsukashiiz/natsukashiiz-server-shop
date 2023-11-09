@@ -1,6 +1,7 @@
 package com.natsukashiiz.shop.controller;
 
 import com.natsukashiiz.shop.business.PointBusiness;
+import com.natsukashiiz.shop.exception.BaseException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
@@ -18,7 +19,7 @@ public class PointController {
 
     @Operation(summary = "My Point", description = "My point")
     @GetMapping
-    public ResponseEntity<?> myPoint() {
+    public ResponseEntity<?> myPoint() throws BaseException {
         return ResponseEntity.ok(pointBusiness.myPoint());
     }
 }

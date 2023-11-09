@@ -16,7 +16,7 @@ public class TokenService {
 
     private final JwtEncoder encoder;
 
-    public String gen(Long id, String email) {
+    public String generate(Long id, String email) {
         Instant now = Instant.now();
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer("natsukashiiz-server-shop")

@@ -6,7 +6,6 @@ import com.natsukashiiz.shop.model.response.PointResponse;
 import com.natsukashiiz.shop.repository.PointRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,7 +14,6 @@ import org.springframework.stereotype.Service;
 public class PointService {
     private final PointRepository pointRepository;
 
-    @Cacheable(value = "point", key = "#account.id")
     public PointResponse myPoint(Account account) {
         Point point = pointRepository.findByAccount(account).get();
         return PointResponse.builder()

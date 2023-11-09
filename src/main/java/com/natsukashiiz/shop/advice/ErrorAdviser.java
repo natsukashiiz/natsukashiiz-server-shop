@@ -1,5 +1,6 @@
 package com.natsukashiiz.shop.advice;
 
+import com.natsukashiiz.shop.exception.AuthException;
 import com.natsukashiiz.shop.exception.BaseException;
 import lombok.Data;
 import org.springframework.http.HttpStatus;
@@ -11,6 +12,14 @@ import java.time.LocalDateTime;
 
 @ControllerAdvice
 public class ErrorAdviser {
+
+    @ExceptionHandler(AuthException.class)
+    public ResponseEntity<ErrorResponse> handleAuthException(AuthException e) {
+        ErrorResponse response = new ErrorResponse();
+        response.setError(e.getMessage());
+        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+        return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+    }
 
     @ExceptionHandler(BaseException.class)
     public ResponseEntity<ErrorResponse> handleBaseException(BaseException e) {

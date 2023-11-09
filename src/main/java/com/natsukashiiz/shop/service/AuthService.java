@@ -2,6 +2,7 @@ package com.natsukashiiz.shop.service;
 
 import com.natsukashiiz.shop.entity.Account;
 import com.natsukashiiz.shop.entity.Point;
+import com.natsukashiiz.shop.exception.AuthException;
 import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.exception.LoginException;
 import com.natsukashiiz.shop.exception.SignUpException;
@@ -13,8 +14,12 @@ import com.natsukashiiz.shop.repository.PointRepository;
 import com.natsukashiiz.shop.utils.ValidationUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.Optional;
 
@@ -40,7 +45,7 @@ public class AuthService {
         }
 
         Account account = accountOptional.get();
-        if (!passwordEncoder.matches(req.getPassword(), account.getPassword())) {
+        if (!passwordMatch(req.getPassword(), account.getPassword())) {
             log.warn("Login-[block]:(password not matches). req:{}", req);
             throw LoginException.invalid();
         }
@@ -72,9 +77,50 @@ public class AuthService {
         return createTokenResponse(account);
     }
 
+    public Account getCurrent() throws BaseException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null) {
+            log.warn("GetCurrent-[block]:(authentication is null)");
+            throw AuthException.unauthorized();
+        }
+
+        if (!authentication.isAuthenticated()) {
+            log.warn("GetCurrent-[block]:(not authenticated)");
+            throw AuthException.unauthorized();
+        }
+
+        Jwt jwt = (Jwt) authentication.getCredentials();
+
+        if (jwt == null) {
+            log.warn("GetCurrent-[block]:(jwt is null)");
+            throw AuthException.unauthorized();
+        }
+
+        String accountId = authentication.getName();
+        String email = jwt.getClaimAsString("email");
+
+        if (!StringUtils.hasText(accountId) || !StringUtils.hasText(email)) {
+            log.warn("GetCurrent-[block]:(accountId or email is null)");
+            throw AuthException.unauthorized();
+        }
+
+        Optional<Account> accountOptional = accountRepository.findByIdAndEmail(Long.parseLong(accountId), email);
+        if (!accountOptional.isPresent()) {
+            log.warn("GetCurrent-[block]:(not found account). accountId:{}, email:{}", accountId, email);
+            throw AuthException.unauthorized();
+        }
+
+        return accountOptional.get();
+    }
+
+    public boolean passwordMatch(String raw, String hash) {
+        return passwordEncoder.matches(raw, hash);
+    }
+
     private TokenResponse createTokenResponse(Account account) {
         return TokenResponse.builder()
-                .token(tokenService.gen(account.getId(), account.getEmail()))
+                .token(tokenService.generate(account.getId(), account.getEmail()))
                 .build();
     }
 }
