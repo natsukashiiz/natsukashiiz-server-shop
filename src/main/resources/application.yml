@@ -10,7 +10,7 @@ spring:
     show-sql: true
     generate-ddl: true
     hibernate:
-      ddl-auto: update
+      ddl-auto: create-drop
       dialect: org.hibernate.dialect.MySQL5Dialect
   redis:
     host: localhost
@@ -33,11 +33,12 @@ spring:
           auth: true
           starttls:
             enable: true
-
 shop:
   jwt:
     pvKey: classpath:app.key
     pubKey: classpath:app.pub
+  google:
+    clientId: 316129352663-lqu4fj9hfjuf1ulsd0g9rstfk1230b1e.apps.googleusercontent.com
 logging:
   level:
     root: INFO

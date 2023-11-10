@@ -1,5 +1,8 @@
 package com.natsukashiiz.shop.configuration;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.jackson2.JacksonFactory;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
@@ -26,6 +29,7 @@ import org.springframework.security.web.SecurityFilterChain;
 
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.util.Collections;
 
 @Configuration
 @EnableWebSecurity
@@ -36,6 +40,9 @@ public class SecurityConfiguration {
 
     @Value("${shop.jwt.pvKey}")
     RSAPrivateKey priv;
+
+    @Value("${shop.google.clientId}")
+    String clientId;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -78,5 +85,13 @@ public class SecurityConfiguration {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public GoogleIdTokenVerifier googleIdTokenVerifier() {
+        return new GoogleIdTokenVerifier
+                .Builder(new NetHttpTransport(), new JacksonFactory())
+                .setAudience(Collections.singleton(clientId))
+                .build();
     }
 }
