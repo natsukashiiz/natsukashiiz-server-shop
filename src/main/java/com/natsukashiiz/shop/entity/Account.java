@@ -22,6 +22,9 @@ public class Account {
     @Column(nullable = false)
     private String password;
 
+    @Column(nullable = false)
+    private Boolean verified;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 

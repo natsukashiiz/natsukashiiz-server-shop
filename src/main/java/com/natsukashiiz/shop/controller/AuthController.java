@@ -29,7 +29,7 @@ public class AuthController {
 
     @Operation(summary = "SignUp", description = "SignUp for use in system and get Token use api")
     @PostMapping("/signUp")
-    public ResponseEntity<TokenResponse> signUp(@RequestBody SignUpRequest request) throws BaseException {
+    public ResponseEntity<?> signUp(@RequestBody SignUpRequest request) throws BaseException {
         return ResponseEntity.ok(authService.signUp(request));
     }
 }

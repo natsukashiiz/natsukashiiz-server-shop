@@ -9,5 +9,4 @@ public class AuthException extends BaseException {
     public static AuthException unauthorized() {
         return new AuthException("unauthorized");
     }
-
 }

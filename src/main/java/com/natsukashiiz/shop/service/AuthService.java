@@ -1,16 +1,13 @@
 package com.natsukashiiz.shop.service;
 
 import com.natsukashiiz.shop.entity.Account;
-import com.natsukashiiz.shop.entity.Point;
-import com.natsukashiiz.shop.exception.AuthException;
-import com.natsukashiiz.shop.exception.BaseException;
-import com.natsukashiiz.shop.exception.LoginException;
-import com.natsukashiiz.shop.exception.SignUpException;
+import com.natsukashiiz.shop.exception.*;
 import com.natsukashiiz.shop.model.request.LoginRequest;
 import com.natsukashiiz.shop.model.request.SignUpRequest;
 import com.natsukashiiz.shop.model.response.TokenResponse;
+import com.natsukashiiz.shop.redis.RedisService;
 import com.natsukashiiz.shop.repository.AccountRepository;
-import com.natsukashiiz.shop.repository.PointRepository;
+import com.natsukashiiz.shop.utils.RandomUtils;
 import com.natsukashiiz.shop.utils.ValidationUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -21,6 +18,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.time.Duration;
 import java.util.Optional;
 
 @Service
@@ -30,7 +28,8 @@ public class AuthService {
     private final AccountRepository accountRepository;
     private final TokenService tokenService;
     private final PasswordEncoder passwordEncoder;
-    private final PointRepository pointRepository;
+    private final MailService mailService;
+    private final RedisService redisService;
 
     public TokenResponse login(LoginRequest req) throws BaseException {
         if (ValidationUtils.invalidEmail(req.getEmail())) {
@@ -67,17 +66,21 @@ public class AuthService {
         Account account = new Account();
         account.setEmail(req.getEmail());
         account.setPassword(passwordEncoder.encode(req.getPassword()));
+        account.setVerified(Boolean.FALSE);
         accountRepository.save(account);
 
-        Point point = new Point();
-        point.setAccount(account);
-        point.setPoint(0.00);
-        pointRepository.save(point);
+        String code = RandomUtils.Number6Characters();
+        mailService.send(account.getEmail(), "Verify Account", "Code: " + code);
+        redisService.setValueByKey("ACCOUNT:CODE:" + account.getEmail(), code, Duration.ofMinutes(1).toMillis());
 
         return createTokenResponse(account);
     }
 
     public Account getCurrent() throws BaseException {
+        return getCurrent(Boolean.TRUE);
+    }
+
+    public Account getCurrent(boolean checkVerified) throws BaseException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null) {
@@ -111,14 +114,24 @@ public class AuthService {
             throw AuthException.unauthorized();
         }
 
+        Account account = accountOptional.get();
+
+        if (checkVerified) {
+            if (!account.getVerified()) {
+                log.warn("GetCurrent-[block]:(account not verify). accountId:{}, email:{}", accountId, email);
+                throw AccountException.notVerify();
+            }
+        }
+
         return accountOptional.get();
     }
+
 
     public boolean passwordMatch(String raw, String hash) {
         return passwordEncoder.matches(raw, hash);
     }
 
-    private TokenResponse createTokenResponse(Account account) {
+    public TokenResponse createTokenResponse(Account account) {
         return TokenResponse.builder()
                 .token(tokenService.generate(account.getId(), account.getEmail()))
                 .build();
