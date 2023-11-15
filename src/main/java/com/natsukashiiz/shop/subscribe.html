@@ -1,0 +1,91 @@
+<html>
+<head>
+    <title>Subscribe</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+</head>
+<body>
+
+<main>
+    <span id="count">0</span>
+    <ul id="list"></ul>
+    <hr>
+    <form id="loginForm" onsubmit="event.preventDefault(); login()">
+        <input id="email" value="vv@gmail.com"/>
+        <input id="password" value="1234"/>
+        <button type="submit">submit</button>
+    </form>
+    <button onclick="event.preventDefault(); buy()">buy</button>
+</main>
+
+<script>
+    var baseApi = 'http://localhost:8080';
+    var token = '';
+    var count = 0;
+
+    async function login() {
+        const email = $("#email").val()
+        const password = $("#password").val()
+        const res = await fetch(baseApi + "/v1/auth/login", {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                email: email,
+                password: password
+            })
+        })
+
+        if (res.ok) {
+            const data = await res.json();
+            token = data.token;
+            await subNoti();
+        }
+
+        $("#loginForm").remove()
+    }
+
+    async function buy() {
+        const res = await fetch(baseApi + "/v1/products/buy", {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify([
+                {
+                    productId: 1,
+                    quantity: 1
+                }
+            ])
+        })
+    }
+
+    async function subNoti() {
+        var event = new EventSource(baseApi + "/v1/notifications/subscribe?Authorization=" + token);
+        event.addEventListener("notifications", async function (event) {
+            await myFetch(event.data)
+        })
+    }
+
+    async function myFetch(endpoint) {
+        const res = await fetch("http://localhost:8080" + endpoint, {
+            headers: {
+                Authorization: "Bearer " + token
+            }
+        })
+
+        if (res.ok) {
+            const data = await res.json();
+            count = data.length;
+            $("#count").text(count)
+            $("#list").html("")
+            data.forEach((val) => {
+                $("#list").append(`<li>${val.message}</li>`)
+            })
+        }
+    }
+</script>
+</body>
+</html>

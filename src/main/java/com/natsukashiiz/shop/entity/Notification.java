@@ -1,34 +1,28 @@
 package com.natsukashiiz.shop.entity;
 
 import lombok.Data;
-import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
-@Entity(name = "sp_accounts")
-public class Account {
+@Entity(name = "sp_notifications")
+public class Notification {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false)
-    private String email;
-
-    @ToString.Exclude
-    @Column(nullable = false)
-    private String password;
+    @ManyToOne
+    private Account account;
 
     @Column(nullable = false)
-    private Boolean verified;
+    private Long fromAccountId;
+
+    @Column(nullable = false)
+    private String message;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
 }
