@@ -1,5 +1,6 @@
 <html>
 <head>
+    <meta charset="UTF-8">
     <title>Subscribe</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
@@ -7,7 +8,7 @@
 <body>
 
 <main>
-    <span id="count">0</span>
+    <p>Notification count: <span id="count">0</span></p>
     <ul id="list"></ul>
     <hr>
     <form id="loginForm" onsubmit="event.preventDefault(); login()">
@@ -15,13 +16,28 @@
         <input id="password" value="1234"/>
         <button type="submit">submit</button>
     </form>
-    <button onclick="event.preventDefault(); buy()">buy</button>
+    <button id="loginBtn" onclick="event.preventDefault(); buy()" style="visibility: hidden">buy</button>
 </main>
 
 <script>
-    var baseApi = 'http://localhost:8080';
-    var token = '';
-    var count = 0;
+    const baseApi = 'http://localhost:8080';
+    let token = '';
+    let count = 0;
+
+    const msg = new Map([
+        ["login.invalid", "อีเมลหรือรหัสผ่านไม่ถูกต้อง"],
+        ["product.quantity.insufficient", "สินค้าไม่พอ"]
+    ]);
+
+    document.addEventListener("DOMContentLoaded", async () => {
+        token = localStorage.getItem("token")
+        if (token) {
+            $("#loginBtn").css("visibility", "visible")
+            $("#loginForm").remove()
+            await myNoti();
+            await subNoti();
+        }
+    })
 
     async function login() {
         const email = $("#email").val()
@@ -37,13 +53,17 @@
             })
         })
 
-        if (res.ok) {
+        if (res.status === 417) {
+            const err = await res.json();
+            window.alert(msg.get(err.error))
+        } else {
             const data = await res.json();
             token = data.token;
+            localStorage.setItem("token", token)
+            $("#loginForm").remove()
+            await myNoti();
             await subNoti();
         }
-
-        $("#loginForm").remove()
     }
 
     async function buy() {
@@ -60,17 +80,19 @@
                 }
             ])
         })
+
+        if (res.status === 200) {
+            window.alert("Successful")
+        } else if (res.status === 417) {
+            const err = await res.json();
+            window.alert(msg.get(err.error))
+        } else {
+            window.alert(res)
+        }
     }
 
-    async function subNoti() {
-        var event = new EventSource(baseApi + "/v1/notifications/subscribe?Authorization=" + token);
-        event.addEventListener("notifications", async function (event) {
-            await myFetch(event.data)
-        })
-    }
-
-    async function myFetch(endpoint) {
-        const res = await fetch("http://localhost:8080" + endpoint, {
+    async function myNoti() {
+        const res = await fetch("http://localhost:8080/v1/notifications", {
             headers: {
                 Authorization: "Bearer " + token
             }
@@ -78,13 +100,36 @@
 
         if (res.ok) {
             const data = await res.json();
-            count = data.length;
+            count = 0;
+            data.forEach(val => val.isRead ? null : count += 1);
             $("#count").text(count)
             $("#list").html("")
             data.forEach((val) => {
-                $("#list").append(`<li>${val.message}</li>`)
+                $("#list").append(`<li>${val.message} : ${val.isRead ? '✅' : `<span onclick="readNoti(${val.id})" style="cursor: pointer">⛔</span>`}</li>`)
             })
         }
+    }
+
+    async function readNoti(id) {
+        const res = await fetch("http://localhost:8080/v1/notifications/read/" + id, {
+            method: "PUT",
+            headers: {
+                Authorization: "Bearer " + token
+            }
+        })
+
+        if (res.ok) {
+            await myNoti();
+        }
+    }
+
+    async function subNoti() {
+        const event = new EventSource(baseApi + "/v1/notifications/subscribe?Authorization=" + token);
+        event.addEventListener("notifications", async function (event) {
+            if (event.data === '/v1/notifications') {
+                await myNoti();
+            }
+        })
     }
 </script>
 </body>

@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,10 +21,20 @@ public class NotificationService {
     public List<NotificationResponse> getAll(Account account) {
         return notificationRepository.findByAccount(account)
                 .stream()
-                .map(noti -> {
-                    return NotificationResponse.builder()
-                            .message(noti.getMessage())
-                            .build();
-                }).collect(Collectors.toList());
+                .map(noti -> NotificationResponse.builder()
+                        .id(noti.getId())
+                        .message(noti.getMessage())
+                        .isRead(noti.getIsRead())
+                        .build()).collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void read(Long id, Account account) {
+        notificationRepository.isRead(id, account.getId());
+    }
+
+    @Transactional
+    public void readAll(Account account) {
+        notificationRepository.isReadAll(account.getId());
     }
 }

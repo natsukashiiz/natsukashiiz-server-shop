@@ -8,10 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @RestController
@@ -32,5 +29,17 @@ public class NotificationController {
     @GetMapping
     public ResponseEntity<?> get() throws BaseException {
         return ResponseEntity.ok(notificationBusiness.getAll());
+    }
+
+    @PutMapping("/read/{id}")
+    public ResponseEntity<?> read(@PathVariable Long id) throws BaseException {
+        notificationBusiness.read(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/read/all")
+    public ResponseEntity<?> readAll() throws BaseException {
+        notificationBusiness.readAll();
+        return ResponseEntity.ok().build();
     }
 }

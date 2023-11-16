@@ -43,6 +43,7 @@ public class PushNotificationService {
             noti.setFromAccountId(0L);
             noti.setMessage(request.getMessage());
             noti.setAccount(request.getTo());
+            noti.setIsRead(Boolean.FALSE);
             notificationRepository.save(noti);
 
             try {
@@ -69,6 +70,7 @@ public class PushNotificationService {
             noti.setFromAccountId(0L);
             noti.setMessage(message);
             noti.setAccount(accountRepository.findById(emitter.getKey()).get());
+            noti.setIsRead(Boolean.FALSE);
             list.add(noti);
 
             try {

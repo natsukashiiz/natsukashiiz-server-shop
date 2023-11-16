@@ -21,4 +21,12 @@ public class NotificationBusiness {
     public List<NotificationResponse> getAll() throws BaseException {
         return notificationService.getAll(authService.getCurrent());
     }
+
+    public void read(Long id) throws BaseException {
+        notificationService.read(id, authService.getCurrent());
+    }
+
+    public void readAll() throws BaseException {
+        notificationService.readAll(authService.getCurrent());
+    }
 }
