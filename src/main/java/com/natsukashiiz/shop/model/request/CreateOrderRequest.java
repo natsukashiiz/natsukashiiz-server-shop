@@ -3,7 +3,7 @@ package com.natsukashiiz.shop.model.request;
 import lombok.Data;
 
 @Data
-public class BuyRequest {
+public class CreateOrderRequest {
     private Long productId;
 
     private Integer quantity;

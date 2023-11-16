@@ -10,6 +10,10 @@ public class ProductException extends BaseException {
         return new ProductException("invalid");
     }
 
+    public static ProductException invalidQuantity() {
+        return new ProductException("quantity.invalid");
+    }
+
     public static ProductException quantityNotZero() {
         return new ProductException("quantity.not.zero");
     }

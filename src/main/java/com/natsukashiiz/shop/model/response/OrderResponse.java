@@ -16,4 +16,8 @@ public class OrderResponse implements Serializable {
     private Integer quantity;
     private Double totalPrice;
     private LocalDateTime time;
+
+    public LocalDateTime getTime() {
+        return time == null ? LocalDateTime.now() : time;
+    }
 }

@@ -6,5 +6,12 @@ import lombok.Getter;
 @Builder
 @Getter
 public class CartResponse {
-//    private
+
+    private ProductResponse product;
+    private Integer quantity;
+    private Double totalPrice;
+
+    public Double getTotalPrice() {
+        return product.getPrice() * quantity;
+    }
 }

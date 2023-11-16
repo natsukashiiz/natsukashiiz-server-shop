@@ -1,15 +1,13 @@
 package com.natsukashiiz.shop.controller;
 
 import com.natsukashiiz.shop.business.ProductBusiness;
-import com.natsukashiiz.shop.exception.BaseException;
-import com.natsukashiiz.shop.model.request.BuyRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/v1/products")
@@ -23,11 +21,5 @@ public class ProductController {
     @GetMapping
     private ResponseEntity<?> getList() {
         return ResponseEntity.ok(productBusiness.getAll());
-    }
-
-    @Operation(summary = "Buy Products", description = "Buy products")
-    @PostMapping("/buy")
-    private ResponseEntity<?> buy(@RequestBody List<BuyRequest> request) throws BaseException {
-        return ResponseEntity.ok(productBusiness.buy(request));
     }
 }

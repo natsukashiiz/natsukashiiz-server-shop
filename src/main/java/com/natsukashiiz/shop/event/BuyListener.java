@@ -1,6 +1,6 @@
 package com.natsukashiiz.shop.event;
 
-import com.natsukashiiz.shop.model.request.BuyRequest;
+import com.natsukashiiz.shop.model.request.CreateOrderRequest;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -10,8 +10,8 @@ import org.springframework.stereotype.Component;
 public class BuyListener {
 
     @EventListener
-    public void handleEvent(BuyEvent event) {
-        for (BuyRequest buy : event.getBuyRequests()) {
+    public void handleEvent(CreateOrderEvent event) {
+        for (CreateOrderRequest buy : event.getCreateOrderRequests()) {
             log.info(buy.getProductId());
         }
     }

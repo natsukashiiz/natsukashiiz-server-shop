@@ -22,6 +22,10 @@ public class CartService {
         return cartRepository.findByIdAndAccount(id, account);
     }
 
+    public Optional<Cart> findByProductAndAccount(Product product, Account account) {
+        return cartRepository.findByProductAndAccount(product, account);
+    }
+
     public List<Cart> findAll(Account account) {
         return cartRepository.findByAccount(account);
     }
@@ -40,5 +44,13 @@ public class CartService {
 
     public void delete(Long cartId, Account account) {
         cartRepository.deleteById(cartId);
+    }
+
+    public boolean existsById(Long cartId) {
+        return cartRepository.existsById(cartId);
+    }
+
+    public boolean existsByProductAndAccount(Product product, Account account) {
+        return cartRepository.existsByProductAndAccount(product, account);
     }
 }
