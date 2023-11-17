@@ -18,10 +18,6 @@ public class CartService {
 
     private final CartRepository cartRepository;
 
-    public Optional<Cart> findOne(Long id, Account account) {
-        return cartRepository.findByIdAndAccount(id, account);
-    }
-
     public Optional<Cart> findByProductAndAccount(Product product, Account account) {
         return cartRepository.findByProductAndAccount(product, account);
     }

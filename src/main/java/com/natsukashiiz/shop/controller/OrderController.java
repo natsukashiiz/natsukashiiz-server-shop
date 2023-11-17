@@ -3,6 +3,7 @@ package com.natsukashiiz.shop.controller;
 import com.natsukashiiz.shop.business.OrderBusiness;
 import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.model.request.CreateOrderRequest;
+import com.natsukashiiz.shop.model.request.PayOrderRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
@@ -20,6 +21,11 @@ import java.util.List;
 public class OrderController {
     private final OrderBusiness orderBusiness;
 
+    @GetMapping("/{orderId}")
+    public ResponseEntity<?> myOrder(@PathVariable String orderId) throws BaseException {
+        return ResponseEntity.ok(orderBusiness.myOrderById(orderId));
+    }
+
     @Operation(summary = "My Orders", description = "My orders list")
     @GetMapping
     public ResponseEntity<?> myOrders() throws BaseException {
@@ -28,7 +34,12 @@ public class OrderController {
 
     @Operation(summary = "Create Orders", description = "Create Orders")
     @PostMapping
-    private ResponseEntity<?> createOrder(@RequestBody List<CreateOrderRequest> request) throws BaseException {
+    public ResponseEntity<?> createOrder(@RequestBody List<CreateOrderRequest> request) throws BaseException {
         return ResponseEntity.ok(orderBusiness.create(request));
+    }
+
+    @PutMapping("/pay")
+    public ResponseEntity<?> payOrder(@RequestBody PayOrderRequest request) throws BaseException {
+        return ResponseEntity.ok(orderBusiness.pay(request));
     }
 }

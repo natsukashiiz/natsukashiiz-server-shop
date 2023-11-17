@@ -1,8 +1,11 @@
 package com.natsukashiiz.shop.model.response;
 
+import com.natsukashiiz.shop.common.OrderStatus;
 import lombok.Builder;
 import lombok.Getter;
 
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -15,6 +18,8 @@ public class OrderResponse implements Serializable {
     private Double productPrice;
     private Integer quantity;
     private Double totalPrice;
+    @Enumerated(EnumType.ORDINAL)
+    private OrderStatus status;
     private LocalDateTime time;
 
     public LocalDateTime getTime() {

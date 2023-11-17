@@ -1,136 +1,331 @@
 <html>
+
 <head>
     <meta charset="UTF-8">
     <title>Subscribe</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdn.omise.co/omise.js"></script>
+    <style>
+        table,
+        th,
+        td {
+            border: 1px solid black;
+            border-collapse: collapse;
+            padding: 10px;
+        }
+    </style>
 </head>
+
 <body>
+    <main>
+        <form id="loginForm" onsubmit="event.preventDefault(); login()">
+            <input id="email" value="vv@gmail.com" />
+            <input id="password" value="1234" />
+            <button type="submit">submit</button>
+        </form>
 
-<main>
-    <p>Notification count: <span id="count">0</span></p>
-    <ul id="list"></ul>
-    <hr>
-    <form id="loginForm" onsubmit="event.preventDefault(); login()">
-        <input id="email" value="vv@gmail.com"/>
-        <input id="password" value="1234"/>
-        <button type="submit">submit</button>
-    </form>
-    <button id="loginBtn" onclick="event.preventDefault(); buy()" style="visibility: hidden">buy</button>
-</main>
+        <p>Notification count: <span id="count">0</span></p>
+        <ul id="notiList"></ul>
+        <hr>
 
-<script>
-    const baseApi = 'http://localhost:8080';
-    let token = '';
-    let count = 0;
+        <p>Product List</p>
+        <ul id="productList"></ul>
+        <hr>
 
-    const msg = new Map([
-        ["login.invalid", "อีเมลหรือรหัสผ่านไม่ถูกต้อง"],
-        ["product.quantity.insufficient", "สินค้าไม่พอ"]
-    ]);
+        <p>Wallet: ฿<span id="wallet"></span></p>
+        <form id="topUpForm" onsubmit="event.preventDefault(); topUp()">
+            <input id="amount" value="100" />
+            <button type="submit">submit</button>
+        </form>
+        <span id="payUrl"></span>
+        <hr>
 
-    document.addEventListener("DOMContentLoaded", async () => {
-        token = localStorage.getItem("token")
-        if (token) {
-            $("#loginBtn").css("visibility", "visible")
-            $("#loginForm").remove()
+        <p>Order List</p>
+        <table>
+            <thead>
+                <th>order id</th>
+                <th>product name</th>
+                <th>product price</th>
+                <th>quantity</th>
+                <th>total price</th>
+                <th>status</th>
+                <th>time</th>
+                <th>pay</th>
+            </thead>
+            <tbody id="orderList"></tbody>
+        </table>
+    </main>
+
+    <script>
+        Omise.setPublicKey("pkey_test_5un4a0mz82obwpz257q")
+
+        const createSource = (amount) => {
+            return new Promise((resolve, reject) => {
+                Omise.createSource('mobile_banking_scb', {
+                    amount: amount * 100,
+                    currency: "THB"
+                }, (statusCode, response) => {
+                    if (statusCode !== 200) {
+                        return reject(response)
+                    }
+                    resolve(response)
+                })
+            })
+        }
+
+        const baseApi = 'http://localhost:8080';
+        let token = '';
+        let count = 0;
+
+        const msg = new Map([
+            ["login.invalid", "อีเมลหรือรหัสผ่านไม่ถูกต้อง"],
+            ["product.quantity.insufficient", "สินค้าไม่พอ"]
+        ]);
+
+        async function loadData() {
             await myNoti();
             await subNoti();
+            await productList();
+            await myOrder();
+            await myWallet();
         }
-    })
 
-    async function login() {
-        const email = $("#email").val()
-        const password = $("#password").val()
-        const res = await fetch(baseApi + "/v1/auth/login", {
-            method: "POST",
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                email: email,
-                password: password
-            })
+        document.addEventListener("DOMContentLoaded", async () => {
+            token = localStorage.getItem("token")
+            if (token) {
+                $("#loginBtn").css("visibility", "visible")
+                $("#loginForm").remove()
+                await loadData()
+            }
         })
 
-        if (res.status === 417) {
-            const err = await res.json();
-            window.alert(msg.get(err.error))
-        } else {
-            const data = await res.json();
-            token = data.token;
-            localStorage.setItem("token", token)
-            $("#loginForm").remove()
-            await myNoti();
-            await subNoti();
-        }
-    }
+        async function login() {
+            const email = $("#email").val()
+            const password = $("#password").val()
+            const res = await fetch(baseApi + "/v1/auth/login", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    email: email,
+                    password: password
+                })
+            })
 
-    async function buy() {
-        const res = await fetch(baseApi + "/v1/products/buy", {
-            method: "POST",
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + token
-            },
-            body: JSON.stringify([
-                {
-                    productId: 1,
-                    quantity: 1
+            if (res.status === 417) {
+                const err = await res.json();
+                window.alert(msg.get(err.error))
+            } else {
+                const data = await res.json();
+                token = data.token;
+                localStorage.setItem("token", token)
+                $("#loginForm").remove()
+                await loadData()
+            }
+        }
+
+        async function buy(id) {
+            const res = await fetch(baseApi + "/v1/orders", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify([
+                    {
+                        productId: id,
+                        quantity: 1
+                    }
+                ])
+            })
+
+            if (res.status === 200) {
+                window.alert("Successful")
+                await myOrder()
+                await myWallet()
+            } else if (res.status === 417) {
+                const err = await res.json();
+                window.alert(msg.get(err.error))
+            } else {
+                window.alert(res)
+            }
+        }
+
+        async function myOrder() {
+            const res = await fetch("http://localhost:8080/v1/orders", {
+                headers: {
+                    Authorization: "Bearer " + token
                 }
-            ])
-        })
-
-        if (res.status === 200) {
-            window.alert("Successful")
-        } else if (res.status === 417) {
-            const err = await res.json();
-            window.alert(msg.get(err.error))
-        } else {
-            window.alert(res)
-        }
-    }
-
-    async function myNoti() {
-        const res = await fetch("http://localhost:8080/v1/notifications", {
-            headers: {
-                Authorization: "Bearer " + token
-            }
-        })
-
-        if (res.ok) {
-            const data = await res.json();
-            count = 0;
-            data.forEach(val => val.isRead ? null : count += 1);
-            $("#count").text(count)
-            $("#list").html("")
-            data.forEach((val) => {
-                $("#list").append(`<li>${val.message} : ${val.isRead ? '✅' : `<span onclick="readNoti(${val.id})" style="cursor: pointer">⛔</span>`}</li>`)
             })
-        }
-    }
 
-    async function readNoti(id) {
-        const res = await fetch("http://localhost:8080/v1/notifications/read/" + id, {
-            method: "PUT",
-            headers: {
-                Authorization: "Bearer " + token
+            if (res.status === 401) {
+                token = '';
+                localStorage.removeItem("token")
+                window.location.reload()
+            } else if (res.status === 417) {
+                const err = await res.json();
+                window.alert(msg.get(err.error))
+            } else if (res.status === 200) {
+                const data = await res.json();
+                $("#orderList").html("")
+                data.forEach((val) => {
+                    $("#orderList").append(`<tr><td>${val.orderId}</td><td>${val.productName}</td><td>${val.productPrice}</td><td>${val.quantity}</td><td>฿${val.totalPrice}</td><td>${val.status}</td><td>${val.time}</td><td>${val.status === "PENDING" ? `<button onclick="pay('${val.orderId}', ${val.totalPrice})">Pay</button>` : ""}</td></tr>`)
+                })
             }
-        })
-
-        if (res.ok) {
-            await myNoti();
         }
-    }
 
-    async function subNoti() {
-        const event = new EventSource(baseApi + "/v1/notifications/subscribe?Authorization=" + token);
-        event.addEventListener("notifications", async function (event) {
-            if (event.data === '/v1/notifications') {
+        async function myWallet() {
+            const res = await fetch("http://localhost:8080/v1/wallet", {
+                headers: {
+                    Authorization: "Bearer " + token
+                }
+            })
+
+            if (res.status === 401) {
+                token = '';
+                localStorage.removeItem("token")
+                window.location.reload()
+            } else if (res.status === 417) {
+                const err = await res.json();
+                window.alert(msg.get(err.error))
+            } else if (res.status === 200) {
+                const data = await res.json();
+                $("#wallet").html(new Intl.NumberFormat().format(data.balance))
+            }
+        }
+
+        async function topUp() {
+            const money = $("#amount").val();
+            const source = await createSource(money);
+
+            const res = await fetch("http://localhost:8080/v1/wallet", {
+                method: "PUT",
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: "Bearer " + token
+                },
+                body: JSON.stringify({
+                    source: source.id,
+                    amount: money
+                })
+            })
+
+            if (res.status === 401) {
+                token = '';
+                localStorage.removeItem("token")
+                window.location.reload()
+            } else if (res.status === 417) {
+                const err = await res.json();
+                window.alert(msg.get(err.error))
+            } else if (res.status === 200) {
+                // window.alert("Successful")
+                // await myWallet()
+                const data = await res.json();
+                $("#payUrl").html(`<a href='${data.url}'>click to pay</a>`)
+            }
+        }
+
+        async function pay(orderId, totalPay) {
+            const source = await createSource(totalPay);
+            const res = await fetch("http://localhost:8080/v1/orders/pay", {
+                method: "PUT",
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: "Bearer " + token
+                },
+                body: JSON.stringify({
+                    source: source.id,
+                    orderId: orderId
+                })
+            })
+
+            if (res.status === 401) {
+                token = '';
+                localStorage.removeItem("token")
+                window.location.reload()
+            } else if (res.status === 417) {
+                const err = await res.json();
+                window.alert(msg.get(err.error))
+            } else if (res.status === 200) {
+                // window.alert("Successful")
+                // await myWallet()
+                const data = await res.json();
+                window.location.href = data.url
+            }
+        }
+
+        async function myNoti() {
+            const res = await fetch("http://localhost:8080/v1/notifications", {
+                headers: {
+                    Authorization: "Bearer " + token
+                }
+            })
+
+            if (res.status === 401) {
+                token = '';
+                localStorage.removeItem("token")
+                window.location.reload()
+            } else if (res.status === 417) {
+                const err = await res.json();
+                window.alert(msg.get(err.error))
+            } else if (res.status === 200) {
+                const data = await res.json();
+                count = 0;
+                data.forEach(val => val.isRead ? null : count += 1);
+                $("#count").text(count)
+                $("#notiList").html("")
+                // data.forEach((val) => {
+                //     $("#notiList").append(`<li>${val.message} : ${val.isRead ? '✅' : `<span onclick="readNoti(${val.id})" style="cursor: pointer">⛔</span>`}</li>`)
+                // })
+            }
+        }
+
+        async function productList() {
+            const res = await fetch("http://localhost:8080/v1/products", {
+                headers: {
+                    Authorization: "Bearer " + token
+                }
+            })
+
+            if (res.status === 401) {
+                token = '';
+                localStorage.removeItem("token")
+                window.location.reload()
+            } else if (res.status === 417) {
+                const err = await res.json();
+                window.alert(msg.get(err.error))
+            } else if (res.status === 200) {
+                const data = await res.json();
+                data.forEach((val) => {
+                    $("#productList").append(`<li>${val.name} : ฿${val.price} : จำนวนทั้งหมด ${val.quantity}  ชิ้น // <button onclick="buy(${val.id})" >buy</button></li>`)
+                })
+            }
+        }
+
+        async function readNoti(id) {
+            const res = await fetch("http://localhost:8080/v1/notifications/read/" + id, {
+                method: "PUT",
+                headers: {
+                    Authorization: "Bearer " + token
+                }
+            })
+
+            if (res.ok) {
                 await myNoti();
             }
-        })
-    }
-</script>
+        }
+
+        async function subNoti() {
+            const event = new EventSource(baseApi + "/v1/notifications/subscribe?Authorization=" + token);
+            event.addEventListener("notifications", async function (event) {
+                if (event.data === '/v1/notifications') {
+                    await myNoti();
+                }
+            })
+        }
+    </script>
 </body>
+
 </html>

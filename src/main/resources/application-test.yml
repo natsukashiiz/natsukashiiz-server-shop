@@ -39,6 +39,10 @@ shop:
     pubKey: classpath:app.pub
   google:
     clientId: 316129352663-lqu4fj9hfjuf1ulsd0g9rstfk1230b1e.apps.googleusercontent.com
+  payment:
+    omise:
+      pubKey: pkey_test_5un4a0mz82obwpz257q
+      secretKey: skey_test_5un49ncyly5rx5dpjwi
 logging:
   level:
     root: INFO

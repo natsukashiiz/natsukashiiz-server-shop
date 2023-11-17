@@ -63,6 +63,7 @@ public class SecurityConfiguration implements WebMvcConfigurer {
                                         "/swagger-ui/**",
                                         "/swagger-resources/**",
                                         "/v*/notifications/subscribe/**",
+                                        "/v1/payment/webhook",
                                         "/v*/auth/**")
                                 .permitAll()
                                 .anyRequest().authenticated()

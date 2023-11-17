@@ -1,10 +1,12 @@
 package com.natsukashiiz.shop.service;
 
+import com.natsukashiiz.shop.common.OrderStatus;
 import com.natsukashiiz.shop.entity.Account;
 import com.natsukashiiz.shop.entity.Order;
 import com.natsukashiiz.shop.entity.Product;
 import com.natsukashiiz.shop.entity.Wallet;
 import com.natsukashiiz.shop.exception.BaseException;
+import com.natsukashiiz.shop.exception.OrderException;
 import com.natsukashiiz.shop.exception.ProductException;
 import com.natsukashiiz.shop.exception.WalletException;
 import com.natsukashiiz.shop.model.request.CreateOrderRequest;
@@ -29,12 +31,28 @@ public class OrderService {
     private final PointRepository pointRepository;
     private final CartRepository cartRepository;
 
+    public OrderResponse myOrderById(UUID orderId) throws BaseException {
+        Optional<Order> orderOptional = orderRepository.findById(orderId);
+        if (!orderOptional.isPresent()) {
+            throw OrderException.invalid();
+        }
+        return buildResponse(orderOptional.get());
+    }
+
     public List<OrderResponse> myOrders(Account account) {
         return orderRepository.findAllByAccount(account)
                 .stream()
                 .map(this::buildResponse)
                 .collect(Collectors.toList());
     }
+
+    public List<OrderResponse> myOrderListByLatest(Account account) {
+        return orderRepository.findAllByAccountOrderByCreatedAtDesc(account)
+                .stream()
+                .map(this::buildResponse)
+                .collect(Collectors.toList());
+    }
+
 
     @Transactional(rollbackOn = BaseException.class)
     public List<OrderResponse> create(List<CreateOrderRequest> requests, Account account) throws BaseException {
@@ -48,16 +66,16 @@ public class OrderService {
                 .stream()
                 .collect(Collectors.toMap(Product::getId, Function.identity()));
 
-        double paid = requests.stream()
-                .mapToDouble(e -> productMap.get(e.getProductId()).getPrice() * e.getQuantity())
-                .sum();
-
-        double balance = walletOptional.get().getBalance();
-        if (balance - paid < 0) {
-            log.warn("Buy-[block]:(Insufficient balance). requests:{}, balance:{}, paid:{}", requests, balance, paid);
-            throw WalletException.insufficient();
-        }
-        walletRepository.decreaseBalance(account.getId(), paid);
+//        double paid = requests.stream()
+//                .mapToDouble(e -> productMap.get(e.getProductId()).getPrice() * e.getQuantity())
+//                .sum();
+//
+//        double balance = walletOptional.get().getBalance();
+//        if (balance - paid < 0) {
+//            log.warn("Buy-[block]:(Insufficient balance). requests:{}, balance:{}, paid:{}", requests, balance, paid);
+//            throw WalletException.insufficient();
+//        }
+//        walletRepository.decreaseBalance(account.getId(), paid);
 
         List<OrderResponse> responses = new LinkedList<>();
         for (CreateOrderRequest req : requests) {
@@ -73,7 +91,7 @@ public class OrderService {
             }
 
             productRepository.decreaseQuantity(product.getId(), req.getQuantity());
-            pointRepository.increasePoint(account.getId(), 10.25 * req.getQuantity());
+//            pointRepository.increasePoint(account.getId(), 10.25 * req.getQuantity());
             cartRepository.deleteByProductAndAccount(product, account);
 
             double totalPrice = product.getPrice() * req.getQuantity();
@@ -84,12 +102,23 @@ public class OrderService {
             order.setPrice(product.getPrice());
             order.setQuantity(req.getQuantity());
             order.setTotalPrice(totalPrice);
+            order.setStatus(OrderStatus.PENDING);
             orderRepository.save(order);
 
             responses.add(buildResponse(order));
         }
 
         return responses;
+    }
+
+    @Transactional
+    public void updateChargeId(UUID orderId, String chargeId) {
+        orderRepository.updateChargeId(orderId, chargeId);
+    }
+
+    @Transactional
+    public void updateStatus(UUID orderId, OrderStatus status) {
+        orderRepository.updateStatus(orderId, status);
     }
 
     private OrderResponse buildResponse(Order order) {
@@ -99,6 +128,7 @@ public class OrderService {
                 .productPrice(order.getPrice())
                 .quantity(order.getQuantity())
                 .totalPrice(order.getTotalPrice())
+                .status(order.getStatus())
                 .time(order.getCreatedAt())
                 .build();
     }

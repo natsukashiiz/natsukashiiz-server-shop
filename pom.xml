@@ -85,6 +85,13 @@
             <artifactId>google-api-client-jackson2</artifactId>
             <version>1.20.0</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/co.omise/omise-java -->
+        <dependency>
+            <groupId>co.omise</groupId>
+            <artifactId>omise-java</artifactId>
+            <version>4.7.0</version>
+        </dependency>
+
     </dependencies>
 
     <build>
