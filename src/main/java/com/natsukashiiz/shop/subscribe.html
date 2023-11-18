@@ -33,12 +33,8 @@
         <ul id="productList"></ul>
         <hr>
 
-        <p>Wallet: ฿<span id="wallet"></span></p>
-        <form id="topUpForm" onsubmit="event.preventDefault(); topUp()">
-            <input id="amount" value="100" />
-            <button type="submit">submit</button>
-        </form>
-        <span id="payUrl"></span>
+        <p>Payment Method</p>
+        <select id="paymentMethod"></select>
         <hr>
 
         <p>Order List</p>
@@ -62,7 +58,7 @@
 
         const createSource = (amount) => {
             return new Promise((resolve, reject) => {
-                Omise.createSource('mobile_banking_scb', {
+                Omise.createSource($("#paymentMethod").val(), {
                     amount: amount * 100,
                     currency: "THB"
                 }, (statusCode, response) => {
@@ -73,6 +69,62 @@
                 })
             })
         }
+
+        const paymentMethods = [
+            'alipay',
+            'alipay_cn',
+            'alipay_hk',
+            'alipayplus_mpm',
+            'alipayplus_upm',
+            'atome',
+            'atome_qr',
+            'barcode_alipay',
+            'bill_payment_tesco_lotus',
+            'bkash',
+            'boost',
+            'dana',
+            'duitnow_qr',
+            'duitnow_obw',
+            'easypaisa',
+            'econtext',
+            'fpx',
+            'gcash',
+            'grabpay',
+            'installment_bay',
+            'installment_bbl',
+            'installment_first_choice',
+            'installment_kbank',
+            'installment_ktc',
+            'installment_mbb',
+            'installment_scb',
+            'installment_ttb',
+            'installment_uob',
+            'installment_wlb_kbank',
+            'installment_wlb_ktc',
+            'internet_banking_bay',
+            'internet_banking_bbl',
+            'kakaopay',
+            'maybank_qr',
+            'mobile_banking_ocbc',
+            'mobile_banking_scb',
+            'mobile_banking_kbank',
+            'mobile_banking_bbl',
+            'mobile_banking_bay',
+            'mobile_banking_ktb',
+            'paynow',
+            'paypay',
+            'points_citi',
+            'promptpay',
+            'qr_code_upi',
+            'rabbit_linepay',
+            'shopeepay',
+            'shopeepay_jumpapp',
+            'touch_n_go',
+            'truemoney',
+            'truemoney_jumpapp',
+            'truemoney_qr'
+        ];
+
 
         const baseApi = 'http://localhost:8080';
         let token = '';
@@ -88,7 +140,6 @@
             await subNoti();
             await productList();
             await myOrder();
-            await myWallet();
         }
 
         document.addEventListener("DOMContentLoaded", async () => {
@@ -97,6 +148,10 @@
                 $("#loginBtn").css("visibility", "visible")
                 $("#loginForm").remove()
                 await loadData()
+
+                paymentMethods.forEach((val) => {
+                    $("#paymentMethod").append(`<option value="${val}">${val}</option>`)
+                })
             }
         })
 
@@ -144,7 +199,7 @@
             if (res.status === 200) {
                 window.alert("Successful")
                 await myOrder()
-                await myWallet()
+                await productList()
             } else if (res.status === 417) {
                 const err = await res.json();
                 window.alert(msg.get(err.error))
@@ -173,57 +228,6 @@
                 data.forEach((val) => {
                     $("#orderList").append(`<tr><td>${val.orderId}</td><td>${val.productName}</td><td>${val.productPrice}</td><td>${val.quantity}</td><td>฿${val.totalPrice}</td><td>${val.status}</td><td>${val.time}</td><td>${val.status === "PENDING" ? `<button onclick="pay('${val.orderId}', ${val.totalPrice})">Pay</button>` : ""}</td></tr>`)
                 })
-            }
-        }
-
-        async function myWallet() {
-            const res = await fetch("http://localhost:8080/v1/wallet", {
-                headers: {
-                    Authorization: "Bearer " + token
-                }
-            })
-
-            if (res.status === 401) {
-                token = '';
-                localStorage.removeItem("token")
-                window.location.reload()
-            } else if (res.status === 417) {
-                const err = await res.json();
-                window.alert(msg.get(err.error))
-            } else if (res.status === 200) {
-                const data = await res.json();
-                $("#wallet").html(new Intl.NumberFormat().format(data.balance))
-            }
-        }
-
-        async function topUp() {
-            const money = $("#amount").val();
-            const source = await createSource(money);
-
-            const res = await fetch("http://localhost:8080/v1/wallet", {
-                method: "PUT",
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: "Bearer " + token
-                },
-                body: JSON.stringify({
-                    source: source.id,
-                    amount: money
-                })
-            })
-
-            if (res.status === 401) {
-                token = '';
-                localStorage.removeItem("token")
-                window.location.reload()
-            } else if (res.status === 417) {
-                const err = await res.json();
-                window.alert(msg.get(err.error))
-            } else if (res.status === 200) {
-                // window.alert("Successful")
-                // await myWallet()
-                const data = await res.json();
-                $("#payUrl").html(`<a href='${data.url}'>click to pay</a>`)
             }
         }
 
@@ -298,6 +302,7 @@
                 window.alert(msg.get(err.error))
             } else if (res.status === 200) {
                 const data = await res.json();
+                $("#productList").html("")
                 data.forEach((val) => {
                     $("#productList").append(`<li>${val.name} : ฿${val.price} : จำนวนทั้งหมด ${val.quantity}  ชิ้น // <button onclick="buy(${val.id})" >buy</button></li>`)
                 })
@@ -319,9 +324,9 @@
 
         async function subNoti() {
             const event = new EventSource(baseApi + "/v1/notifications/subscribe?Authorization=" + token);
-            event.addEventListener("notifications", async function (event) {
-                if (event.data === '/v1/notifications') {
-                    await myNoti();
+            event.addEventListener("NOTIFY", async function (event) {
+                if (event.data === 'ORDER') {
+                    await myOrder();
                 }
             })
         }

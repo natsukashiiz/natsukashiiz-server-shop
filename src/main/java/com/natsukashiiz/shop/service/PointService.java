@@ -14,11 +14,15 @@ import org.springframework.stereotype.Service;
 public class PointService {
     private final PointRepository pointRepository;
 
-    public PointResponse myPoint(Account account) {
+    public PointResponse getByAccount(Account account) {
         Point point = pointRepository.findByAccount(account).get();
         return PointResponse.builder()
                 .point(point.getPoint())
                 .updateAt(point.getUpdatedAt())
                 .build();
+    }
+
+    public Point create(Point point) {
+        return pointRepository.save(point);
     }
 }

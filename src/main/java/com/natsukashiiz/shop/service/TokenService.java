@@ -22,7 +22,7 @@ public class TokenService {
                 .issuer("natsukashiiz-server-shop")
                 .issuedAt(now)
                 .expiresAt(now.plus(1, ChronoUnit.DAYS))
-                .id(RandomUtils.UUIDNotDash())
+                .id(RandomUtils.notSymbol())
                 .subject(String.valueOf(id))
                 .claim("email", email)
                 .build();

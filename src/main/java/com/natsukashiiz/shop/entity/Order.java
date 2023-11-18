@@ -28,6 +28,9 @@ public class Order {
     private Account account;
 
     @Column(nullable = false)
+    private Long productId;
+
+    @Column(nullable = false)
     private String productName;
 
     @Column(nullable = false)

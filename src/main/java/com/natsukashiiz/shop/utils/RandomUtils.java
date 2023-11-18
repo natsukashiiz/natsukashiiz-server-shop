@@ -7,7 +7,7 @@ public class RandomUtils {
         return UUID.randomUUID().toString();
     }
 
-    public static String UUIDNotDash() {
+    public static String notSymbol() {
         return UUID().replaceAll("-", "");
     }
 

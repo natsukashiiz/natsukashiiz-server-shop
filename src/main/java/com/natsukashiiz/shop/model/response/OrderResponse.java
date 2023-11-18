@@ -14,6 +14,7 @@ import java.util.UUID;
 @Getter
 public class OrderResponse implements Serializable {
     private UUID orderId;
+    private Long productId;
     private String productName;
     private Double productPrice;
     private Integer quantity;

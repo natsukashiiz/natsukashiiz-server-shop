@@ -18,7 +18,7 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
 
-    public List<NotificationResponse> getAll(Account account) {
+    public List<NotificationResponse> getAllByAccount(Account account) {
         return notificationRepository.findByAccount(account)
                 .stream()
                 .map(noti -> NotificationResponse.builder()
@@ -29,12 +29,16 @@ public class NotificationService {
     }
 
     @Transactional
-    public void read(Long id, Account account) {
+    public void readByIdAndAccount(Long id, Account account) {
         notificationRepository.isRead(id, account.getId());
     }
 
     @Transactional
-    public void readAll(Account account) {
+    public void readAllByAccount(Account account) {
         notificationRepository.isReadAll(account.getId());
+    }
+
+    public boolean existsByIdAndAccount(Long id, Account account) {
+        return notificationRepository.existsByIdAndAccount(id, account);
     }
 }

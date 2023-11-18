@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
+@ToString
 @Entity(name = "sp_accounts")
 public class Account {
     @Id

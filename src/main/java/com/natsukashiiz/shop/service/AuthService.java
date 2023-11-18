@@ -16,7 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
+import org.springframework.util.ObjectUtils;
 
 import java.time.Duration;
 import java.util.Optional;
@@ -77,7 +77,7 @@ public class AuthService {
     }
 
     public Account getCurrent() throws BaseException {
-        return getCurrent(Boolean.TRUE);
+        return getCurrent(true);
     }
 
     public Account getCurrent(boolean checkVerified) throws BaseException {
@@ -103,8 +103,8 @@ public class AuthService {
         String accountId = authentication.getName();
         String email = jwt.getClaimAsString("email");
 
-        if (!StringUtils.hasText(accountId) || !StringUtils.hasText(email)) {
-            log.warn("GetCurrent-[block]:(accountId or email is null)");
+        if (ObjectUtils.isEmpty(accountId) || ObjectUtils.isEmpty(email)) {
+            log.warn("GetCurrent-[block]:(accountId or email is empty)");
             throw AuthException.unauthorized();
         }
 

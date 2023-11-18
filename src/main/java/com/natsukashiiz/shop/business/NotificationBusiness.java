@@ -1,6 +1,7 @@
 package com.natsukashiiz.shop.business;
 
 import com.natsukashiiz.shop.exception.BaseException;
+import com.natsukashiiz.shop.exception.NotificationException;
 import com.natsukashiiz.shop.model.response.NotificationResponse;
 import com.natsukashiiz.shop.service.AuthService;
 import com.natsukashiiz.shop.service.NotificationService;
@@ -15,18 +16,23 @@ import java.util.List;
 @Log4j2
 public class NotificationBusiness {
 
-    private final NotificationService notificationService;
     private final AuthService authService;
+    private final NotificationService notificationService;
 
     public List<NotificationResponse> getAll() throws BaseException {
-        return notificationService.getAll(authService.getCurrent());
+        return notificationService.getAllByAccount(authService.getCurrent());
     }
 
     public void read(Long id) throws BaseException {
-        notificationService.read(id, authService.getCurrent());
+        if (!notificationService.existsByIdAndAccount(id, authService.getCurrent())) {
+            log.warn("Read-[block]:(notification not found). notificationId:{}", id);
+            throw NotificationException.invalid();
+        }
+
+        notificationService.readByIdAndAccount(id, authService.getCurrent());
     }
 
     public void readAll() throws BaseException {
-        notificationService.readAll(authService.getCurrent());
+        notificationService.readAllByAccount(authService.getCurrent());
     }
 }

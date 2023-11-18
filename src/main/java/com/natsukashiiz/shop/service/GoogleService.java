@@ -13,7 +13,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
+import org.springframework.util.ObjectUtils;
 
 import javax.transaction.Transactional;
 import java.io.IOException;
@@ -31,7 +31,7 @@ public class GoogleService {
 
     public TokenResponse login(GoogleLoginRequest request) throws BaseException {
 
-        if (!StringUtils.hasText(request.getIdToken())) {
+        if (ObjectUtils.isEmpty(request.getIdToken())) {
             log.warn("Login-[block]:(id token null). request:{}", request.getIdToken());
             throw LoginException.invalid();
         }
@@ -68,7 +68,7 @@ public class GoogleService {
             GoogleIdToken.Payload payload = googleIdToken.getPayload();
             Account account = new Account();
             account.setEmail(payload.getEmail());
-            account.setPassword(passwordEncoder.encode(RandomUtils.UUIDNotDash() + payload.getSubject()));
+            account.setPassword(passwordEncoder.encode(RandomUtils.notSymbol() + payload.getSubject()));
             account.setVerified(Boolean.TRUE);
 
             return Optional.of(account);

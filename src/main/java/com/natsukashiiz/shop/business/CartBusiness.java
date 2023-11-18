@@ -25,12 +25,12 @@ import java.util.stream.Collectors;
 @Log4j2
 public class CartBusiness {
 
-    private final CartService cartService;
     private final AuthService authService;
+    private final CartService cartService;
     private final ProductService productService;
 
     public List<CartResponse> getAll() throws BaseException {
-        return cartService.findAll(authService.getCurrent())
+        return cartService.findAllByAccount(authService.getCurrent())
                 .stream()
                 .map(this::buildResponse)
                 .collect(Collectors.toList());
@@ -43,38 +43,36 @@ public class CartBusiness {
     public CartResponse update(Product product, Integer quantity) throws BaseException {
         Optional<Cart> cartOptional = cartService.findByProductAndAccount(product, authService.getCurrent());
         if (!cartOptional.isPresent()) {
+            log.warn("Update-[block]:(product in cart not found). product:{}", product);
             throw CartException.invalid();
         }
         Cart cart = cartOptional.get();
 
         if (Objects.equals(cart.getQuantity(), quantity)) {
+            // ถ้าจำนวนเท่าเดิมให้ตอบกลับเลย
             return buildResponse(cart);
         }
 
         cart.setQuantity(quantity);
-        return buildResponse(cartService.update(cart, authService.getCurrent()));
+        return buildResponse(cartService.update(cart));
     }
 
-    public void delete(Long cartId) throws BaseException {
-        if (!cartService.existsById(cartId)) {
-            throw CartException.invalid();
-        }
-
-        cartService.delete(cartId, authService.getCurrent());
-    }
-
+    // กระบวนการในการ inserts rows เข้าไปใน db table ถ้าข้อมูลนั้นยังไม่มี หรือ update ข้อมูลถ้าข้อมูลนั้นมีแล้ว
     public CartResponse upsert(CartRequest request) throws BaseException {
         Optional<Product> productOptional = productService.getById(request.getProductId());
         if (!productOptional.isPresent()) {
+            log.warn("Upsert-[block]:(product not found). request:{}", request);
             throw ProductException.invalid();
         }
         Product product = productOptional.get();
 
         if (request.getQuantity() < 1) {
+            log.warn("Upsert-[block]:(invalid quantity). request:{}", request);
             throw ProductException.invalidQuantity();
         }
 
         if (product.getQuantity() - request.getQuantity() < 0) {
+            log.warn("Upsert-[block]:(product insufficient). request:{}", request);
             throw ProductException.insufficient();
         }
 
@@ -83,6 +81,15 @@ public class CartBusiness {
         } else {
             return create(product, request.getQuantity());
         }
+    }
+
+    public void delete(Long cartId) throws BaseException {
+        if (!cartService.existsById(cartId)) {
+            log.warn("Upsert-[block]:(cart not found). cartId:{}", cartId);
+            throw CartException.invalid();
+        }
+
+        cartService.delete(cartId);
     }
 
     private CartResponse buildResponse(Cart cart) {

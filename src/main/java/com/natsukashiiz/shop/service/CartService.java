@@ -22,7 +22,7 @@ public class CartService {
         return cartRepository.findByProductAndAccount(product, account);
     }
 
-    public List<Cart> findAll(Account account) {
+    public List<Cart> findAllByAccount(Account account) {
         return cartRepository.findByAccount(account);
     }
 
@@ -34,11 +34,11 @@ public class CartService {
         return cartRepository.save(cart);
     }
 
-    public Cart update(Cart cart, Account account) {
+    public Cart update(Cart cart) {
         return cartRepository.save(cart);
     }
 
-    public void delete(Long cartId, Account account) {
+    public void delete(Long cartId) {
         cartRepository.deleteById(cartId);
     }
 

@@ -49,8 +49,8 @@ public class PushNotificationService {
             try {
                 emitter.send(
                         SseEmitter.event()
-                                .name("notifications")
-                                .data("/v1/notifications")
+                                .name("NOTIFY")
+                                .data(request.getType().name())
                 );
             } catch (IOException e) {
                 emitters.remove(request.getTo().getId());

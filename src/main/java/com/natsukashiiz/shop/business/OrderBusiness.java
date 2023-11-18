@@ -1,7 +1,11 @@
 package com.natsukashiiz.shop.business;
 
 import co.omise.models.Charge;
+import co.omise.models.ChargeStatus;
+import co.omise.models.Event;
+import com.natsukashiiz.shop.common.NotificationType;
 import com.natsukashiiz.shop.common.OrderStatus;
+import com.natsukashiiz.shop.entity.Order;
 import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.exception.OrderException;
 import com.natsukashiiz.shop.model.NotificationPayload;
@@ -10,17 +14,20 @@ import com.natsukashiiz.shop.model.request.PayOrderRequest;
 import com.natsukashiiz.shop.model.response.OrderResponse;
 import com.natsukashiiz.shop.model.response.PayOrderResponse;
 import com.natsukashiiz.shop.payment.PaymentService;
-import com.natsukashiiz.shop.payment.model.ChargeData;
-import com.natsukashiiz.shop.payment.model.EventData;
+import com.natsukashiiz.shop.repository.OrderRepository;
 import com.natsukashiiz.shop.service.AuthService;
 import com.natsukashiiz.shop.service.OrderService;
 import com.natsukashiiz.shop.service.PushNotificationService;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -30,26 +37,31 @@ public class OrderBusiness {
     private final AuthService authService;
     private final PushNotificationService pushNotificationService;
     private final PaymentService paymentService;
+    private final OrderRepository orderRepository;
 
     public List<OrderResponse> myOrders() throws BaseException {
-        return orderService.myOrderListByLatest(authService.getCurrent());
+        return orderService.myOrderListByLatest(authService.getCurrent())
+                .stream()
+                .map(this::buildResponse)
+                .collect(Collectors.toList());
     }
 
     public OrderResponse myOrderById(String orderId) throws BaseException {
-        return orderService.myOrderById(UUID.fromString(orderId));
+        return buildResponse(orderService.myOrderById(UUID.fromString(orderId)));
     }
 
     public List<OrderResponse> create(List<CreateOrderRequest> requests) throws BaseException {
-        List<OrderResponse> responses = orderService.create(requests, authService.getCurrent());
-        if (!responses.isEmpty()) {
-            for (OrderResponse order : responses) {
+        List<Order> orders = orderService.create(requests, authService.getCurrent());
+        if (!orders.isEmpty()) {
+            for (Order order : orders) {
                 NotificationPayload notify = new NotificationPayload();
+                notify.setType(NotificationType.ORDER);
                 notify.setTo(authService.getCurrent());
-                notify.setMessage("you have new order no " + order.getOrderId());
+                notify.setMessage("you have new order no " + order.getId());
                 pushNotificationService.dispatchTo(notify);
             }
         }
-        return responses;
+        return orders.stream().map(this::buildResponse).collect(Collectors.toList());
     }
 
     public PayOrderResponse pay(PayOrderRequest request) throws BaseException {
@@ -66,35 +78,74 @@ public class OrderBusiness {
                 .build();
     }
 
-    public void updateOrderFromWebhook(EventData request) {
+    public void updateOrderFromWebhook(Event<Charge> request) {
         if (request.getKey().equals("charge.complete")) {
-            ChargeData data = request.getData();
-            String orderId = data.getMetadata().getOrderId();
+            Charge data = request.getData();
+            String orderId = (String) data.getMetadata().get("orderId");
             String chargeId = data.getId();
 
             try {
-                OrderResponse order = myOrderById(orderId);
+                if (ObjectUtils.isEmpty(orderId)) {
+                    log.warn("UpdateOrderFromWebhook-[block]:(not order)");
+                    throw OrderException.invalid();
+                }
+
+                Optional<Order> orderOptional = orderRepository.findById(UUID.fromString(orderId));
+                if (!orderOptional.isPresent()) {
+                    throw OrderException.invalid();
+                }
+                Order order = orderOptional.get();
+
                 if (order.getStatus() != OrderStatus.PENDING) {
-                    log.warn("UpdateOrderFromWebhook-[block]:(status not pending). orderId:{}", order.getOrderId());
+                    log.warn("UpdateOrderFromWebhook-[block]:(status not pending). orderId:{}", order.getId());
                     throw OrderException.invalid();
                 }
 
-                if (!order.getOrderId().toString().equals(orderId)) {
-                    log.warn("UpdateOrderFromWebhook-[block]:(not orderId). orderId:{}", order.getOrderId());
+                if (!order.getId().toString().equals(orderId)) {
+                    log.warn("UpdateOrderFromWebhook-[block]:(not orderId). orderId:{}", order.getId());
                     throw OrderException.invalid();
                 }
 
-                if (data.getStatus().equals("successful")) {
+                if (!order.getChargeId().equals(chargeId)) {
+                    log.warn("UpdateOrderFromWebhook-[block]:(not chargeId). chargeId:{}", order.getChargeId());
+                    throw OrderException.invalid();
+                }
+
+                NotificationPayload payload = new NotificationPayload();
+                payload.setType(NotificationType.ORDER);
+                payload.setFrom(0L);
+                payload.setTo(order.getAccount());
+
+                if (data.getStatus().equals(ChargeStatus.Successful)) {
                     orderService.updateStatus(UUID.fromString(orderId), OrderStatus.SUCCESS);
+                    payload.setMessage("order is success");
                 } else {
-                    log.warn("UpdateOrderFromWebhook-[block]:(not successful). orderId:{}", order.getOrderId());
+                    log.warn("UpdateOrderFromWebhook-[block]:(not successful). orderId:{}", order.getId());
                     orderService.updateStatus(UUID.fromString(orderId), OrderStatus.FAIL);
+                    orderService.remainQuantity(order.getProductId(), order.getQuantity());
+                    payload.setMessage("order is fail");
                 }
+
+                pushNotificationService.dispatchTo(payload);
             } catch (BaseException e) {
                 e.printStackTrace();
+                log.warn("UpdateOrderFromWebhook-[block]:(exception). data:{}, error:{}", request, e.getMessage());
             }
         } else {
-            log.debug("UpdateOrderFromWebhook-[next]. data:{}", request);
+            log.warn("UpdateOrderFromWebhook-[block]:(not charge.complete). data:{}", request);
         }
+    }
+
+    private OrderResponse buildResponse(Order order) {
+        return OrderResponse.builder()
+                .orderId(order.getId())
+                .productId(order.getProductId())
+                .productName(order.getProductName())
+                .productPrice(order.getPrice())
+                .quantity(order.getQuantity())
+                .totalPrice(order.getTotalPrice())
+                .status(order.getStatus())
+                .time(order.getCreatedAt())
+                .build();
     }
 }

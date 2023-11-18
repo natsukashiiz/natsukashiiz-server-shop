@@ -1,7 +1,8 @@
 package com.natsukashiiz.shop.controller;
 
+import co.omise.models.Charge;
+import co.omise.models.Event;
 import com.natsukashiiz.shop.business.OrderBusiness;
-import com.natsukashiiz.shop.payment.model.EventData;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +20,7 @@ public class PaymentController {
     private final OrderBusiness orderBusiness;
 
     @PostMapping("/webhook")
-    public ResponseEntity<?> webhook(@RequestBody EventData request) {
+    public ResponseEntity<?> webhook(@RequestBody Event<Charge> request) {
         orderBusiness.updateOrderFromWebhook(request);
         return ResponseEntity.ok(request);
     }

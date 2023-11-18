@@ -19,4 +19,6 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     @Modifying
     @Query("UPDATE sp_notifications SET isRead = TRUE WHERE account.id = :accountId")
     void isReadAll(@Param("accountId") Long accountId);
+
+    boolean existsByIdAndAccount(Long id, Account account);
 }

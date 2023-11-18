@@ -1,7 +1,7 @@
 package com.natsukashiiz.shop.controller;
 
+import com.natsukashiiz.shop.business.AccountBusiness;
 import com.natsukashiiz.shop.exception.BaseException;
-import com.natsukashiiz.shop.service.AccountService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,17 +15,17 @@ import org.springframework.web.bind.annotation.RestController;
 @AllArgsConstructor
 @Tag(name = "Account")
 public class AccountController {
-    private final AccountService accountService;
+    private final AccountBusiness accountBusiness;
 
     @PostMapping("/code")
-    public ResponseEntity<?> getNewVerifyCode() throws BaseException {
-        accountService.getNewVerifyCode();
+    public ResponseEntity<?> getVerifyCode() throws BaseException {
+        accountBusiness.getVerifyCode();
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/verify/{code}")
     public ResponseEntity<?> verify(@PathVariable String code) throws BaseException {
-        accountService.verify(code);
+        accountBusiness.verify(code);
         return ResponseEntity.ok().build();
     }
 }
