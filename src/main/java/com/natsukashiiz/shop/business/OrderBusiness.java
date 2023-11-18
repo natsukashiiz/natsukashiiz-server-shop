@@ -8,6 +8,7 @@ import com.natsukashiiz.shop.common.OrderStatus;
 import com.natsukashiiz.shop.entity.Order;
 import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.exception.OrderException;
+import com.natsukashiiz.shop.exception.PaymentException;
 import com.natsukashiiz.shop.model.NotificationPayload;
 import com.natsukashiiz.shop.model.request.CreateOrderRequest;
 import com.natsukashiiz.shop.model.request.PayOrderRequest;
@@ -22,7 +23,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -65,12 +65,25 @@ public class OrderBusiness {
     }
 
     public PayOrderResponse pay(PayOrderRequest request) throws BaseException {
+
+        if (ObjectUtils.isEmpty(request.getOrderId())) {
+            log.warn("Pay-[block]:(invalid order id). request:{}", request);
+            throw PaymentException.invalidOrder();
+        }
+
+        if (ObjectUtils.isEmpty(request.getSource())) {
+            log.warn("Pay-[block]:(invalid source). request:{}", request);
+            throw PaymentException.invalidSource();
+        }
+
         OrderResponse order = myOrderById(request.getOrderId());
         Charge charge = paymentService.charge(order.getTotalPrice(), request.getSource(), order.getOrderId().toString());
-        log.debug("status: {}", charge.getStatus());
-        log.debug("failed code: {}", charge.getFailureCode());
-        log.debug("failed text: {}", charge.getFailureMessage());
-        log.debug("link: {}", charge.getAuthorizeUri());
+
+        if (ObjectUtils.isEmpty(charge.getId())) {
+            log.warn("Pay-[block]:(invalid chargeId). request:{}", request);
+            throw PaymentException.invalid();
+        }
+
         orderService.updateChargeId(order.getOrderId(), charge.getId());
         return PayOrderResponse.builder()
                 .orderId(order.getOrderId())
