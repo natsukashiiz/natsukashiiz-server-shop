@@ -3,16 +3,16 @@ package com.natsukashiiz.shop.entity;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
-import javax.persistence.*;
-import java.util.Date;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.ManyToOne;
 
 @Getter
 @Setter
 @ToString
-@Entity(name = "sp_product_options")
+@Entity(name = "sp_products_options")
 public class ProductOption extends BaseEntity {
 
     @ManyToOne

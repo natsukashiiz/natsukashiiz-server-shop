@@ -1,6 +1,5 @@
 package com.natsukashiiz.shop.business;
 
-import com.natsukashiiz.shop.entity.Product;
 import com.natsukashiiz.shop.model.response.ProductResponse;
 import com.natsukashiiz.shop.service.ProductService;
 import lombok.AllArgsConstructor;
@@ -19,16 +18,7 @@ public class ProductBusiness {
     public List<ProductResponse> getAll() {
         return productService.getList()
                 .stream()
-                .map(this::buildResponse)
+                .map(ProductResponse::build)
                 .collect(Collectors.toList());
-    }
-
-    public ProductResponse buildResponse(Product product) {
-        return ProductResponse.builder()
-                .id(product.getId())
-                .name(product.getName())
-                .price(product.getPrice())
-                .quantity(product.getQuantity())
-                .build();
     }
 }

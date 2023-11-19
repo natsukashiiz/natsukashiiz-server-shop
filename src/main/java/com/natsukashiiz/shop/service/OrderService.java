@@ -1,16 +1,15 @@
 package com.natsukashiiz.shop.service;
 
 import com.natsukashiiz.shop.common.OrderStatus;
-import com.natsukashiiz.shop.entity.Account;
-import com.natsukashiiz.shop.entity.Order;
-import com.natsukashiiz.shop.entity.Product;
+import com.natsukashiiz.shop.entity.*;
 import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.exception.OrderException;
 import com.natsukashiiz.shop.exception.ProductException;
 import com.natsukashiiz.shop.model.request.CreateOrderRequest;
 import com.natsukashiiz.shop.repository.CartRepository;
+import com.natsukashiiz.shop.repository.OrderItemRepository;
 import com.natsukashiiz.shop.repository.OrderRepository;
-import com.natsukashiiz.shop.repository.ProductRepository;
+import com.natsukashiiz.shop.repository.ProductOptionRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
@@ -25,7 +24,8 @@ import java.util.stream.Collectors;
 @Log4j2
 public class OrderService {
     private final OrderRepository orderRepository;
-    private final ProductRepository productRepository;
+    private final OrderItemRepository itemRepository;
+    private final ProductOptionRepository productOptionRepository;
     private final CartRepository cartRepository;
 
     public Order myOrderById(UUID orderId) throws BaseException {
@@ -42,45 +42,59 @@ public class OrderService {
 
 
     @Transactional(rollbackOn = BaseException.class)
-    public List<Order> create(List<CreateOrderRequest> requests, Account account) throws BaseException {
+    public Order create(List<CreateOrderRequest> requests, Account account) throws BaseException {
 
-        Map<Long, Product> productMap = productRepository.findAllById(requests.stream().map(CreateOrderRequest::getProductId).collect(Collectors.toSet()))
+        Map<Long, ProductOption> productOptionMap = productOptionRepository.findAllById(requests.stream().map(CreateOrderRequest::getOptionId).collect(Collectors.toSet()))
                 .stream()
-                .collect(Collectors.toMap(Product::getId, Function.identity()));
+                .collect(Collectors.toMap(ProductOption::getId, Function.identity()));
 
+        Order order = new Order();
+        order.setAccount(account);
+        order.setStatus(OrderStatus.PENDING);
 
-        List<Order> responses = new LinkedList<>();
+        List<OrderItem> items = new LinkedList<>();
+
+        double totalPay = 0.0;
         for (CreateOrderRequest req : requests) {
-            Product product = productMap.get(req.getProductId());
-            if (Objects.isNull(product)) {
-                log.warn("Buy-[block]:(not found product). req:{}", req);
+            ProductOption productOption = productOptionMap.get(req.getOptionId());
+            if (Objects.isNull(productOption)) {
+                log.warn("Buy-[block]:(not found product option). req:{}", req);
                 throw ProductException.invalid();
             }
+            Product product = productOption.getProduct();
 
-            if (product.getQuantity() - req.getQuantity() < 0) {
-                log.warn("Buy-[block]:(Insufficient quantity of products). req:{}, product:{}", req, product);
+            if (productOption.getQuantity() - req.getQuantity() < 0) {
+                log.warn("Buy-[block]:(Insufficient quantity of product option). req:{}, product:{}", req, product);
                 throw ProductException.insufficient();
             }
 
-            productRepository.decreaseQuantity(product.getId(), req.getQuantity());
-            cartRepository.deleteByProductAndAccount(product, account);
+            productOptionRepository.decreaseQuantity(product.getId(), req.getQuantity());
+            cartRepository.deleteByProductOptionAndAccount(productOption, account);
 
-            double totalPrice = product.getPrice() * req.getQuantity();
+            double totalPrice = productOption.getPrice() * req.getQuantity();
 
-            Order order = new Order();
-            order.setAccount(account);
-            order.setProductId(product.getId());
-            order.setProductName(product.getName());
-            order.setPrice(product.getPrice());
-            order.setQuantity(req.getQuantity());
-            order.setTotalPrice(totalPrice);
-            order.setStatus(OrderStatus.PENDING);
-            orderRepository.save(order);
+            OrderItem item = new OrderItem();
+            item.setOrder(order);
+            item.setProductId(product.getId());
+            item.setProductName(product.getName());
+            item.setOptionId(productOption.getId());
+            item.setOptionName(productOption.getName());
+            item.setPrice(productOption.getPrice());
+            item.setQuantity(req.getQuantity());
+            item.setTotalPrice(totalPrice);
 
-            responses.add(order);
+            items.add(item);
+
+            totalPay += totalPrice;
         }
 
-        return responses;
+        order.setTotalPay(totalPay);
+        orderRepository.save(order);
+        itemRepository.saveAll(items);
+
+        order.setItems(items);
+
+        return order;
     }
 
     @Transactional
@@ -95,6 +109,6 @@ public class OrderService {
 
     @Transactional
     public void remainQuantity(Long productId, Integer quantity) {
-        productRepository.increaseQuantity(productId, quantity);
+        productOptionRepository.increaseQuantity(productId, quantity);
     }
 }

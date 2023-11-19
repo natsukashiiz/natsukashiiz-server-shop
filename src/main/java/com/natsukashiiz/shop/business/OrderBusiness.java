@@ -6,6 +6,7 @@ import co.omise.models.Event;
 import com.natsukashiiz.shop.common.NotificationType;
 import com.natsukashiiz.shop.common.OrderStatus;
 import com.natsukashiiz.shop.entity.Order;
+import com.natsukashiiz.shop.entity.OrderItem;
 import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.exception.OrderException;
 import com.natsukashiiz.shop.exception.PaymentException;
@@ -42,26 +43,22 @@ public class OrderBusiness {
     public List<OrderResponse> myOrders() throws BaseException {
         return orderService.myOrderListByLatest(authService.getCurrent())
                 .stream()
-                .map(this::buildResponse)
+                .map(OrderResponse::build)
                 .collect(Collectors.toList());
     }
 
     public OrderResponse myOrderById(String orderId) throws BaseException {
-        return buildResponse(orderService.myOrderById(UUID.fromString(orderId)));
+        return OrderResponse.build(orderService.myOrderById(UUID.fromString(orderId)));
     }
 
-    public List<OrderResponse> create(List<CreateOrderRequest> requests) throws BaseException {
-        List<Order> orders = orderService.create(requests, authService.getCurrent());
-        if (!orders.isEmpty()) {
-            for (Order order : orders) {
-                NotificationPayload notify = new NotificationPayload();
-                notify.setType(NotificationType.ORDER);
-                notify.setTo(authService.getCurrent());
-                notify.setMessage("you have new order no " + order.getId());
-                pushNotificationService.dispatchTo(notify);
-            }
-        }
-        return orders.stream().map(this::buildResponse).collect(Collectors.toList());
+    public OrderResponse create(List<CreateOrderRequest> requests) throws BaseException {
+        Order order = orderService.create(requests, authService.getCurrent());
+        NotificationPayload notify = new NotificationPayload();
+        notify.setType(NotificationType.ORDER);
+        notify.setTo(authService.getCurrent());
+        notify.setMessage("you have new order no " + order.getId());
+        pushNotificationService.dispatchTo(notify);
+        return OrderResponse.build(order);
     }
 
     public PayOrderResponse pay(PayOrderRequest request) throws BaseException {
@@ -77,7 +74,7 @@ public class OrderBusiness {
         }
 
         OrderResponse order = myOrderById(request.getOrderId());
-        Charge charge = paymentService.charge(order.getTotalPrice(), request.getSource(), order.getOrderId().toString());
+        Charge charge = paymentService.charge(order.getTotalPay(), request.getSource(), order.getOrderId().toString());
 
         if (ObjectUtils.isEmpty(charge.getId())) {
             log.warn("Pay-[block]:(invalid chargeId). request:{}", request);
@@ -135,7 +132,11 @@ public class OrderBusiness {
                 } else {
                     log.warn("UpdateOrderFromWebhook-[block]:(not successful). orderId:{}", order.getId());
                     orderService.updateStatus(UUID.fromString(orderId), OrderStatus.FAIL);
-                    orderService.remainQuantity(order.getProductId(), order.getQuantity());
+
+                    for (OrderItem item : order.getItems()) {
+                        orderService.remainQuantity(item.getProductId(), item.getQuantity());
+                    }
+
                     payload.setMessage("order is fail");
                 }
 
@@ -147,18 +148,5 @@ public class OrderBusiness {
         } else {
             log.warn("UpdateOrderFromWebhook-[block]:(not charge.complete). data:{}", request);
         }
-    }
-
-    private OrderResponse buildResponse(Order order) {
-        return OrderResponse.builder()
-                .orderId(order.getId())
-                .productId(order.getProductId())
-                .productName(order.getProductName())
-                .productPrice(order.getPrice())
-                .quantity(order.getQuantity())
-                .totalPrice(order.getTotalPrice())
-                .status(order.getStatus())
-                .time(order.getCreatedAt())
-                .build();
     }
 }

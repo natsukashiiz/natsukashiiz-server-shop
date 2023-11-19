@@ -9,7 +9,8 @@ import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
+import java.sql.Timestamp;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -27,20 +28,11 @@ public class Order {
     @ManyToOne
     private Account account;
 
-    @Column(nullable = false)
-    private Long productId;
+    @OneToMany(mappedBy = "order")
+    private List<OrderItem> items;
 
     @Column(nullable = false)
-    private String productName;
-
-    @Column(nullable = false)
-    private Integer quantity;
-
-    @Column(nullable = false)
-    private Double price;
-
-    @Column(nullable = false)
-    private Double totalPrice;
+    private Double totalPay;
 
     @Column(nullable = false)
     @Enumerated(EnumType.ORDINAL)
@@ -49,8 +41,8 @@ public class Order {
     private String chargeId;
 
     @CreationTimestamp
-    private LocalDateTime createdAt;
+    private Timestamp createdAt;
 
     @UpdateTimestamp
-    private LocalDateTime updatedAt;
+    private Timestamp updatedAt;
 }

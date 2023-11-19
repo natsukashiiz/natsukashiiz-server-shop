@@ -17,8 +17,12 @@ public class Cart {
     @ManyToOne
     private Account account;
 
-    @OneToOne
+    @ManyToOne
     private Product product;
 
+    @ManyToOne
+    private ProductOption productOption;
+
+    @Column(nullable = false)
     private Integer quantity;
 }
