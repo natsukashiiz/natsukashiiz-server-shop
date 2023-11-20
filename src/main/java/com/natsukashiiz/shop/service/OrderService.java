@@ -42,7 +42,7 @@ public class OrderService {
 
 
     @Transactional(rollbackOn = BaseException.class)
-    public Order create(List<CreateOrderRequest> requests, Account account) throws BaseException {
+    public Order create(List<CreateOrderRequest> requests, Account account, Address address) throws BaseException {
 
         Map<Long, ProductOption> productOptionMap = productOptionRepository.findAllById(requests.stream().map(CreateOrderRequest::getOptionId).collect(Collectors.toSet()))
                 .stream()
@@ -50,6 +50,7 @@ public class OrderService {
 
         Order order = new Order();
         order.setAccount(account);
+        order.setAddress(address);
         order.setStatus(OrderStatus.PENDING);
 
         List<OrderItem> items = new LinkedList<>();
@@ -94,6 +95,8 @@ public class OrderService {
 
         order.setItems(items);
 
+//        task(order.getId(), 5000);
+
         return order;
     }
 
@@ -111,4 +114,28 @@ public class OrderService {
     public void remainQuantity(Long productId, Integer quantity) {
         productOptionRepository.increaseQuantity(productId, quantity);
     }
+
+//    public void task(UUID orderId, long timeout) {
+//        Thread x = new Thread(() -> {
+//            log.debug("Create-[next]:(thread running)");
+//            try {
+//                Thread.sleep(timeout);
+//                log.debug("Create-[next]:(thread process)");
+//
+//                Order order = orderRepository.findById(orderId).get();
+//
+//                if (order.getStatus() == OrderStatus.PENDING) {
+////                    for (OrderItem item : order.getItems()) {
+////                        remainQuantity(item.getProductId(), item.getQuantity());
+////                    }
+//
+//                    updateStatus(order.getId(), OrderStatus.SYSTEM_CANCEL);
+//                }
+//            } catch (InterruptedException e) {
+//                throw new RuntimeException(e);
+//            }
+//            log.debug("Create-[next]:(thread end)");
+//        });
+//        x.start();
+//    }
 }

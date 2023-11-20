@@ -16,4 +16,7 @@ public class AccountException extends BaseException {
     public static AccountException invalidVerifyCode() {
         return new AccountException("verify.code.invalid");
     }
+    public static AccountException invalidCurrentPassword() {
+        return new AccountException("currentPassword.invalid");
+    }
 }

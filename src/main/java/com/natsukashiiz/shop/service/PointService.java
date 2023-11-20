@@ -16,10 +16,7 @@ public class PointService {
 
     public PointResponse getByAccount(Account account) {
         Point point = pointRepository.findByAccount(account).get();
-        return PointResponse.builder()
-                .point(point.getPoint())
-                .updateAt(point.getUpdatedAt())
-                .build();
+        return PointResponse.build(point);
     }
 
     public Point create(Point point) {

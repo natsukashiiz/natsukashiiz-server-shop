@@ -66,6 +66,7 @@ public class SecurityConfiguration implements WebMvcConfigurer {
                                         "/v1/payment/webhook",
                                         "/v*/auth/**")
                                 .permitAll()
+                                .antMatchers(HttpMethod.GET, "/v*/products/**").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)

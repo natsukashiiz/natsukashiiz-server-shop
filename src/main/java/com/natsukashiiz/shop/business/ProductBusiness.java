@@ -1,5 +1,6 @@
 package com.natsukashiiz.shop.business;
 
+import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.model.response.ProductResponse;
 import com.natsukashiiz.shop.service.ProductService;
 import lombok.AllArgsConstructor;
@@ -21,4 +22,9 @@ public class ProductBusiness {
                 .map(ProductResponse::build)
                 .collect(Collectors.toList());
     }
+
+    public ProductResponse getById(Long productId) throws BaseException {
+        return ProductResponse.build(productService.getById(productId));
+    }
+
 }

@@ -132,8 +132,6 @@ public class AuthService {
     }
 
     public TokenResponse createTokenResponse(Account account) {
-        return TokenResponse.builder()
-                .token(tokenService.generate(account.getId(), account.getEmail()))
-                .build();
+        return TokenResponse.build(tokenService.generate(account.getId(), account.getEmail()));
     }
 }

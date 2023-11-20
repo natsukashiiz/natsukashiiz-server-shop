@@ -18,4 +18,8 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     @Modifying
     @Query("UPDATE sp_accounts SET verified = TRUE WHERE email = :email")
     void verified(@Param("email") String email);
+
+    @Modifying
+    @Query("UPDATE sp_accounts SET password = :password WHERE id = :id")
+    void changePassword(@Param("password") String password, @Param("id") Long id);
 }

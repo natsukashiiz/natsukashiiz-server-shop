@@ -5,6 +5,7 @@ import co.omise.models.ChargeStatus;
 import co.omise.models.Event;
 import com.natsukashiiz.shop.common.NotificationType;
 import com.natsukashiiz.shop.common.OrderStatus;
+import com.natsukashiiz.shop.entity.Address;
 import com.natsukashiiz.shop.entity.Order;
 import com.natsukashiiz.shop.entity.OrderItem;
 import com.natsukashiiz.shop.exception.BaseException;
@@ -17,6 +18,7 @@ import com.natsukashiiz.shop.model.response.OrderResponse;
 import com.natsukashiiz.shop.model.response.PayOrderResponse;
 import com.natsukashiiz.shop.payment.PaymentService;
 import com.natsukashiiz.shop.repository.OrderRepository;
+import com.natsukashiiz.shop.service.AddressService;
 import com.natsukashiiz.shop.service.AuthService;
 import com.natsukashiiz.shop.service.OrderService;
 import com.natsukashiiz.shop.service.PushNotificationService;
@@ -39,6 +41,7 @@ public class OrderBusiness {
     private final PushNotificationService pushNotificationService;
     private final PaymentService paymentService;
     private final OrderRepository orderRepository;
+    private final AddressService addressService;
 
     public List<OrderResponse> myOrders() throws BaseException {
         return orderService.myOrderListByLatest(authService.getCurrent())
@@ -52,12 +55,14 @@ public class OrderBusiness {
     }
 
     public OrderResponse create(List<CreateOrderRequest> requests) throws BaseException {
-        Order order = orderService.create(requests, authService.getCurrent());
+        Address address = addressService.getMain(authService.getCurrent());
+        Order order = orderService.create(requests, authService.getCurrent(), address);
         NotificationPayload notify = new NotificationPayload();
         notify.setType(NotificationType.ORDER);
         notify.setTo(authService.getCurrent());
         notify.setMessage("you have new order no " + order.getId());
         pushNotificationService.dispatchTo(notify);
+
         return OrderResponse.build(order);
     }
 
@@ -74,6 +79,12 @@ public class OrderBusiness {
         }
 
         OrderResponse order = myOrderById(request.getOrderId());
+
+        if (order.getStatus() != OrderStatus.PENDING) {
+            log.warn("Pay-[block]:(status not pending). request:{}", request);
+            throw OrderException.invalid();
+        }
+
         Charge charge = paymentService.charge(order.getTotalPay(), request.getSource(), order.getOrderId().toString());
 
         if (ObjectUtils.isEmpty(charge.getId())) {
@@ -82,10 +93,32 @@ public class OrderBusiness {
         }
 
         orderService.updateChargeId(order.getOrderId(), charge.getId());
-        return PayOrderResponse.builder()
-                .orderId(order.getOrderId())
-                .url(charge.getAuthorizeUri())
-                .build();
+        return PayOrderResponse.build(order.getOrderId(), charge.getAuthorizeUri());
+    }
+
+    public OrderResponse cancel(String orderId) throws BaseException {
+
+        if (ObjectUtils.isEmpty(orderId)) {
+            log.warn("Cancel-[block]:(invalid order id). orderId:{}", orderId);
+            throw PaymentException.invalidOrder();
+        }
+
+        Order order = orderService.myOrderById(UUID.fromString(orderId));
+
+        if (order.getStatus() != OrderStatus.PENDING) {
+            log.warn("Cancel-[block]:(status not pending). orderId:{}", orderId);
+            throw OrderException.invalid();
+        }
+
+        for (OrderItem item : order.getItems()) {
+            orderService.remainQuantity(item.getProductId(), item.getQuantity());
+        }
+
+        orderService.updateStatus(order.getId(), OrderStatus.SELF_CANCEL);
+
+        order.setStatus(OrderStatus.SELF_CANCEL);
+
+        return OrderResponse.build(order);
     }
 
     public void updateOrderFromWebhook(Event<Charge> request) {

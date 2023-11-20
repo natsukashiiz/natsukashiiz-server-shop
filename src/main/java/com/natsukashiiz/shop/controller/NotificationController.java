@@ -3,6 +3,7 @@ package com.natsukashiiz.shop.controller;
 import com.natsukashiiz.shop.business.NotificationBusiness;
 import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.service.PushNotificationService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,23 +21,28 @@ public class NotificationController {
     private final JwtDecoder decoder;
     private final NotificationBusiness notificationBusiness;
 
+
+    @Operation(summary = "Subscribe", description = "Subscribe notification")
     @RequestMapping(value = "/subscribe", consumes = MediaType.ALL_VALUE)
     public SseEmitter subscribe(@RequestParam String Authorization) {
         Jwt jwt = decoder.decode(Authorization);
         return pushNotificationService.subscribe(Long.parseLong(jwt.getSubject()));
     }
 
+    @Operation(summary = "Get All", description = "Get all notification")
     @GetMapping
-    public ResponseEntity<?> get() throws BaseException {
+    public ResponseEntity<?> getAll() throws BaseException {
         return ResponseEntity.ok(notificationBusiness.getAll());
     }
 
+    @Operation(summary = "Read", description = "Read notification by id")
     @PutMapping("/read/{id}")
     public ResponseEntity<?> read(@PathVariable Long id) throws BaseException {
         notificationBusiness.read(id);
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Read All", description = "Read all notification")
     @PutMapping("/read/all")
     public ResponseEntity<?> readAll() throws BaseException {
         notificationBusiness.readAll();

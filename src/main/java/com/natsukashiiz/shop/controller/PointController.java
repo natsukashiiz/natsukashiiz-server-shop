@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/v1/point")
 @AllArgsConstructor
-@Tag(name = "Point")
 public class PointController {
     private final PointBusiness pointBusiness;
 

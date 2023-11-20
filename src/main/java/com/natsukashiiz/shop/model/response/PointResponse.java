@@ -1,14 +1,21 @@
 package com.natsukashiiz.shop.model.response;
 
-import lombok.Builder;
+import com.natsukashiiz.shop.entity.Point;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 
-@Builder
 @Getter
+@Setter
 public class PointResponse implements Serializable {
     private double point;
-    private LocalDateTime updateAt;
+
+    public static PointResponse build(Point point) {
+
+        PointResponse response = new PointResponse();
+        response.setPoint(point.getPoint());
+
+        return response;
+    }
 }

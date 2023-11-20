@@ -2,11 +2,11 @@ package com.natsukashiiz.shop.model.response;
 
 import com.natsukashiiz.shop.entity.Cart;
 import com.natsukashiiz.shop.entity.Product;
-import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
-@Builder
 @Getter
+@Setter
 public class CartResponse {
 
     private Long id;
@@ -19,15 +19,16 @@ public class CartResponse {
     private Product product;
 
     public static CartResponse build(Cart cart) {
-        return CartResponse.builder()
-                .id(cart.getId())
-                .productId(cart.getId())
-                .productName(cart.getProduct().getName())
-                .optionId(cart.getProductOption().getId())
-                .optionName(cart.getProductOption().getName())
-                .price(cart.getProductOption().getPrice())
-                .quantity(cart.getQuantity())
-//                .product(cart.getProduct())
-                .build();
+
+        CartResponse response = new CartResponse();
+        response.setId(cart.getId());
+        response.setProductId(cart.getProduct().getId());
+        response.setProductName(cart.getProduct().getName());
+        response.setOptionId(cart.getProductOption().getId());
+        response.setOptionName(cart.getProductOption().getName());
+        response.setPrice(cart.getProductOption().getPrice());
+        response.setQuantity(cart.getQuantity());
+
+        return response;
     }
 }

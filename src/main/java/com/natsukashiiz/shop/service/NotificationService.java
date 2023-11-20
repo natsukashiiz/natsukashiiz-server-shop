@@ -21,11 +21,8 @@ public class NotificationService {
     public List<NotificationResponse> getAllByAccount(Account account) {
         return notificationRepository.findByAccount(account)
                 .stream()
-                .map(noti -> NotificationResponse.builder()
-                        .id(noti.getId())
-                        .message(noti.getMessage())
-                        .isRead(noti.getIsRead())
-                        .build()).collect(Collectors.toList());
+                .map(NotificationResponse::build)
+                .collect(Collectors.toList());
     }
 
     @Transactional

@@ -1,11 +1,11 @@
 package com.natsukashiiz.shop.model.response;
 
 import com.natsukashiiz.shop.entity.OrderItem;
-import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
-@Builder
 @Getter
+@Setter
 public class OrderItemResponse {
 
     private Long productId;
@@ -17,14 +17,16 @@ public class OrderItemResponse {
     private Double totalPrice;
 
     public static OrderItemResponse build(OrderItem item) {
-        return OrderItemResponse.builder()
-                .productId(item.getProductId())
-                .productName(item.getProductName())
-                .optionId(item.getOptionId())
-                .optionName(item.getOptionName())
-                .price(item.getPrice())
-                .quantity(item.getQuantity())
-                .totalPrice(item.getTotalPrice())
-                .build();
+
+        OrderItemResponse response = new OrderItemResponse();
+        response.setProductId(item.getProductId());
+        response.setProductName(item.getProductName());
+        response.setOptionId(item.getOptionId());
+        response.setOptionName(item.getOptionName());
+        response.setPrice(item.getPrice());
+        response.setQuantity(item.getQuantity());
+        response.setTotalPrice(item.getTotalPrice());
+
+        return response;
     }
 }

@@ -28,6 +28,9 @@ public class Order {
     @ManyToOne
     private Account account;
 
+    @ManyToOne
+    private Address address;
+
     @OneToMany(mappedBy = "order")
     private List<OrderItem> items;
 
