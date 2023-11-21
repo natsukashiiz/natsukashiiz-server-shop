@@ -8,6 +8,7 @@ import lombok.Setter;
 @Setter
 public class AddressResponse {
 
+    private Long id;
     private String firstName;
     private String lastName;
     private String mobile;
@@ -17,6 +18,7 @@ public class AddressResponse {
     public static AddressResponse build(Address address) {
 
         AddressResponse response = new AddressResponse();
+        response.setId(address.getId());
         response.setFirstName(address.getFirstName());
         response.setLastName(address.getLastName());
         response.setMobile(address.getMobile());

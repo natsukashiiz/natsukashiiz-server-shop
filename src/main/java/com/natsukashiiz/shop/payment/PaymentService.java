@@ -35,7 +35,7 @@ public class PaymentService {
                     .amount((long) (amount * 100))
                     .currency("thb")
                     .source(source)
-                    .returnUri("http://127.0.0.1:8081/subscribe.html")
+                    .returnUri("http://localhost:4200/orders/detail/" + orderId)
                     .metadata("orderId", orderId)
                     .build();
             return client().sendRequest(request);

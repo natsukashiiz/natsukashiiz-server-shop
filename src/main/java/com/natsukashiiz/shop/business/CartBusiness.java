@@ -1,7 +1,6 @@
 package com.natsukashiiz.shop.business;
 
 import com.natsukashiiz.shop.entity.Cart;
-import com.natsukashiiz.shop.entity.Product;
 import com.natsukashiiz.shop.entity.ProductOption;
 import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.exception.CartException;
@@ -70,14 +69,8 @@ public class CartBusiness {
             log.warn("Upsert-[block]:(invalid product). request:{}", request);
             throw ProductException.invalid();
         }
-        Product product = productOption.getProduct();
 
-        if (request.getQuantity() < 1) {
-            log.warn("Upsert-[block]:(invalid quantity). request:{}", request);
-            throw ProductException.invalidQuantity();
-        }
-
-        if (productOption.getQuantity() - request.getQuantity() < 0) {
+        if ((productOption.getQuantity() - request.getQuantity()) < 0) {
             log.warn("Upsert-[block]:(product option insufficient). request:{}", request);
             throw ProductException.insufficient();
         }
