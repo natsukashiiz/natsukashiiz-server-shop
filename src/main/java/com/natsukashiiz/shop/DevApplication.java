@@ -30,7 +30,7 @@ public class DevApplication implements ApplicationRunner {
     private void saveNewDataToDB() {
         {
             Product product = new Product();
-            product.setName("AI");
+            product.setName("iPhone 15 Pro Max");
             Product ps = productRepository.save(product);
 
             List<ProductOption> options = new ArrayList<>();
@@ -38,7 +38,7 @@ public class DevApplication implements ApplicationRunner {
             {
                 ProductOption option = new ProductOption();
                 option.setProduct(ps);
-                option.setName("CHAT-GPT");
+                option.setName("256GB");
                 option.setPrice(100.0);
                 option.setQuantity(10);
                 options.add(option);
@@ -47,7 +47,16 @@ public class DevApplication implements ApplicationRunner {
             {
                 ProductOption option = new ProductOption();
                 option.setProduct(ps);
-                option.setName("GOOGLE-BARD");
+                option.setName("512GB");
+                option.setPrice(200.0);
+                option.setQuantity(10);
+                options.add(option);
+            }
+
+            {
+                ProductOption option = new ProductOption();
+                option.setProduct(ps);
+                option.setName("1TB");
                 option.setPrice(200.0);
                 option.setQuantity(10);
                 options.add(option);
@@ -58,7 +67,7 @@ public class DevApplication implements ApplicationRunner {
 
         {
             Product product = new Product();
-            product.setName("JAVA");
+            product.setName("Samsung S23 Ultra");
             Product ps = productRepository.save(product);
 
             List<ProductOption> options = new ArrayList<>();
@@ -66,7 +75,7 @@ public class DevApplication implements ApplicationRunner {
             {
                 ProductOption option = new ProductOption();
                 option.setProduct(ps);
-                option.setName("Security");
+                option.setName("265GB");
                 option.setPrice(100.0);
                 option.setQuantity(10);
                 options.add(option);
@@ -75,35 +84,16 @@ public class DevApplication implements ApplicationRunner {
             {
                 ProductOption option = new ProductOption();
                 option.setProduct(ps);
-                option.setName("JPA");
+                option.setName("512GB");
                 option.setPrice(200.0);
                 option.setQuantity(10);
                 options.add(option);
             }
 
-            productOptionRepository.saveAll(options);
-        }
-
-        {
-            Product product = new Product();
-            product.setName("VUE");
-            Product ps = productRepository.save(product);
-
-            List<ProductOption> options = new ArrayList<>();
-
             {
                 ProductOption option = new ProductOption();
                 option.setProduct(ps);
-                option.setName("Route");
-                option.setPrice(100.0);
-                option.setQuantity(10);
-                options.add(option);
-            }
-
-            {
-                ProductOption option = new ProductOption();
-                option.setProduct(ps);
-                option.setName("Pinia");
+                option.setName("1TB");
                 option.setPrice(200.0);
                 option.setQuantity(10);
                 options.add(option);

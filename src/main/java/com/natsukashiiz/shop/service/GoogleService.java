@@ -61,7 +61,7 @@ public class GoogleService {
             // TODO: bug if idToken invalid it Internal Server Error
             GoogleIdToken googleIdToken = verifier.verify(idToken);
             if (googleIdToken == null) {
-                log.warn("VerifyIDToken-[block]:(googleIdToken null). idToken:{}", idToken);
+                log.warn("VerifyIDToken-[block]:(invalid googleIdToken). idToken:{}", idToken);
                 return Optional.empty();
             }
 
