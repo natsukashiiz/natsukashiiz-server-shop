@@ -23,7 +23,7 @@ public class Address extends BaseEntity {
     private String lastName;
     @Column(nullable = false)
     private String mobile;
-    @Column(nullable = false)
+    @Column(nullable = false, length = 500)
     private String address;
     @Column(nullable = false)
     private boolean main;

@@ -160,7 +160,7 @@ public class OrderBusiness {
                 payload.setTo(order.getAccount());
 
                 if (data.getStatus().equals(ChargeStatus.Successful)) {
-                    orderService.updateStatus(UUID.fromString(orderId), OrderStatus.SUCCESS);
+                    orderService.updateStatus(UUID.fromString(orderId), OrderStatus.PAID);
                     payload.setMessage("order is success");
                 } else {
                     log.warn("UpdateOrderFromWebhook-[block]:(not successful). orderId:{}", order.getId());
