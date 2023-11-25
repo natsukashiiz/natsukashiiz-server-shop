@@ -22,14 +22,15 @@ import com.natsukashiiz.shop.service.AddressService;
 import com.natsukashiiz.shop.service.AuthService;
 import com.natsukashiiz.shop.service.OrderService;
 import com.natsukashiiz.shop.service.PushNotificationService;
+import com.natsukashiiz.shop.task.OrderExpireTask;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
 
 @Service
@@ -42,6 +43,8 @@ public class OrderBusiness {
     private final PaymentService paymentService;
     private final OrderRepository orderRepository;
     private final AddressService addressService;
+    private final TaskScheduler taskScheduler;
+    private final Map<UUID, ScheduledFuture<?>> tasks;
 
     public List<OrderResponse> myOrders() throws BaseException {
         return orderService.myOrderListByLatest(authService.getCurrent())
@@ -57,6 +60,14 @@ public class OrderBusiness {
     public OrderResponse create(List<CreateOrderRequest> requests) throws BaseException {
         Address address = addressService.getMain(authService.getCurrent());
         Order order = orderService.create(requests, authService.getCurrent(), address);
+
+        // time out task
+        ScheduledFuture<?> schedule = taskScheduler.schedule(
+                new OrderExpireTask(order.getId(), orderService),
+                new Date(order.getPayExpire())
+        );
+        tasks.put(order.getId(), schedule);
+
         NotificationPayload notify = new NotificationPayload();
         notify.setType(NotificationType.ORDER);
         notify.setTo(authService.getCurrent());
@@ -93,6 +104,7 @@ public class OrderBusiness {
         }
 
         orderService.updateChargeId(order.getOrderId(), charge.getId());
+        tasks.remove(order.getOrderId());
         return PayOrderResponse.build(order.getOrderId(), charge.getAuthorizeUri());
     }
 
@@ -117,6 +129,8 @@ public class OrderBusiness {
         orderService.updateStatus(order.getId(), OrderStatus.SELF_CANCEL);
 
         order.setStatus(OrderStatus.SELF_CANCEL);
+
+        tasks.remove(order.getId());
 
         return OrderResponse.build(order);
     }
@@ -167,12 +181,11 @@ public class OrderBusiness {
                     orderService.updateStatus(UUID.fromString(orderId), OrderStatus.FAIL);
 
                     for (OrderItem item : order.getItems()) {
-                        orderService.remainQuantity(item.getProductId(), item.getQuantity());
+                        orderService.remainQuantity(item.getOptionId(), item.getQuantity());
                     }
 
                     payload.setMessage("order is fail");
                 }
-
                 pushNotificationService.dispatchTo(payload);
             } catch (BaseException e) {
                 e.printStackTrace();

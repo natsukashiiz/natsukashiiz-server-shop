@@ -4,6 +4,7 @@ import com.natsukashiiz.shop.entity.Address;
 import com.natsukashiiz.shop.exception.AddressException;
 import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.model.request.CreateAddressRequest;
+import com.natsukashiiz.shop.model.request.UpdateAddressRequest;
 import com.natsukashiiz.shop.model.response.AddressResponse;
 import com.natsukashiiz.shop.service.AddressService;
 import com.natsukashiiz.shop.service.AuthService;
@@ -83,5 +84,55 @@ public class AddressBusiness {
         addressService.setMain(addressId, authService.getCurrent().getId());
 
         return AddressResponse.build(addressService.getById(addressId));
+    }
+
+    public AddressResponse update(UpdateAddressRequest request) throws BaseException {
+
+        if (ObjectUtils.isEmpty(request.getId())) {
+            log.warn("Update-[block]:(invalid id). request:{}", request);
+            throw AddressException.invalid();
+        }
+
+        if (ObjectUtils.isEmpty(request.getFirstName())) {
+            log.warn("Update-[block]:(invalid first name). request:{}", request);
+            throw AddressException.invalid();
+        }
+
+        if (ObjectUtils.isEmpty(request.getLastName())) {
+            log.warn("Update-[block]:(invalid last name). request:{}", request);
+            throw AddressException.invalid();
+        }
+
+        if (ObjectUtils.isEmpty(request.getMobile())) {
+            log.warn("Update-[block]:(invalid mobile). request:{}", request);
+            throw AddressException.invalid();
+        }
+
+        if (ObjectUtils.isEmpty(request.getAddress())) {
+            log.warn("Update-[block]:(invalid address). request:{}", request);
+            throw AddressException.invalid();
+        }
+
+        Address address = this.addressService.getById(request.getId());
+
+        Address update = new Address();
+        update.setId(address.getId());
+        update.setAccount(authService.getCurrent());
+        update.setFirstName(request.getFirstName());
+        update.setLastName(request.getLastName());
+        update.setMobile(request.getMobile());
+        update.setAddress(request.getAddress());
+        update.setMain(address.isMain());
+
+        return AddressResponse.build(addressService.createOrUpdate(update));
+    }
+
+    public void delete(Long addressId) throws BaseException {
+        if (!addressService.exitsByIdAndAccount(addressId, authService.getCurrent())) {
+            log.warn("Delete-[block]:(invalid address). addressId:{}", addressId);
+            throw AddressException.invalid();
+        }
+
+        addressService.delete(addressId);
     }
 }

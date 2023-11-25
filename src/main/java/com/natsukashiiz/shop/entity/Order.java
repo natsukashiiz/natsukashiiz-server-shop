@@ -43,6 +43,9 @@ public class Order {
 
     private String chargeId;
 
+    @Column(nullable = false, updatable = false)
+    private Long payExpire;
+
     @CreationTimestamp
     private Timestamp createdAt;
 

@@ -15,6 +15,8 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -52,6 +54,7 @@ public class OrderService {
         order.setAccount(account);
         order.setAddress(address);
         order.setStatus(OrderStatus.PENDING);
+        order.setPayExpire(Instant.now().plus(10, ChronoUnit.MINUTES).toEpochMilli());
 
         List<OrderItem> items = new LinkedList<>();
 
@@ -69,7 +72,7 @@ public class OrderService {
                 throw ProductException.insufficient();
             }
 
-            productOptionRepository.decreaseQuantity(product.getId(), req.getQuantity());
+            productOptionRepository.decreaseQuantity(productOption.getId(), req.getQuantity());
             cartRepository.deleteByProductOptionAndAccount(productOption, account);
 
             double totalPrice = productOption.getPrice() * req.getQuantity();
@@ -95,8 +98,6 @@ public class OrderService {
 
         order.setItems(items);
 
-//        task(order.getId(), 5000);
-
         return order;
     }
 
@@ -111,31 +112,11 @@ public class OrderService {
     }
 
     @Transactional
-    public void remainQuantity(Long productId, Integer quantity) {
-        productOptionRepository.increaseQuantity(productId, quantity);
+    public void remainQuantity(Long optionId, Integer quantity) {
+        productOptionRepository.increaseQuantity(optionId, quantity);
     }
 
-//    public void task(UUID orderId, long timeout) {
-//        Thread x = new Thread(() -> {
-//            log.debug("Create-[next]:(thread running)");
-//            try {
-//                Thread.sleep(timeout);
-//                log.debug("Create-[next]:(thread process)");
-//
-//                Order order = orderRepository.findById(orderId).get();
-//
-//                if (order.getStatus() == OrderStatus.PENDING) {
-////                    for (OrderItem item : order.getItems()) {
-////                        remainQuantity(item.getProductId(), item.getQuantity());
-////                    }
-//
-//                    updateStatus(order.getId(), OrderStatus.SYSTEM_CANCEL);
-//                }
-//            } catch (InterruptedException e) {
-//                throw new RuntimeException(e);
-//            }
-//            log.debug("Create-[next]:(thread end)");
-//        });
-//        x.start();
-//    }
+    public List<OrderItem> findItemByOrder(Order order) {
+        return itemRepository.findByOrder(order);
+    }
 }

@@ -3,6 +3,7 @@ package com.natsukashiiz.shop.controller;
 import com.natsukashiiz.shop.business.AddressBusiness;
 import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.model.request.CreateAddressRequest;
+import com.natsukashiiz.shop.model.request.UpdateAddressRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -37,5 +38,16 @@ public class AddressController {
     @PatchMapping("/main/{addressId}")
     public ResponseEntity<?> setMain(@PathVariable Long addressId) throws BaseException {
         return ResponseEntity.ok(addressBusiness.setMain(addressId));
+    }
+
+    @PutMapping
+    public ResponseEntity<?> update(@RequestBody UpdateAddressRequest request) throws BaseException {
+        return ResponseEntity.ok(addressBusiness.update(request));
+    }
+
+    @DeleteMapping("/{addressId}")
+    public ResponseEntity<?> delete(@PathVariable Long addressId) throws BaseException {
+        addressBusiness.delete(addressId);
+        return ResponseEntity.ok().build();
     }
 }

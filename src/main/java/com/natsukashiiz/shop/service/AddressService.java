@@ -45,11 +45,6 @@ public class AddressService {
     }
 
     public Address createOrUpdate(Address address) {
-
-        if (address.isMain()) {
-            removeMain(address.getAccount());
-        }
-
         return addressRepository.save(address);
     }
 
@@ -74,5 +69,13 @@ public class AddressService {
 
     public Long countBy(Account account) {
         return addressRepository.countByAccount(account);
+    }
+
+    public boolean exitsByIdAndAccount(Long addressId, Account account) {
+        return addressRepository.existsByIdAndAccount(addressId, account);
+    }
+
+    public void delete(Long addressId) {
+        addressRepository.deleteById(addressId);
     }
 }

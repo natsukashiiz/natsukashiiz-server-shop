@@ -26,4 +26,6 @@ public interface AddressRepository extends JpaRepository<Address, Long> {
     @Modifying
     @Query("UPDATE sp_addresses SET main = true WHERE id = :addressId AND account.id = :accountId")
     void setMain(Long addressId, Long accountId);
+
+    boolean existsByIdAndAccount(Long addressId, Account account);
 }

@@ -24,6 +24,7 @@ public class OrderResponse implements Serializable {
     @Enumerated(EnumType.ORDINAL)
     private OrderStatus status;
     private Timestamp time;
+    private Long payExpire;
 
 
     public Timestamp getTime() {
@@ -43,6 +44,7 @@ public class OrderResponse implements Serializable {
         response.setTotalPay(order.getTotalPay());
         response.setStatus(order.getStatus());
         response.setTime(order.getCreatedAt());
+        response.setPayExpire(order.getPayExpire());
 
         return response;
     }
