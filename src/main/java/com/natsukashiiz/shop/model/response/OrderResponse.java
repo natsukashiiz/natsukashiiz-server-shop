@@ -8,8 +8,7 @@ import lombok.Setter;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import java.io.Serializable;
-import java.sql.Timestamp;
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -18,18 +17,20 @@ import java.util.stream.Collectors;
 @Setter
 public class OrderResponse implements Serializable {
     private UUID orderId;
-    private AddressResponse address;
     private List<OrderItemResponse> items;
+    private String firstName;
+    private String lastName;
+    private String mobile;
+    private String address;
     private Double totalPay;
-    @Enumerated(EnumType.ORDINAL)
+    @Enumerated(EnumType.STRING)
     private OrderStatus status;
-    private Timestamp time;
+    private String payUrl;
     private Long payExpire;
-
-
-    public Timestamp getTime() {
-        return time == null ? Timestamp.from(Instant.now()) : time;
-    }
+    private String payMethod;
+    private LocalDateTime paidAt;
+    private LocalDateTime cancelAt;
+    private LocalDateTime createdAt;
 
     public static OrderResponse build(Order order) {
         List<OrderItemResponse> items = order.getItems()
@@ -39,12 +40,19 @@ public class OrderResponse implements Serializable {
 
         OrderResponse response = new OrderResponse();
         response.setOrderId(order.getId());
-        response.setAddress(AddressResponse.build(order.getAddress()));
         response.setItems(items);
+        response.setFirstName(order.getFirstName());
+        response.setLastName(order.getLastName());
+        response.setMobile(order.getMobile());
+        response.setAddress(order.getAddress());
         response.setTotalPay(order.getTotalPay());
         response.setStatus(order.getStatus());
-        response.setTime(order.getCreatedAt());
+        response.setPayUrl(order.getPayUrl());
         response.setPayExpire(order.getPayExpire());
+        response.setPayMethod(order.getPayMethod());
+        response.setPaidAt(order.getPaidAt());
+        response.setCancelAt(order.getCancelAt());
+        response.setCreatedAt(order.getCreatedAt());
 
         return response;
     }

@@ -14,4 +14,5 @@ public class UpdateAddressRequest {
     private String lastName;
     private String mobile;
     private String address;
+    private boolean main;
 }

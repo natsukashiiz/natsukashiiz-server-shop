@@ -30,7 +30,7 @@ public class OrderService {
     private final ProductOptionRepository productOptionRepository;
     private final CartRepository cartRepository;
 
-    public Order myOrderById(UUID orderId) throws BaseException {
+    public Order findById(UUID orderId) throws BaseException {
         Optional<Order> orderOptional = orderRepository.findById(orderId);
         if (!orderOptional.isPresent()) {
             throw OrderException.invalid();
@@ -52,7 +52,10 @@ public class OrderService {
 
         Order order = new Order();
         order.setAccount(account);
-        order.setAddress(address);
+        order.setFirstName(address.getFirstName());
+        order.setLastName(address.getLastName());
+        order.setMobile(address.getMobile());
+        order.setAddress(address.getAddress());
         order.setStatus(OrderStatus.PENDING);
         order.setPayExpire(Instant.now().plus(10, ChronoUnit.MINUTES).toEpochMilli());
 
@@ -99,6 +102,10 @@ public class OrderService {
         order.setItems(items);
 
         return order;
+    }
+
+    public Order update(Order order) {
+        return orderRepository.save(order);
     }
 
     @Transactional

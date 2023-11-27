@@ -3,15 +3,16 @@ package com.natsukashiiz.shop.entity;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.DynamicUpdate;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
+import java.util.List;
 
 @Getter
 @Setter
 @ToString
 @Entity(name = "sp_addresses")
+@DynamicUpdate
 public class Address extends BaseEntity {
 
     @ManyToOne

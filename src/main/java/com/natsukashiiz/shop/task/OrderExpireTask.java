@@ -25,7 +25,7 @@ public class OrderExpireTask implements Runnable {
     @Override
     public void run() {
         try {
-            Order order = orderService.myOrderById(this.orderId);
+            Order order = orderService.findById(this.orderId);
 
             if (order.getStatus() == OrderStatus.PENDING) {
                 List<OrderItem> items = orderService.findItemByOrder(order);

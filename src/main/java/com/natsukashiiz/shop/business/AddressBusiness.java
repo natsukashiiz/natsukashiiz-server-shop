@@ -13,6 +13,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -74,18 +75,7 @@ public class AddressBusiness {
         return AddressResponse.build(addressService.createOrUpdate(address));
     }
 
-    public AddressResponse setMain(Long addressId) throws BaseException {
-        if (ObjectUtils.isEmpty(addressId)) {
-            log.warn("SetMain-[block]:(invalid mobile). addressId:{}", addressId);
-            throw AddressException.invalid();
-        }
-
-        addressService.removeMainByAccountId(authService.getCurrent().getId());
-        addressService.setMain(addressId, authService.getCurrent().getId());
-
-        return AddressResponse.build(addressService.getById(addressId));
-    }
-
+    @Transactional(rollbackOn = BaseException.class)
     public AddressResponse update(UpdateAddressRequest request) throws BaseException {
 
         if (ObjectUtils.isEmpty(request.getId())) {
@@ -93,38 +83,21 @@ public class AddressBusiness {
             throw AddressException.invalid();
         }
 
-        if (ObjectUtils.isEmpty(request.getFirstName())) {
-            log.warn("Update-[block]:(invalid first name). request:{}", request);
-            throw AddressException.invalid();
-        }
-
-        if (ObjectUtils.isEmpty(request.getLastName())) {
-            log.warn("Update-[block]:(invalid last name). request:{}", request);
-            throw AddressException.invalid();
-        }
-
-        if (ObjectUtils.isEmpty(request.getMobile())) {
-            log.warn("Update-[block]:(invalid mobile). request:{}", request);
-            throw AddressException.invalid();
-        }
-
-        if (ObjectUtils.isEmpty(request.getAddress())) {
-            log.warn("Update-[block]:(invalid address). request:{}", request);
-            throw AddressException.invalid();
-        }
-
         Address address = this.addressService.getById(request.getId());
 
-        Address update = new Address();
-        update.setId(address.getId());
-        update.setAccount(authService.getCurrent());
-        update.setFirstName(request.getFirstName());
-        update.setLastName(request.getLastName());
-        update.setMobile(request.getMobile());
-        update.setAddress(request.getAddress());
-        update.setMain(address.isMain());
+        address.setFirstName(request.getFirstName());
+        address.setLastName(request.getLastName());
+        address.setMobile(request.getMobile());
+        address.setAddress(request.getAddress());
 
-        return AddressResponse.build(addressService.createOrUpdate(update));
+        if (request.isMain()) {
+            Address main = addressService.getMain(authService.getCurrent());
+            main.setMain(Boolean.FALSE);
+            addressService.createOrUpdate(main);
+        }
+
+        address.setMain(request.isMain());
+        return AddressResponse.build(addressService.createOrUpdate(address));
     }
 
     public void delete(Long addressId) throws BaseException {

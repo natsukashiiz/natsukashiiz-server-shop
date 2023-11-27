@@ -3,19 +3,19 @@ package com.natsukashiiz.shop.entity;
 import com.natsukashiiz.shop.common.OrderStatus;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.*;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
 import javax.persistence.*;
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
 @Getter
 @Setter
 @Entity(name = "sp_orders")
+@DynamicUpdate
 public class Order {
 
     @Id
@@ -28,10 +28,19 @@ public class Order {
     @ManyToOne
     private Account account;
 
-    @ManyToOne
-    private Address address;
+    @Column(nullable = false, length = 20, columnDefinition = "VARCHAR(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci")
+    private String firstName;
 
-    @OneToMany(mappedBy = "order")
+    @Column(nullable = false, length = 20, columnDefinition = "VARCHAR(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci")
+    private String lastName;
+
+    @Column(nullable = false)
+    private String mobile;
+
+    @Column(nullable = false, length = 500, columnDefinition = "VARCHAR(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci")
+    private String address;
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderItem> items;
 
     @Column(nullable = false)
@@ -43,12 +52,24 @@ public class Order {
 
     private String chargeId;
 
+    @Column(insertable = false)
+    private String payUrl;
+
     @Column(nullable = false, updatable = false)
     private Long payExpire;
 
-    @CreationTimestamp
-    private Timestamp createdAt;
+    @Column(insertable = false)
+    private String payMethod;
 
+    @Column(insertable = false)
+    private LocalDateTime paidAt;
+
+    @Column(insertable = false)
+    private LocalDateTime cancelAt;
+
+    @Column(updatable = false)
+    @CreationTimestamp
+    private LocalDateTime createdAt;
     @UpdateTimestamp
-    private Timestamp updatedAt;
+    private LocalDateTime updatedAt;
 }

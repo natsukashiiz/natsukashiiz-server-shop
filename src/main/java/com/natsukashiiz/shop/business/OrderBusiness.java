@@ -29,6 +29,8 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import javax.transaction.Transactional;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
@@ -54,7 +56,7 @@ public class OrderBusiness {
     }
 
     public OrderResponse myOrderById(String orderId) throws BaseException {
-        return OrderResponse.build(orderService.myOrderById(UUID.fromString(orderId)));
+        return OrderResponse.build(orderService.findById(UUID.fromString(orderId)));
     }
 
     public OrderResponse create(List<CreateOrderRequest> requests) throws BaseException {
@@ -77,6 +79,7 @@ public class OrderBusiness {
         return OrderResponse.build(order);
     }
 
+    @Transactional(rollbackOn = BaseException.class)
     public PayOrderResponse pay(PayOrderRequest request) throws BaseException {
 
         if (ObjectUtils.isEmpty(request.getOrderId())) {
@@ -89,25 +92,31 @@ public class OrderBusiness {
             throw PaymentException.invalidSource();
         }
 
-        OrderResponse order = myOrderById(request.getOrderId());
+        Order order = orderService.findById(UUID.fromString(request.getOrderId()));
 
         if (order.getStatus() != OrderStatus.PENDING) {
             log.warn("Pay-[block]:(status not pending). request:{}", request);
             throw OrderException.invalid();
         }
 
-        Charge charge = paymentService.charge(order.getTotalPay(), request.getSource(), order.getOrderId().toString());
+        Charge charge = paymentService.charge(order.getTotalPay(), request.getSource(), order.getId());
 
         if (ObjectUtils.isEmpty(charge.getId())) {
             log.warn("Pay-[block]:(invalid chargeId). request:{}", request);
             throw PaymentException.invalid();
         }
 
-        orderService.updateChargeId(order.getOrderId(), charge.getId());
-        tasks.remove(order.getOrderId());
-        return PayOrderResponse.build(order.getOrderId(), charge.getAuthorizeUri());
+        order.setChargeId(charge.getId());
+        order.setPayMethod(charge.getSource().getType().toString());
+        order.setPayUrl(charge.getAuthorizeUri());
+        order.setPaidAt(LocalDateTime.now());
+        orderService.update(order);
+
+        tasks.remove(order.getId());
+        return PayOrderResponse.build(order.getId(), charge.getAuthorizeUri());
     }
 
+    @Transactional(rollbackOn = BaseException.class)
     public OrderResponse cancel(String orderId) throws BaseException {
 
         if (ObjectUtils.isEmpty(orderId)) {
@@ -115,7 +124,7 @@ public class OrderBusiness {
             throw PaymentException.invalidOrder();
         }
 
-        Order order = orderService.myOrderById(UUID.fromString(orderId));
+        Order order = orderService.findById(UUID.fromString(orderId));
 
         if (order.getStatus() != OrderStatus.PENDING) {
             log.warn("Cancel-[block]:(status not pending). orderId:{}", orderId);
@@ -126,15 +135,16 @@ public class OrderBusiness {
             orderService.remainQuantity(item.getProductId(), item.getQuantity());
         }
 
-        orderService.updateStatus(order.getId(), OrderStatus.SELF_CANCEL);
-
         order.setStatus(OrderStatus.SELF_CANCEL);
+        order.setCancelAt(LocalDateTime.now());
+        orderService.update(order);
 
         tasks.remove(order.getId());
 
         return OrderResponse.build(order);
     }
 
+    @Transactional
     public void updateOrderFromWebhook(Event<Charge> request) {
         if (request.getKey().equals("charge.complete")) {
             Charge data = request.getData();
@@ -174,10 +184,11 @@ public class OrderBusiness {
                 payload.setTo(order.getAccount());
 
                 if (data.getStatus().equals(ChargeStatus.Successful)) {
-                    orderService.updateStatus(UUID.fromString(orderId), OrderStatus.PAID);
+                    order.setStatus(OrderStatus.PAID);
+                    orderService.update(order);
                     payload.setMessage("order is success");
                 } else {
-                    log.warn("UpdateOrderFromWebhook-[block]:(not successful). orderId:{}", order.getId());
+                    log.warn("UpdateOrderFromWebhook-[block]:(fail). orderId:{}", order.getId());
                     orderService.updateStatus(UUID.fromString(orderId), OrderStatus.FAIL);
 
                     for (OrderItem item : order.getItems()) {

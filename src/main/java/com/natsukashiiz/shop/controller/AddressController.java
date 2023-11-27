@@ -34,12 +34,6 @@ public class AddressController {
         return ResponseEntity.ok(addressBusiness.create(request));
     }
 
-    @Operation(summary = "Set Main", description = "Set main address")
-    @PatchMapping("/main/{addressId}")
-    public ResponseEntity<?> setMain(@PathVariable Long addressId) throws BaseException {
-        return ResponseEntity.ok(addressBusiness.setMain(addressId));
-    }
-
     @PutMapping
     public ResponseEntity<?> update(@RequestBody UpdateAddressRequest request) throws BaseException {
         return ResponseEntity.ok(addressBusiness.update(request));

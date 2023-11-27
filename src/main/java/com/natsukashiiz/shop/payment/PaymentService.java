@@ -10,6 +10,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.UUID;
 
 @Service
 @AllArgsConstructor
@@ -29,7 +30,7 @@ public class PaymentService {
         }
     }
 
-    public Charge charge(Double amount, String source, String orderId) {
+    public Charge charge(Double amount, String source, UUID orderId) {
         try {
             Request<Charge> request = new Charge.CreateRequestBuilder()
                     .amount((long) (amount * 100))
