@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.mail.javamail.MimeMessagePreparator;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,6 +21,16 @@ public class MailService {
         message.setTo(to);
         message.setSubject(subject);
         message.setText(text);
+        mailSender.send(message);
+    }
+
+    public void sendWithHTML(String to, String subject, String html) {
+        MimeMessagePreparator message = mimeMessage -> {
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(html);
+        };
         mailSender.send(message);
     }
 }
