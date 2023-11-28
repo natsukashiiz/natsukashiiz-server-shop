@@ -1,7 +1,6 @@
 package com.natsukashiiz.shop.model.response;
 
 import com.natsukashiiz.shop.entity.Cart;
-import com.natsukashiiz.shop.entity.Product;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,7 +15,8 @@ public class CartResponse {
     private String optionName;
     private Double price;
     private Integer quantity;
-    private Product product;
+    private Integer maxQuantity;
+    private ProductResponse product;
 
     public static CartResponse build(Cart cart) {
 
@@ -28,6 +28,15 @@ public class CartResponse {
         response.setOptionName(cart.getProductOption().getName());
         response.setPrice(cart.getProductOption().getPrice());
         response.setQuantity(cart.getQuantity());
+        response.setMaxQuantity(cart.getProductOption().getQuantity());
+
+        return response;
+    }
+
+    public static CartResponse build(Cart cart, ProductResponse product) {
+
+        CartResponse response = build(cart);
+        response.setProduct(product);
 
         return response;
     }

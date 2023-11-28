@@ -16,7 +16,7 @@ public class TokenService {
 
     private final JwtEncoder encoder;
 
-    public String generate(Long id, String email) {
+    public String generate(Long id, String email, boolean verified) {
         Instant now = Instant.now();
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer("natsukashiiz-server-shop")
@@ -25,6 +25,7 @@ public class TokenService {
                 .id(RandomUtils.notSymbol())
                 .subject(String.valueOf(id))
                 .claim("email", email)
+                .claim("verified", verified)
                 .build();
         return this.encoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
     }

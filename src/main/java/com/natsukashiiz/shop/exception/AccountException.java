@@ -13,6 +13,10 @@ public class AccountException extends BaseException {
         return new AccountException("not.verify");
     }
 
+    public static AccountException invalid() {
+        return new AccountException("invalid");
+    }
+
     public static AccountException invalidVerifyCode() {
         return new AccountException("verify.code.invalid");
     }

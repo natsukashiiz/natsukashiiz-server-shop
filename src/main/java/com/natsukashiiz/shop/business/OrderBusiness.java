@@ -5,6 +5,7 @@ import co.omise.models.ChargeStatus;
 import co.omise.models.Event;
 import com.natsukashiiz.shop.common.NotificationType;
 import com.natsukashiiz.shop.common.OrderStatus;
+import com.natsukashiiz.shop.common.PayUrlType;
 import com.natsukashiiz.shop.entity.Address;
 import com.natsukashiiz.shop.entity.Order;
 import com.natsukashiiz.shop.entity.OrderItem;
@@ -28,6 +29,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
@@ -48,9 +50,17 @@ public class OrderBusiness {
     private final TaskScheduler taskScheduler;
     private final Map<UUID, ScheduledFuture<?>> tasks;
 
-    public List<OrderResponse> myOrders() throws BaseException {
-        return orderService.myOrderListByLatest(authService.getCurrent())
-                .stream()
+    public List<OrderResponse> myOrders(String status) throws BaseException {
+
+        List<Order> list;
+        if (!Objects.equals(status.toUpperCase(), "ALL")) {
+            OrderStatus orderStatus = OrderStatus.valueOf(status.toUpperCase());
+            list = orderService.myOrderListByStatusAndLatest(authService.getCurrent(), orderStatus);
+        } else {
+            list = orderService.myOrderListByLatest(authService.getCurrent());
+        }
+
+        return list.stream()
                 .map(OrderResponse::build)
                 .collect(Collectors.toList());
     }
@@ -106,14 +116,25 @@ public class OrderBusiness {
             throw PaymentException.invalid();
         }
 
+        String url;
+        PayUrlType type;
+
+        if (ObjectUtils.isEmpty(charge.getSource().getScannableCode())) {
+            url = charge.getAuthorizeUri();
+            type = PayUrlType.LINK;
+        } else {
+            url = charge.getSource().getScannableCode().getImage().getDownloadUri();
+            type = PayUrlType.IMAGE;
+        }
+
         order.setChargeId(charge.getId());
         order.setPayMethod(charge.getSource().getType().toString());
-        order.setPayUrl(charge.getAuthorizeUri());
+        order.setPayUrl(url);
         order.setPaidAt(LocalDateTime.now());
         orderService.update(order);
 
         tasks.remove(order.getId());
-        return PayOrderResponse.build(order.getId(), charge.getAuthorizeUri());
+        return PayOrderResponse.build(order.getId(), type, url);
     }
 
     @Transactional(rollbackOn = BaseException.class)
@@ -146,64 +167,68 @@ public class OrderBusiness {
 
     @Transactional
     public void updateOrderFromWebhook(Event<Charge> request) {
-        if (request.getKey().equals("charge.complete")) {
-            Charge data = request.getData();
-            String orderId = (String) data.getMetadata().get("orderId");
-            String chargeId = data.getId();
+        if (StringUtils.hasText(request.getKey())) {
+            if (request.getKey().equals("charge.complete")) {
+                Charge data = request.getData();
+                String orderId = (String) data.getMetadata().get("orderId");
+                String chargeId = data.getId();
 
-            try {
-                if (ObjectUtils.isEmpty(orderId)) {
-                    log.warn("UpdateOrderFromWebhook-[block]:(not order)");
-                    throw OrderException.invalid();
-                }
-
-                Optional<Order> orderOptional = orderRepository.findById(UUID.fromString(orderId));
-                if (!orderOptional.isPresent()) {
-                    throw OrderException.invalid();
-                }
-                Order order = orderOptional.get();
-
-                if (order.getStatus() != OrderStatus.PENDING) {
-                    log.warn("UpdateOrderFromWebhook-[block]:(status not pending). orderId:{}", order.getId());
-                    throw OrderException.invalid();
-                }
-
-                if (!order.getId().toString().equals(orderId)) {
-                    log.warn("UpdateOrderFromWebhook-[block]:(not orderId). orderId:{}", order.getId());
-                    throw OrderException.invalid();
-                }
-
-                if (!order.getChargeId().equals(chargeId)) {
-                    log.warn("UpdateOrderFromWebhook-[block]:(not chargeId). chargeId:{}", order.getChargeId());
-                    throw OrderException.invalid();
-                }
-
-                NotificationPayload payload = new NotificationPayload();
-                payload.setType(NotificationType.ORDER);
-                payload.setFrom(0L);
-                payload.setTo(order.getAccount());
-
-                if (data.getStatus().equals(ChargeStatus.Successful)) {
-                    order.setStatus(OrderStatus.PAID);
-                    orderService.update(order);
-                    payload.setMessage("order is success");
-                } else {
-                    log.warn("UpdateOrderFromWebhook-[block]:(fail). orderId:{}", order.getId());
-                    orderService.updateStatus(UUID.fromString(orderId), OrderStatus.FAIL);
-
-                    for (OrderItem item : order.getItems()) {
-                        orderService.remainQuantity(item.getOptionId(), item.getQuantity());
+                try {
+                    if (ObjectUtils.isEmpty(orderId)) {
+                        log.warn("UpdateOrderFromWebhook-[block]:(not order)");
+                        throw OrderException.invalid();
                     }
 
-                    payload.setMessage("order is fail");
+                    Optional<Order> orderOptional = orderRepository.findById(UUID.fromString(orderId));
+                    if (!orderOptional.isPresent()) {
+                        throw OrderException.invalid();
+                    }
+                    Order order = orderOptional.get();
+
+                    if (order.getStatus() != OrderStatus.PENDING) {
+                        log.warn("UpdateOrderFromWebhook-[block]:(status not pending). orderId:{}", order.getId());
+                        throw OrderException.invalid();
+                    }
+
+                    if (!order.getId().toString().equals(orderId)) {
+                        log.warn("UpdateOrderFromWebhook-[block]:(not orderId). orderId:{}", order.getId());
+                        throw OrderException.invalid();
+                    }
+
+                    if (!order.getChargeId().equals(chargeId)) {
+                        log.warn("UpdateOrderFromWebhook-[block]:(not chargeId). chargeId:{}", order.getChargeId());
+                        throw OrderException.invalid();
+                    }
+
+                    NotificationPayload payload = new NotificationPayload();
+                    payload.setType(NotificationType.ORDER);
+                    payload.setFrom(0L);
+                    payload.setTo(order.getAccount());
+
+                    if (data.getStatus().equals(ChargeStatus.Successful)) {
+                        order.setStatus(OrderStatus.PAID);
+                        orderService.update(order);
+                        payload.setMessage("order is success");
+                    } else {
+                        log.warn("UpdateOrderFromWebhook-[block]:(fail). orderId:{}", order.getId());
+                        orderService.updateStatus(UUID.fromString(orderId), OrderStatus.FAIL);
+
+                        for (OrderItem item : order.getItems()) {
+                            orderService.remainQuantity(item.getOptionId(), item.getQuantity());
+                        }
+
+                        payload.setMessage("order is fail");
+                    }
+                    pushNotificationService.dispatchTo(payload);
+                } catch (BaseException e) {
+                    e.printStackTrace();
+                    log.warn("UpdateOrderFromWebhook-[block]:(exception). data:{}, error:{}", request, e.getMessage());
                 }
-                pushNotificationService.dispatchTo(payload);
-            } catch (BaseException e) {
-                e.printStackTrace();
-                log.warn("UpdateOrderFromWebhook-[block]:(exception). data:{}, error:{}", request, e.getMessage());
+            } else if (request.getKey().equals("charge.create")) {
+                log.warn("UpdateOrderFromWebhook-[next]:(charge create)");
+            } else {
+                log.warn("UpdateOrderFromWebhook-[block]:(not charge.complete). data:{}", request);
             }
-        } else {
-            log.warn("UpdateOrderFromWebhook-[block]:(not charge.complete). data:{}", request);
         }
     }
 }

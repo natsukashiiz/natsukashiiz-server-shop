@@ -25,8 +25,8 @@ public class OrderController {
 
     @Operation(summary = "Get All", description = "Get My all order")
     @GetMapping
-    public ResponseEntity<?> myOrders() throws BaseException {
-        return ResponseEntity.ok(orderBusiness.myOrders());
+    public ResponseEntity<?> myOrders(@RequestParam("status") String status) throws BaseException {
+        return ResponseEntity.ok(orderBusiness.myOrders(status));
     }
 
     @Operation(summary = "Create", description = "Create order")

@@ -30,8 +30,7 @@ public class AccountController {
     @Operation(summary = "Verify account", description = "Verify account with code")
     @PostMapping("/verify/{code}")
     public ResponseEntity<?> verify(@PathVariable String code) throws BaseException {
-        accountBusiness.verify(code);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(accountBusiness.verify(code));
     }
 
     @Operation(summary = "Change Password", description = "Change password")

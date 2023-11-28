@@ -42,6 +42,10 @@ public class OrderService {
         return orderRepository.findAllByAccountOrderByCreatedAtDesc(account);
     }
 
+    public List<Order> myOrderListByStatusAndLatest(Account account, OrderStatus status) {
+        return orderRepository.findAllByAccountAndStatusOrderByCreatedAtDesc(account, status);
+    }
+
 
     @Transactional(rollbackOn = BaseException.class)
     public Order create(List<CreateOrderRequest> requests, Account account, Address address) throws BaseException {

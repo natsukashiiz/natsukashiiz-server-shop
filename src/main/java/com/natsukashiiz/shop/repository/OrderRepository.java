@@ -16,6 +16,8 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
 
     List<Order> findAllByAccountOrderByCreatedAtDesc(Account account);
 
+    List<Order> findAllByAccountAndStatusOrderByCreatedAtDesc(Account account, OrderStatus status);
+
     @Modifying
     @Query("UPDATE sp_orders SET chargeId = :chargeId WHERE id = :orderId")
     void updateChargeId(@Param("orderId") UUID orderId, @Param("chargeId") String chargeId);

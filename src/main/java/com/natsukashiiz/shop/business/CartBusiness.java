@@ -7,6 +7,7 @@ import com.natsukashiiz.shop.exception.CartException;
 import com.natsukashiiz.shop.exception.ProductException;
 import com.natsukashiiz.shop.model.request.CartRequest;
 import com.natsukashiiz.shop.model.response.CartResponse;
+import com.natsukashiiz.shop.model.response.ProductResponse;
 import com.natsukashiiz.shop.service.AuthService;
 import com.natsukashiiz.shop.service.CartService;
 import com.natsukashiiz.shop.service.ProductOptionService;
@@ -31,7 +32,10 @@ public class CartBusiness {
     public List<CartResponse> getAll() throws BaseException {
         return cartService.findAllByAccount(authService.getCurrent())
                 .stream()
-                .map(CartResponse::build)
+                .map(e -> {
+                    ProductResponse product = ProductResponse.build(e.getProduct());
+                    return CartResponse.build(e, product);
+                })
                 .collect(Collectors.toList());
     }
 

@@ -1,10 +1,11 @@
 package com.natsukashiiz.shop.business;
 
 import com.natsukashiiz.shop.entity.Account;
-import com.natsukashiiz.shop.entity.Point;
 import com.natsukashiiz.shop.exception.AccountException;
 import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.model.request.ChangePasswordRequest;
+import com.natsukashiiz.shop.model.request.ResetPasswordRequest;
+import com.natsukashiiz.shop.model.response.TokenResponse;
 import com.natsukashiiz.shop.redis.RedisService;
 import com.natsukashiiz.shop.service.AccountService;
 import com.natsukashiiz.shop.service.AuthService;
@@ -42,10 +43,10 @@ public class AccountBusiness {
 
         String code = RandomUtils.Number6Characters();
         mailService.send(current.getEmail(), "Verify Account", "Code: " + code);
-        redisService.setValueByKey(REDIS_KEY + current.getEmail(), code, Duration.ofMinutes(5).toMillis());
+        redisService.setValueByKey(REDIS_KEY + current.getEmail(), code, Duration.ofMinutes(15).toMillis());
     }
 
-    public void verify(String verifyCode) throws BaseException {
+    public TokenResponse verify(String verifyCode) throws BaseException {
         Account current = authService.getCurrent(false);
         if (current.getVerified()) {
             log.warn("Verify-[block]:(account is verified). current:{}, ", current);
@@ -60,12 +61,15 @@ public class AccountBusiness {
 
         accountService.verify(current.getEmail());
 
-        Point point = new Point();
-        point.setAccount(current);
-        point.setPoint(0.00);
-        pointService.create(point);
+//        Point point = new Point();
+//        point.setAccount(current);
+//        point.setPoint(0.00);
+//        pointService.create(point);
 
         redisService.deleteByKey(REDIS_KEY + current.getEmail());
+
+        current.setVerified(Boolean.TRUE);
+        return authService.createTokenResponse(current);
     }
 
     public void changePassword(ChangePasswordRequest request) throws BaseException {
@@ -77,5 +81,12 @@ public class AccountBusiness {
 
         String password = passwordEncoder.encode(request.getLatest());
         accountService.changePassword(authService.getCurrent().getId(), password);
+    }
+
+    public void resetPassword(ResetPasswordRequest request) throws BaseException {
+        Account account = accountService.findByEmail(request.getEmail());
+        String code = RandomUtils.Number6Characters();
+        mailService.send(account.getEmail(), "Reset Password", "Code: " + code);
+        redisService.setValueByKey(REDIS_KEY + account.getEmail(), code, Duration.ofMinutes(5).toMillis());
     }
 }
