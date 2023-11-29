@@ -3,6 +3,8 @@ package com.natsukashiiz.shop.controller;
 import com.natsukashiiz.shop.business.AccountBusiness;
 import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.model.request.ChangePasswordRequest;
+import com.natsukashiiz.shop.model.request.ForgotPasswordRequest;
+import com.natsukashiiz.shop.model.request.ResetPasswordRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -34,15 +36,22 @@ public class AccountController {
     }
 
     @Operation(summary = "Change Password", description = "Change password")
-    @PatchMapping("/password/change")
+    @PatchMapping("/change-password")
     public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest request) throws BaseException {
         accountBusiness.changePassword(request);
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Forgot Password", description = "Forgot password")
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequest request) throws BaseException {
+        accountBusiness.forgotPassword(request);
+        return ResponseEntity.ok().build();
+    }
+
     @Operation(summary = "Reset Password", description = "Reset password")
-    @PatchMapping("/password/reset")
-    public ResponseEntity<?> resetPassword() {
-        return ResponseEntity.ok("reset password");
+    @PatchMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) throws BaseException {
+        return ResponseEntity.ok(accountBusiness.resetPassword(request));
     }
 }

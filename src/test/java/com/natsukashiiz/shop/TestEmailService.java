@@ -27,8 +27,8 @@ public class TestEmailService {
     }
 
     interface DATA {
-        String email = "weerawat4331@gmail.com";
-        String code = "TEST1232";
-        String link = "http://localhost:4200/verification?code=TEST1232";
+        String email = "natsukashiiz.dev@gmail.com";
+        String code = "123456";
+        String link = "http://localhost:4200/verification?code=123456";
     }
 }

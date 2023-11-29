@@ -1,6 +1,8 @@
 package com.natsukashiiz.shop.controller;
 
 import com.natsukashiiz.shop.business.ProductBusiness;
+import com.natsukashiiz.shop.common.Pagination;
+import com.natsukashiiz.shop.common.PaginationRequest;
 import com.natsukashiiz.shop.exception.BaseException;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
@@ -21,6 +23,18 @@ public class ProductController {
     @GetMapping
     private ResponseEntity<?> getAll() {
         return ResponseEntity.ok(productBusiness.getAll());
+    }
+
+    @Operation(summary = "Get All With Pagination", description = "Get all product With Pagination")
+    @GetMapping("/p")
+    private ResponseEntity<?> getAllWithPagination(PaginationRequest pagination) {
+        return ResponseEntity.ok(productBusiness.getPage(pagination));
+    }
+
+    @Operation(summary = "Get Top Seller", description = "Get Top Seller")
+    @GetMapping("/top")
+    private ResponseEntity<?> getTopSeller() {
+        return ResponseEntity.ok("Top Seller");
     }
 
     @Operation(summary = "Get One", description = "Get product by id")

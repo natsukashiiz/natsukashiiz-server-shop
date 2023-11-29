@@ -16,12 +16,16 @@ public class ProductResponse implements Serializable {
     private Long id;
     private String name;
     private List<ProductOptionResponse> options;
+    private Long views;
+    private Long orders;
 
     public static ProductResponse build(Product product, List<ProductOptionResponse> options) {
         return ProductResponse.builder()
                 .id(product.getId())
                 .name(product.getName())
                 .options(options)
+                .views(product.getViews())
+                .orders(product.getOrders())
                 .build();
     }
 
@@ -35,6 +39,8 @@ public class ProductResponse implements Serializable {
                 .id(product.getId())
                 .name(product.getName())
                 .options(productOptionResponses)
+                .views(product.getViews())
+                .orders(product.getOrders())
                 .build();
     }
 }

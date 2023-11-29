@@ -1,9 +1,11 @@
 package com.natsukashiiz.shop.business;
 
+import com.natsukashiiz.shop.common.ApiProperties;
 import com.natsukashiiz.shop.entity.Account;
 import com.natsukashiiz.shop.exception.AccountException;
 import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.model.request.ChangePasswordRequest;
+import com.natsukashiiz.shop.model.request.ForgotPasswordRequest;
 import com.natsukashiiz.shop.model.request.ResetPasswordRequest;
 import com.natsukashiiz.shop.model.response.TokenResponse;
 import com.natsukashiiz.shop.redis.RedisService;
@@ -16,6 +18,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 import java.time.Duration;
 import java.util.Objects;
@@ -31,6 +34,7 @@ public class AccountBusiness {
     private final PointService pointService;
     private final MailService mailService;
     private final PasswordEncoder passwordEncoder;
+    private final ApiProperties apiProperties;
 
     private final String REDIS_KEY = "ACCOUNT:CODE:";
 
@@ -42,7 +46,7 @@ public class AccountBusiness {
         }
 
         String code = RandomUtils.Number6Characters();
-        mailService.send(current.getEmail(), "Verify Account", "Code: " + code);
+        mailService.sendActiveAccount(current.getEmail(), code, apiProperties.getVerification().replace("{CODE}", code));
         redisService.setValueByKey(REDIS_KEY + current.getEmail(), code, Duration.ofMinutes(15).toMillis());
     }
 
@@ -83,10 +87,46 @@ public class AccountBusiness {
         accountService.changePassword(authService.getCurrent().getId(), password);
     }
 
-    public void resetPassword(ResetPasswordRequest request) throws BaseException {
+    public void forgotPassword(ForgotPasswordRequest request) throws BaseException {
         Account account = accountService.findByEmail(request.getEmail());
-        String code = RandomUtils.Number6Characters();
-        mailService.send(account.getEmail(), "Reset Password", "Code: " + code);
+        String code = RandomUtils.notSymbol();
+        String link = apiProperties.getResetPassword();
+        link = link.replace("{EMAIL}", account.getEmail());
+        link = link.replace("{CODE}", code);
+        mailService.sendResetPassword(account.getEmail(), link);
         redisService.setValueByKey(REDIS_KEY + account.getEmail(), code, Duration.ofMinutes(5).toMillis());
+    }
+
+    public TokenResponse resetPassword(ResetPasswordRequest request) throws BaseException {
+
+        if (ObjectUtils.isEmpty(request.getEmail())) {
+            log.warn("ResetPassword-[block]:(invalid email). request:{}", request);
+            throw AccountException.invalid();
+        }
+
+        if (ObjectUtils.isEmpty(request.getCode())) {
+            log.warn("ResetPassword-[block]:(invalid code). request:{}", request);
+            throw AccountException.invalid();
+        }
+
+        if (ObjectUtils.isEmpty(request.getPassword())) {
+            log.warn("ResetPassword-[block]:(invalid password). request:{}", request);
+            throw AccountException.invalid();
+        }
+
+        Account account = accountService.findByEmail(request.getEmail());
+        String code = redisService.getValueByKey(REDIS_KEY + request.getEmail());
+
+        if (!Objects.equals(code, request.getCode())) {
+            log.warn("ResetPassword-[block]:(invalid code). request:{}", request);
+            throw AccountException.invalidResetCode();
+        }
+
+        redisService.deleteByKey(REDIS_KEY + account.getEmail());
+
+        String encoded = passwordEncoder.encode(request.getPassword());
+        account.setPassword(encoded);
+        Account update = accountService.createOrUpdate(account);
+        return authService.createTokenResponse(update);
     }
 }

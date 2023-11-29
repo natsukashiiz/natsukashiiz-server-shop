@@ -5,6 +5,7 @@ import co.omise.ClientException;
 import co.omise.models.Charge;
 import co.omise.models.OmiseException;
 import co.omise.requests.Request;
+import com.natsukashiiz.shop.common.ApiProperties;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import java.util.UUID;
 public class PaymentService {
 
     private final PaymentProperties paymentProperties;
+    private final ApiProperties apiProperties;
 
     private Client client() {
         try {
@@ -36,7 +38,7 @@ public class PaymentService {
                     .amount((long) (amount * 100))
                     .currency("thb")
                     .source(source)
-                    .returnUri("http://localhost:4200/web/orders/detail/" + orderId)
+                    .returnUri(apiProperties.getPaymentReturn() + orderId)
                     .metadata("orderId", orderId)
                     .build();
             return client().sendRequest(request);

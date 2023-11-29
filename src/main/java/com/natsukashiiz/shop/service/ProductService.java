@@ -6,6 +6,8 @@ import com.natsukashiiz.shop.exception.ProductException;
 import com.natsukashiiz.shop.repository.ProductRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -32,7 +34,15 @@ public class ProductService {
         return productRepository.findAll();
     }
 
-    public Product create(Product product) {
+    public Page<Product> getPage(PageRequest page) {
+        return productRepository.findAll(page);
+    }
+
+    public Product createOrUpdate(Product product) {
         return productRepository.save(product);
+    }
+
+    public List<Product> createOrUpdateAll(List<Product> products) {
+        return productRepository.saveAll(products);
     }
 }

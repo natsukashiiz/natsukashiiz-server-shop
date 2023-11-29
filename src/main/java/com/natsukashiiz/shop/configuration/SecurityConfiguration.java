@@ -64,6 +64,8 @@ public class SecurityConfiguration implements WebMvcConfigurer {
                                         "/swagger-resources/**",
                                         "/v*/notifications/subscribe/**",
                                         "/v1/payment/webhook",
+                                        "/v1/account/forgot-password",
+                                        "/v1/account/reset-password",
                                         "/v*/auth/**")
                                 .permitAll()
                                 .antMatchers(HttpMethod.GET, "/v*/products/**").permitAll()

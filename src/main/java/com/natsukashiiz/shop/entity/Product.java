@@ -26,6 +26,12 @@ public class Product {
     @OneToMany(mappedBy = "product")
     private List<ProductOption> options;
 
+    @Column(columnDefinition = "bigint default 0")
+    private Long views;
+
+    @Column(columnDefinition = "bigint default 0")
+    private Long orders;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 

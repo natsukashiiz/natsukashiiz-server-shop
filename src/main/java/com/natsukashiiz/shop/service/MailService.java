@@ -26,7 +26,6 @@ public class MailService {
     private MailProperties properties;
 
     public void send(String to, String subject, String text) {
-        log.debug("Send-[next]. to:{}, subject:{}, text:{}", to, subject, text);
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
         message.setSubject(subject);
@@ -45,7 +44,7 @@ public class MailService {
         mailSender.send(message);
     }
 
-    public void sendVerifyCode(String email, String code, String link) throws BaseException {
+    public void sendActiveAccount(String email, String code, String link) throws BaseException {
         String html;
 
         try {
@@ -57,7 +56,23 @@ public class MailService {
         html = html.replace("${CODE}", code);
         html = html.replace("${LINK}", link);
 
-        String subject = "Please activate your account.";
+        String subject = "กรุณาเปิดใช้งานบัญชีของคุณ";
+
+        sendWithHTML(email, subject, html);
+    }
+
+    public void sendResetPassword(String email, String link) throws BaseException {
+        String html;
+
+        try {
+            html = readEmailTemplate("email-reset-password.html");
+        } catch (IOException e) {
+            throw EmailException.templateNotFound();
+        }
+
+        html = html.replace("${LINK}", link);
+
+        String subject = "รีเซ็ตรหัสผ่าน";
 
         sendWithHTML(email, subject, html);
     }

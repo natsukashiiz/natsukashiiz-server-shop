@@ -27,6 +27,10 @@ public class AccountService {
         return accountOptional.get();
     }
 
+    public Account createOrUpdate(Account account) {
+        return accountRepository.save(account);
+    }
+
     @Transactional
     public void verify(String email) {
         accountRepository.verified(email);

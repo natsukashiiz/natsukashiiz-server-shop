@@ -43,6 +43,12 @@ shop:
     omise:
       pubKey: pkey_test_5un4a0mz82obwpz257q
       secretKey: skey_test_5un49ncyly5rx5dpjwi
+  web:
+    url:
+      base: http://localhost:4200/web
+      verification: http://localhost:4200/web/verification?code=
+      paymentReturn: http://localhost:4200/web/orders/detail/
+
 logging:
   level:
     root: INFO

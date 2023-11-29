@@ -20,7 +20,11 @@ public class AccountException extends BaseException {
     public static AccountException invalidVerifyCode() {
         return new AccountException("verify.code.invalid");
     }
+
+    public static AccountException invalidResetCode() {
+        return new AccountException("reset.code.invalid");
+    }
     public static AccountException invalidCurrentPassword() {
-        return new AccountException("currentPassword.invalid");
+        return new AccountException("current.password.invalid");
     }
 }

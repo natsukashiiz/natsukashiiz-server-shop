@@ -9,6 +9,7 @@ import com.natsukashiiz.shop.common.PayUrlType;
 import com.natsukashiiz.shop.entity.Address;
 import com.natsukashiiz.shop.entity.Order;
 import com.natsukashiiz.shop.entity.OrderItem;
+import com.natsukashiiz.shop.entity.Product;
 import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.exception.OrderException;
 import com.natsukashiiz.shop.exception.PaymentException;
@@ -19,10 +20,7 @@ import com.natsukashiiz.shop.model.response.OrderResponse;
 import com.natsukashiiz.shop.model.response.PayOrderResponse;
 import com.natsukashiiz.shop.payment.PaymentService;
 import com.natsukashiiz.shop.repository.OrderRepository;
-import com.natsukashiiz.shop.service.AddressService;
-import com.natsukashiiz.shop.service.AuthService;
-import com.natsukashiiz.shop.service.OrderService;
-import com.natsukashiiz.shop.service.PushNotificationService;
+import com.natsukashiiz.shop.service.*;
 import com.natsukashiiz.shop.task.OrderExpireTask;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -47,6 +45,7 @@ public class OrderBusiness {
     private final PaymentService paymentService;
     private final OrderRepository orderRepository;
     private final AddressService addressService;
+    private final ProductService productService;
     private final TaskScheduler taskScheduler;
     private final Map<UUID, ScheduledFuture<?>> tasks;
 
@@ -156,7 +155,7 @@ public class OrderBusiness {
             orderService.remainQuantity(item.getProductId(), item.getQuantity());
         }
 
-        order.setStatus(OrderStatus.SELF_CANCEL);
+        order.setStatus(OrderStatus.SELF_CANCELED);
         order.setCancelAt(LocalDateTime.now());
         orderService.update(order);
 
@@ -209,9 +208,18 @@ public class OrderBusiness {
                         order.setStatus(OrderStatus.PAID);
                         orderService.update(order);
                         payload.setMessage("order is success");
+
+                        // update amount of orders
+                        List<Product> update = new ArrayList<>();
+                        for (OrderItem item : order.getItems()) {
+                            Product product = productService.getById(item.getProductId());
+                            product.setOrders(product.getOrders() + item.getQuantity());
+                            update.add(product);
+                        }
+                        productService.createOrUpdateAll(update);
                     } else {
                         log.warn("UpdateOrderFromWebhook-[block]:(fail). orderId:{}", order.getId());
-                        orderService.updateStatus(UUID.fromString(orderId), OrderStatus.FAIL);
+                        orderService.updateStatus(UUID.fromString(orderId), OrderStatus.FAILED);
 
                         for (OrderItem item : order.getItems()) {
                             orderService.remainQuantity(item.getOptionId(), item.getQuantity());

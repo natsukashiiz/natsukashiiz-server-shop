@@ -1,5 +1,6 @@
 package com.natsukashiiz.shop.service;
 
+import com.natsukashiiz.shop.common.ApiProperties;
 import com.natsukashiiz.shop.entity.Account;
 import com.natsukashiiz.shop.exception.*;
 import com.natsukashiiz.shop.model.request.LoginRequest;
@@ -30,6 +31,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final MailService mailService;
     private final RedisService redisService;
+    private final ApiProperties apiProperties;
 
     public TokenResponse login(LoginRequest req) throws BaseException {
         if (ValidationUtils.invalidEmail(req.getEmail())) {
@@ -70,7 +72,7 @@ public class AuthService {
         accountRepository.save(account);
 
         String code = RandomUtils.Number6Characters();
-        mailService.send(account.getEmail(), "Verify Account", "Code: " + code);
+        mailService.sendActiveAccount(account.getEmail(), code, apiProperties.getVerification().replace("{CODE}", code));
         redisService.setValueByKey("ACCOUNT:CODE:" + account.getEmail(), code, Duration.ofMinutes(1).toMillis());
 
         return createTokenResponse(account);

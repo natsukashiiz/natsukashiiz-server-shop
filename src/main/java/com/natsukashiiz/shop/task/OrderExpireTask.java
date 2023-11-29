@@ -33,7 +33,7 @@ public class OrderExpireTask implements Runnable {
                     orderService.remainQuantity(item.getOptionId(), item.getQuantity());
                 }
 
-                orderService.updateStatus(orderId, OrderStatus.SYSTEM_CANCEL);
+                orderService.updateStatus(orderId, OrderStatus.SYSTEM_CANCELED);
             }
         } catch (BaseException ignore) {
         }
