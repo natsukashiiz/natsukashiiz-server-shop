@@ -174,7 +174,7 @@ public class OrderBusiness {
 
                 try {
                     if (ObjectUtils.isEmpty(orderId)) {
-                        log.warn("UpdateOrderFromWebhook-[block]:(not order)");
+                        log.warn("UpdateOrderFromWebhook-[block]:(order id empty)");
                         throw OrderException.invalid();
                     }
 
@@ -200,14 +200,14 @@ public class OrderBusiness {
                     }
 
                     NotificationPayload payload = new NotificationPayload();
-                    payload.setType(NotificationType.ORDER);
-                    payload.setFrom(0L);
+                    payload.setType(NotificationType.PAYMENT);
                     payload.setTo(order.getAccount());
+                    payload.setOrderId(order.getId());
 
                     if (data.getStatus().equals(ChargeStatus.Successful)) {
                         order.setStatus(OrderStatus.PAID);
                         orderService.update(order);
-                        payload.setMessage("order is success");
+                        payload.setMessage("paid order is successful");
 
                         // update amount of orders
                         List<Product> update = new ArrayList<>();
@@ -233,7 +233,7 @@ public class OrderBusiness {
                     log.warn("UpdateOrderFromWebhook-[block]:(exception). data:{}, error:{}", request, e.getMessage());
                 }
             } else if (request.getKey().equals("charge.create")) {
-                log.warn("UpdateOrderFromWebhook-[next]:(charge create)");
+                log.debug("UpdateOrderFromWebhook-[next]:(charge create)");
             } else {
                 log.warn("UpdateOrderFromWebhook-[block]:(not charge.complete). data:{}", request);
             }

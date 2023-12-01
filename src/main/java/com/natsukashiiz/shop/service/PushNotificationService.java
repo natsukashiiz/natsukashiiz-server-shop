@@ -39,18 +39,11 @@ public class PushNotificationService {
     public void dispatchTo(NotificationPayload request) {
         SseEmitter emitter = emitters.get(request.getTo().getId());
         if (emitter != null) {
-            Notification noti = new Notification();
-            noti.setFromAccountId(0L);
-            noti.setMessage(request.getMessage());
-            noti.setAccount(request.getTo());
-            noti.setIsRead(Boolean.FALSE);
-            notificationRepository.save(noti);
-
             try {
                 emitter.send(
                         SseEmitter.event()
-                                .name("NOTIFY")
-                                .data(request.getType().name())
+                                .name("EVENT")
+                                .data(request)
                 );
             } catch (IOException e) {
                 emitters.remove(request.getTo().getId());
