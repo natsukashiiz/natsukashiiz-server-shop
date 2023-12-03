@@ -4,9 +4,11 @@ import com.natsukashiiz.shop.entity.Address;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
+
 @Getter
 @Setter
-public class AddressResponse {
+public class AddressResponse implements Serializable {
 
     private Long id;
     private String firstName;

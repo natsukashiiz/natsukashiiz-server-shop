@@ -79,8 +79,13 @@ public class CartBusiness {
             throw ProductException.insufficient();
         }
 
-        if (cartService.existsByProductOptionAndAccount(productOption, authService.getCurrent())) {
-            return update(productOption, request.getQuantity());
+        Optional<Cart> cartOptional = cartService.findByProductOptionAndAccount(productOption, authService.getCurrent());
+        if (cartOptional.isPresent()) {
+            if (request.getQuantity() == 1) {
+                return update(productOption, cartOptional.get().getQuantity() + 1);
+            } else {
+                return update(productOption, request.getQuantity());
+            }
         } else {
             return create(productOption, request.getQuantity());
         }

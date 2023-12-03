@@ -3,10 +3,13 @@ package com.natsukashiiz.shop.entity;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Getter
@@ -18,10 +21,9 @@ public class BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @CreatedDate
-    @Column(updatable = false)
-    private Date createdAt;
+    @CreationTimestamp
+    private LocalDateTime createdAt;
 
-    @LastModifiedDate
-    private Date updatedAt;
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 }

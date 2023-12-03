@@ -5,8 +5,9 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.DynamicUpdate;
 
-import javax.persistence.*;
-import java.util.List;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.ManyToOne;
 
 @Getter
 @Setter
@@ -18,13 +19,13 @@ public class Address extends BaseEntity {
     @ManyToOne
     private Account account;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "VARCHAR(30) CHARSET utf8mb4")
     private String firstName;
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "VARCHAR(30) CHARSET utf8mb4")
     private String lastName;
     @Column(nullable = false)
     private String mobile;
-    @Column(nullable = false, length = 500)
+    @Column(nullable = false, columnDefinition = "VARCHAR(100) CHARSET utf8mb4")
     private String address;
     @Column(nullable = false)
     private boolean main;

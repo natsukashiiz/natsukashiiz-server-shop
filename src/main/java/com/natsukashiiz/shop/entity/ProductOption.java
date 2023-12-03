@@ -6,14 +6,14 @@ import lombok.ToString;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
+import java.io.Serializable;
 
 @Getter
 @Setter
 @ToString
 @Entity(name = "sp_products_options")
-public class ProductOption extends BaseEntity {
+public class ProductOption extends BaseEntity implements Serializable {
 
     @ManyToOne
     private Product product;

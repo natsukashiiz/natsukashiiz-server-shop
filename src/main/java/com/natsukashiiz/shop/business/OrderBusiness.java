@@ -6,10 +6,7 @@ import co.omise.models.Event;
 import com.natsukashiiz.shop.common.NotificationType;
 import com.natsukashiiz.shop.common.OrderStatus;
 import com.natsukashiiz.shop.common.PayUrlType;
-import com.natsukashiiz.shop.entity.Address;
-import com.natsukashiiz.shop.entity.Order;
-import com.natsukashiiz.shop.entity.OrderItem;
-import com.natsukashiiz.shop.entity.Product;
+import com.natsukashiiz.shop.entity.*;
 import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.exception.OrderException;
 import com.natsukashiiz.shop.exception.PaymentException;
@@ -79,11 +76,20 @@ public class OrderBusiness {
         );
         tasks.put(order.getId(), schedule);
 
-        NotificationPayload notify = new NotificationPayload();
-        notify.setType(NotificationType.ORDER);
-        notify.setTo(authService.getCurrent());
-        notify.setMessage("you have new order no " + order.getId());
-        pushNotificationService.dispatchTo(notify);
+        NotificationPayload payload = new NotificationPayload();
+        payload.setAccount(order.getAccount());
+        payload.setType(NotificationType.ORDER);
+
+        Notification notify = new Notification();
+        notify.setAccount(order.getAccount());
+        notify.setType(order.getStatus());
+        notify.setEventId(order.getId().toString());
+        notify.setTitle("กรุณาชำระเงิน");
+        notify.setContent("กรุณาชำระเงิน คำสั่งซื้อหมายเลข " + order.getId());
+        notify.setIsRead(Boolean.FALSE);
+
+        payload.setNotification(notify);
+        pushNotificationService.dispatchTo(payload);
 
         return OrderResponse.build(order);
     }
@@ -108,7 +114,7 @@ public class OrderBusiness {
             throw OrderException.invalid();
         }
 
-        Charge charge = paymentService.charge(order.getTotalPay(), request.getSource(), order.getId());
+        Charge charge = paymentService.charge(order.getTotalPay(), request.getSource(), order.getId(), order.getPayExpire());
 
         if (ObjectUtils.isEmpty(charge.getId())) {
             log.warn("Pay-[block]:(invalid chargeId). request:{}", request);
@@ -200,14 +206,19 @@ public class OrderBusiness {
                     }
 
                     NotificationPayload payload = new NotificationPayload();
-                    payload.setType(NotificationType.PAYMENT);
-                    payload.setTo(order.getAccount());
-                    payload.setOrderId(order.getId());
+                    payload.setAccount(order.getAccount());
+                    payload.setType(NotificationType.ORDER);
+
+                    Notification notify = new Notification();
+                    notify.setAccount(order.getAccount());
+                    notify.setEventId(order.getId().toString());
+                    notify.setTitle("การชำระเงิน");
+                    notify.setIsRead(Boolean.FALSE);
 
                     if (data.getStatus().equals(ChargeStatus.Successful)) {
                         order.setStatus(OrderStatus.PAID);
                         orderService.update(order);
-                        payload.setMessage("paid order is successful");
+                        notify.setContent("ชำระเงินสำเร็จ คำสั่งซื้อหมายเลข " + order.getId());
 
                         // update amount of orders
                         List<Product> update = new ArrayList<>();
@@ -225,8 +236,11 @@ public class OrderBusiness {
                             orderService.remainQuantity(item.getOptionId(), item.getQuantity());
                         }
 
-                        payload.setMessage("order is fail");
+                        notify.setContent("ชำระเงินล้มเหลว คำสั่งซื้อหมายเลข " + order.getId());
                     }
+
+                    notify.setType(order.getStatus());
+                    payload.setNotification(notify);
                     pushNotificationService.dispatchTo(payload);
                 } catch (BaseException e) {
                     e.printStackTrace();

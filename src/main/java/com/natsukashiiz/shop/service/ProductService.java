@@ -6,6 +6,7 @@ import com.natsukashiiz.shop.exception.ProductException;
 import com.natsukashiiz.shop.repository.ProductRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -29,11 +30,12 @@ public class ProductService {
         return productOptional.get();
     }
 
-    //    @Cacheable(value = "products")
+//    @Cacheable(value = "products")
     public List<Product> getList() {
         return productRepository.findAll();
     }
 
+//    @Cacheable(value = "products", key = "#page.pageNumber")
     public Page<Product> getPage(PageRequest page) {
         return productRepository.findAll(page);
     }

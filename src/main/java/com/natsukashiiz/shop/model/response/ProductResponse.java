@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,6 +19,7 @@ public class ProductResponse implements Serializable {
     private List<ProductOptionResponse> options;
     private Long views;
     private Long orders;
+    private LocalDateTime createdAt;
 
     public static ProductResponse build(Product product, List<ProductOptionResponse> options) {
         return ProductResponse.builder()
@@ -26,6 +28,7 @@ public class ProductResponse implements Serializable {
                 .options(options)
                 .views(product.getViews())
                 .orders(product.getOrders())
+                .createdAt(product.getCreatedAt())
                 .build();
     }
 
@@ -35,12 +38,6 @@ public class ProductResponse implements Serializable {
                 .map(ProductOptionResponse::build)
                 .collect(Collectors.toList());
 
-        return ProductResponse.builder()
-                .id(product.getId())
-                .name(product.getName())
-                .options(productOptionResponses)
-                .views(product.getViews())
-                .orders(product.getOrders())
-                .build();
+        return ProductResponse.build(product, productOptionResponses);
     }
 }

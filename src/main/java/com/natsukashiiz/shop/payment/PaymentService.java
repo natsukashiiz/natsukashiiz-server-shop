@@ -8,6 +8,7 @@ import co.omise.requests.Request;
 import com.natsukashiiz.shop.common.ApiProperties;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.joda.time.DateTime;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -32,7 +33,7 @@ public class PaymentService {
         }
     }
 
-    public Charge charge(Double amount, String source, UUID orderId) {
+    public Charge charge(Double amount, String source, UUID orderId, Long expires) {
         try {
             Request<Charge> request = new Charge.CreateRequestBuilder()
                     .amount((long) (amount * 100))
@@ -40,6 +41,7 @@ public class PaymentService {
                     .source(source)
                     .returnUri(apiProperties.getPaymentReturn() + orderId)
                     .metadata("orderId", orderId)
+                    .expiresAt(new DateTime(expires))
                     .build();
             return client().sendRequest(request);
         } catch (IOException | OmiseException e) {

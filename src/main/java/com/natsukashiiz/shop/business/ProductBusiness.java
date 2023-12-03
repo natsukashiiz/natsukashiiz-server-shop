@@ -8,6 +8,7 @@ import com.natsukashiiz.shop.model.response.ProductResponse;
 import com.natsukashiiz.shop.service.ProductService;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +28,7 @@ public class ProductBusiness {
                 .collect(Collectors.toList());
     }
 
+    @Cacheable(value = "productsPageResponse", key = "#pagination")
     public PageResponse<List<ProductResponse>> getPage(PaginationRequest pagination) {
         Page<Product> page = productService.getPage(pagination);
         List<ProductResponse> products = page.getContent().stream().map(ProductResponse::build).collect(Collectors.toList());
@@ -36,8 +38,7 @@ public class ProductBusiness {
     public ProductResponse getById(Long productId) throws BaseException {
         Product product = productService.getById(productId);
         product.setViews(product.getViews() + 1);
-        productService.createOrUpdate(product);
-        return ProductResponse.build(product);
+        return ProductResponse.build(productService.createOrUpdate(product));
     }
 
 }

@@ -5,10 +5,12 @@ import com.natsukashiiz.shop.entity.ProductOption;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
+
 @Getter
 @Setter
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ProductOptionResponse {
+public class ProductOptionResponse implements Serializable {
 
     private Long id;
     private String name;

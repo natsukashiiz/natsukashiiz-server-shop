@@ -2,6 +2,7 @@ package com.natsukashiiz.shop.service;
 
 import com.natsukashiiz.shop.entity.Notification;
 import com.natsukashiiz.shop.model.NotificationPayload;
+import com.natsukashiiz.shop.model.response.NotificationResponse;
 import com.natsukashiiz.shop.repository.AccountRepository;
 import com.natsukashiiz.shop.repository.NotificationRepository;
 import lombok.AllArgsConstructor;
@@ -10,8 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 @Service
@@ -37,46 +36,18 @@ public class PushNotificationService {
     }
 
     public void dispatchTo(NotificationPayload request) {
-        SseEmitter emitter = emitters.get(request.getTo().getId());
+        Notification notify = notificationRepository.save(request.getNotification());
+        SseEmitter emitter = emitters.get(request.getAccount().getId());
         if (emitter != null) {
             try {
                 emitter.send(
                         SseEmitter.event()
-                                .name("EVENT")
-                                .data(request)
+                                .name(request.getType().name())
+                                .data(NotificationResponse.build(notify))
                 );
             } catch (IOException e) {
-                emitters.remove(request.getTo().getId());
+                emitters.remove(request.getAccount().getId());
             }
         }
-    }
-
-    public void dispatchAll(String message) {
-        NotificationPayload notificationPayload = new NotificationPayload();
-        notificationPayload.setFrom(0L);
-        notificationPayload.setMessage(message);
-
-        List<Notification> list = new ArrayList<>();
-
-        for (Map.Entry<Long, SseEmitter> emitter : emitters.entrySet()) {
-            Notification noti = new Notification();
-            noti.setFromAccountId(0L);
-            noti.setMessage(message);
-            noti.setAccount(accountRepository.findById(emitter.getKey()).get());
-            noti.setIsRead(Boolean.FALSE);
-            list.add(noti);
-
-            try {
-                emitter.getValue().send(
-                        SseEmitter.event()
-                                .name("notifications")
-                                .data("/v1/notifications")
-                );
-            } catch (IOException e) {
-                emitters.remove(emitter.getKey());
-            }
-        }
-
-        notificationRepository.saveAll(list);
     }
 }

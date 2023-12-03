@@ -1,33 +1,30 @@
 package com.natsukashiiz.shop.entity;
 
+import com.natsukashiiz.shop.common.OrderStatus;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @Entity(name = "sp_notifications")
-public class Notification {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Notification extends BaseEntity {
 
     @ManyToOne
     private Account account;
 
-    @Column(nullable = false)
-    private Long fromAccountId;
+    @Enumerated(EnumType.ORDINAL)
+    private OrderStatus type;
 
-    @Column(nullable = false)
-    private String message;
+    private String eventId;
+
+    @Column(nullable = false, columnDefinition = "VARCHAR(30) CHARSET utf8mb4")
+    private String title;
+
+    @Column(nullable = false, columnDefinition = "VARCHAR(100) CHARSET utf8mb4")
+    private String content;
 
     @Column(nullable = false)
     private Boolean isRead;
-
-    @CreationTimestamp
-    private LocalDateTime createdAt;
 }
