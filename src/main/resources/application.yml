@@ -3,9 +3,9 @@ spring:
     allow-circular-references: true
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/shop_db?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&characterSetResults=utf8mb4
-    username: dev
-    password: 1234
+    url: jdbc:mysql://185.78.165.239:3306/shop_db?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&characterSetResults=utf8mb4
+    username: root
+    password: YmIUGQw6KeJmIPnG??&xh!
   jpa:
     show-sql: true
     generate-ddl: true
@@ -13,8 +13,9 @@ spring:
       ddl-auto: update
       dialect: org.hibernate.dialect.MySQL5Dialect
   redis:
-    host: localhost
+    host: 185.78.165.239
     port: 6379
+    password: PlFRkuNRJ8xoIHF
   cache:
     type: redis
     redis:
