@@ -1,5 +1,7 @@
 package com.natsukashiiz.shop;
 
+import com.github.javafaker.Commerce;
+import com.github.javafaker.Faker;
 import com.natsukashiiz.shop.entity.Product;
 import com.natsukashiiz.shop.entity.ProductOption;
 import com.natsukashiiz.shop.repository.ProductOptionRepository;
@@ -10,6 +12,8 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,214 +28,55 @@ public class DevApplication implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) throws Exception {
         log.debug("DevApplication running...");
-//        saveNewDataToDB();
+        long count = productRepository.count();
+        if (count == 0) {
+            saveNewDataToDB();
+        }
     }
 
     private void saveNewDataToDB() {
-        {
-            // Samsung Galaxy S23
+        Faker faker = new Faker();
+
+        for (int i = 0; i < 100; i++) {
+            Commerce commerce = faker.commerce();
+
             Product product = new Product();
-            product.setName("Samsung Galaxy S23");
+            product.setName(commerce.productName());
+            product.setThumbnail(generateRandomImage());
+            product.setViews(Long.parseLong(String.valueOf(faker.number().numberBetween(1, 1000))));
+            product.setOrders(Long.parseLong(String.valueOf(faker.number().numberBetween(1, 1000))));
             Product ps = productRepository.save(product);
 
             List<ProductOption> options = new ArrayList<>();
 
-            {
+            for (int x = 0; x < 3; x++) {
                 ProductOption option = new ProductOption();
                 option.setProduct(ps);
-                option.setName("128GB Storage, 8GB RAM");
-                option.setPrice(27900.0); // Replace with actual price in THB
-                option.setQuantity(10);
-                options.add(option);
-            }
-
-            {
-                ProductOption option = new ProductOption();
-                option.setProduct(ps);
-                option.setName("256GB Storage, 12GB RAM");
-                option.setPrice(34900.0); // Replace with actual price in THB
-                option.setQuantity(10);
+                option.setName(commerce.material() + " " + commerce.color());
+                option.setPrice(faker.number().randomDouble(2, 1000, 50000));
+                option.setQuantity(faker.number().numberBetween(1, 100));
                 options.add(option);
             }
 
             productOptionRepository.saveAll(options);
         }
-
-        {
-            // Samsung Galaxy S23 Plus
-            Product product = new Product();
-            product.setName("Samsung Galaxy S23 Plus");
-            Product ps = productRepository.save(product);
-
-            List<ProductOption> options = new ArrayList<>();
-
-            {
-                ProductOption option = new ProductOption();
-                option.setProduct(ps);
-                option.setName("256GB Storage, 8GB RAM");
-                option.setPrice(31900.0); // Replace with actual price in THB
-                option.setQuantity(10);
-                options.add(option);
-            }
-
-            {
-                ProductOption option = new ProductOption();
-                option.setProduct(ps);
-                option.setName("512GB Storage, 12GB RAM");
-                option.setPrice(39900.0); // Replace with actual price in THB
-                option.setQuantity(10);
-                options.add(option);
-            }
-
-            productOptionRepository.saveAll(options);
-        }
-
-        {
-            // Samsung Galaxy Watch
-            Product product = new Product();
-            product.setName("Samsung Galaxy Watch");
-            Product ps = productRepository.save(product);
-
-            List<ProductOption> options = new ArrayList<>();
-
-            {
-                ProductOption option = new ProductOption();
-                option.setProduct(ps);
-                option.setName("42mm, Bluetooth");
-                option.setPrice(15900.0); // Replace with actual price in THB
-                option.setQuantity(10);
-                options.add(option);
-            }
-
-            {
-                ProductOption option = new ProductOption();
-                option.setProduct(ps);
-                option.setName("46mm, LTE");
-                option.setPrice(21900.0); // Replace with actual price in THB
-                option.setQuantity(10);
-                options.add(option);
-            }
-
-            productOptionRepository.saveAll(options);
-        }
-
-        {
-            // Samsung Galaxy Tab
-            Product product = new Product();
-            product.setName("Samsung Galaxy Tab");
-            Product ps = productRepository.save(product);
-
-            List<ProductOption> options = new ArrayList<>();
-
-            {
-                ProductOption option = new ProductOption();
-                option.setProduct(ps);
-                option.setName("10.1-inch, 64GB Storage");
-                option.setPrice(17900.0); // Replace with actual price in THB
-                option.setQuantity(10);
-                options.add(option);
-            }
-
-            {
-                ProductOption option = new ProductOption();
-                option.setProduct(ps);
-                option.setName("8.0-inch, 32GB Storage");
-                option.setPrice(12900.0); // Replace with actual price in THB
-                option.setQuantity(10);
-                options.add(option);
-            }
-
-            productOptionRepository.saveAll(options);
-        }
-
-        {
-            // Samsung TV
-            Product product = new Product();
-            product.setName("Samsung TV");
-            Product ps = productRepository.save(product);
-
-            List<ProductOption> options = new ArrayList<>();
-
-            {
-                ProductOption option = new ProductOption();
-                option.setProduct(ps);
-                option.setName("55-inch, 4K Smart TV");
-                option.setPrice(24900.0); // Replace with actual price in THB
-                option.setQuantity(10);
-                options.add(option);
-            }
-
-            {
-                ProductOption option = new ProductOption();
-                option.setProduct(ps);
-                option.setName("65-inch, QLED Smart TV");
-                option.setPrice(34900.0); // Replace with actual price in THB
-                option.setQuantity(10);
-                options.add(option);
-            }
-
-            productOptionRepository.saveAll(options);
-        }
-
-        {
-            // Samsung Refrigerator
-            Product product = new Product();
-            product.setName("Samsung Refrigerator");
-            Product ps = productRepository.save(product);
-
-            List<ProductOption> options = new ArrayList<>();
-
-            {
-                ProductOption option = new ProductOption();
-                option.setProduct(ps);
-                option.setName("French Door, 25 cu. ft.");
-                option.setPrice(31900.0); // Replace with actual price in THB
-                option.setQuantity(10);
-                options.add(option);
-            }
-
-            {
-                ProductOption option = new ProductOption();
-                option.setProduct(ps);
-                option.setName("Side-by-Side, 20 cu. ft.");
-                option.setPrice(25900.0); // Replace with actual price in THB
-                option.setQuantity(10);
-                options.add(option);
-            }
-
-            productOptionRepository.saveAll(options);
-        }
-
-        {
-            // Samsung Soundbar
-            Product product = new Product();
-            product.setName("Samsung Soundbar");
-            Product ps = productRepository.save(product);
-
-            List<ProductOption> options = new ArrayList<>();
-
-            {
-                ProductOption option = new ProductOption();
-                option.setProduct(ps);
-                option.setName("Dolby Atmos, 5.1 Channel");
-                option.setPrice(12900.0); // Replace with actual price in THB
-                option.setQuantity(10);
-                options.add(option);
-            }
-
-            {
-                ProductOption option = new ProductOption();
-                option.setProduct(ps);
-                option.setName("Wireless Subwoofer, 2.1 Channel");
-                option.setPrice(8900.0); // Replace with actual price in THB
-                option.setQuantity(10);
-                options.add(option);
-            }
-
-            productOptionRepository.saveAll(options);
-        }
-
-
     }
 
+    public String generateRandomImage() {
+        try {
+            String imageUrl = "https://picsum.photos/200"; // URL of random 200x200 image
+            URL url = new URL(imageUrl);
+
+            // Open a connection to the image URL
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setInstanceFollowRedirects(false);  //you still need to handle redirect manully.
+            HttpURLConnection.setFollowRedirects(false);
+
+            // Get the final URL after the redirection
+            return connection.getHeaderField("Location");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 }

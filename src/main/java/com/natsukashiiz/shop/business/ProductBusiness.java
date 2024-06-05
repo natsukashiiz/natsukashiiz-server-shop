@@ -28,7 +28,7 @@ public class ProductBusiness {
                 .collect(Collectors.toList());
     }
 
-    @Cacheable(value = "productsPageResponse", key = "#pagination")
+//    @Cacheable(value = "productsPageResponse", key = "#pagination")
     public PageResponse<List<ProductResponse>> getPage(PaginationRequest pagination) {
         Page<Product> page = productService.getPage(pagination);
         List<ProductResponse> products = page.getContent().stream().map(ProductResponse::build).collect(Collectors.toList());

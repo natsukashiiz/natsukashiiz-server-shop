@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 public class ProductResponse implements Serializable {
     private Long id;
     private String name;
+    private String thumbnail;
     private List<ProductOptionResponse> options;
     private Long views;
     private Long orders;
@@ -25,6 +26,7 @@ public class ProductResponse implements Serializable {
         return ProductResponse.builder()
                 .id(product.getId())
                 .name(product.getName())
+                .thumbnail(product.getThumbnail())
                 .options(options)
                 .views(product.getViews())
                 .orders(product.getOrders())

@@ -24,6 +24,9 @@ public class Product implements Serializable {
     @Column(nullable = false)
     private String name;
 
+    @Column(nullable = false)
+    private String thumbnail;
+
     @OneToMany(mappedBy = "product")
     private List<ProductOption> options;
 

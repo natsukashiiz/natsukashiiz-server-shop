@@ -12,6 +12,7 @@ public class OrderItemResponse implements Serializable {
 
     private Long productId;
     private String productName;
+    private String productThumbnail;
     private Long optionId;
     private String optionName;
     private Double price;
@@ -23,6 +24,7 @@ public class OrderItemResponse implements Serializable {
         OrderItemResponse response = new OrderItemResponse();
         response.setProductId(item.getProductId());
         response.setProductName(item.getProductName());
+        response.setProductThumbnail(item.getProductThumbnail());
         response.setOptionId(item.getOptionId());
         response.setOptionName(item.getOptionName());
         response.setPrice(item.getPrice());

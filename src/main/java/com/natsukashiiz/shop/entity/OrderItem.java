@@ -23,6 +23,9 @@ public class OrderItem extends BaseEntity {
     private String productName;
 
     @Column(nullable = false)
+    private String productThumbnail;
+
+    @Column(nullable = false)
     private Long optionId;
 
     @Column(nullable = false)

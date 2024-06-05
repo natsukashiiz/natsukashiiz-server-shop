@@ -88,6 +88,7 @@ public class OrderService {
             item.setOrder(order);
             item.setProductId(product.getId());
             item.setProductName(product.getName());
+            item.setProductThumbnail(product.getThumbnail());
             item.setOptionId(productOption.getId());
             item.setOptionName(productOption.getName());
             item.setPrice(productOption.getPrice());
