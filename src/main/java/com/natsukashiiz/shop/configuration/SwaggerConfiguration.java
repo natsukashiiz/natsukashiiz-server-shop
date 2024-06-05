@@ -29,10 +29,10 @@ public class SwaggerConfiguration {
     private ApiInfo apiInfo() {
         return new ApiInfo(
                 "Shop API",
-                "Shop API",
-                "API DEMO",
+                "API for shop management system for natsukashiiz",
+                "1.0.0",
                 "Terms of service",
-                new Contact("natsukashiiz", "www.natsukashiiz.xyz", "natsukashiiz@gmail.com"),
+                new Contact("natsukashiiz", "www.natsukashiiz.xyz", "natsukashiiz.dev@gmail.com"),
                 "License of API", "API license URL", Collections.emptyList());
     }
 }

@@ -1,5 +1,17 @@
 version: '3'
 services:
+  server:
+    build: .
+    image: shop-server:latest
+    container_name: shop_server
+    ports:
+      - "910:8080"
+    networks:
+      - server-net
+    depends_on:
+      - mysql
+      - redis
+
   mysql:
     image: biarms/mysql:5.7
     container_name: shop_mysqldb

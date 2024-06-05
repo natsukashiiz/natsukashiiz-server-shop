@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.natsukashiiz</groupId>
     <artifactId>natsukashiiz-server-shop</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0</version>
     <name>natsukashiiz-server-shop</name>
     <description>natsukashiiz-server-shop</description>
     <properties>
