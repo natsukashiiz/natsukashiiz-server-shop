@@ -1,11 +1,13 @@
 version: '3'
 services:
   mysql:
-    image: mysql:5.7
-    container_name: mysqldb
+    image: biarms/mysql:5.7
+    container_name: shop_mysqldb
     environment:
       MYSQL_DATABASE: shop_db
-      MYSQL_ROOT_PASSWORD: 0yUKxpK9nkAPRg4
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: dev
+      MYSQL_PASSWORD: 1234
     ports:
       - "3306:3306"
     volumes:
@@ -15,9 +17,7 @@ services:
 
   redis:
     image: redis
-    container_name: redis
-    environment:
-        REDIS_PASSWORD: gaEvE9ben98OXmv
+    container_name: shop_redis
     ports:
       - "6379:6379"
     networks:

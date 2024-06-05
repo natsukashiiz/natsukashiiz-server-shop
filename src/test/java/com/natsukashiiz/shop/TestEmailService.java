@@ -19,7 +19,7 @@ public class TestEmailService {
     @Order(1)
     @Test
     void test() throws BaseException {
-        mailService.sendVerifyCode(
+        mailService.sendActiveAccount(
                 DATA.email,
                 DATA.code,
                 DATA.link

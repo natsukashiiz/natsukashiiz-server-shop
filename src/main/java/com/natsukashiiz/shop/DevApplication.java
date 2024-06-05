@@ -60,6 +60,8 @@ public class DevApplication implements ApplicationRunner {
 
             productOptionRepository.saveAll(options);
         }
+
+        log.debug("Data saved to DB");
     }
 
     public String generateRandomImage() {
