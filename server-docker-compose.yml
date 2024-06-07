@@ -1,0 +1,8 @@
+version: '3'
+services:
+  shop-server:
+    build: .
+    container_name: shop-server
+    restart: unless-stopped
+    ports:
+      - 810:8080

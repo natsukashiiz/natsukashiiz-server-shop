@@ -36,6 +36,9 @@ public class PushNotificationService {
     }
 
     public void dispatchTo(NotificationPayload request) {
+
+        log.debug("DispatchTo-[next]. request:{}", request);
+
         Notification notify = notificationRepository.save(request.getNotification());
         SseEmitter emitter = emitters.get(request.getAccount().getId());
         if (emitter != null) {
@@ -47,6 +50,7 @@ public class PushNotificationService {
                 );
             } catch (IOException e) {
                 emitters.remove(request.getAccount().getId());
+                log.error("DispatchTo-[error]. accountId:{}, error:{}", request.getAccount().getId(), e.getMessage());
             }
         }
     }
