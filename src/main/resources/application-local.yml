@@ -3,9 +3,9 @@ spring:
     allow-circular-references: true
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://212.80.213.8:3306/shop_db?useSSL=false&serverTimezone=UTC
-    username: root
-    password: 0yUKxpK9nkAPRg4
+    url: jdbc:mysql://localhost:3306/shop_db?useSSL=false&serverTimezone=UTC
+    username: dev
+    password: 1234
   jpa:
     show-sql: true
     generate-ddl: true
@@ -13,9 +13,8 @@ spring:
       ddl-auto: update
       dialect: org.hibernate.dialect.MySQL5Dialect
   redis:
-    host: 212.80.213.8
+    host: localhost
     port: 6379
-    password: gaEvE9ben98OXmv
   cache:
     type: redis
     redis:
@@ -58,4 +57,10 @@ logging:
     com.natsukashiiz.shop: DEBUG
   file:
     path: logs
-    name: logs/logs.log
+    name: shop.log
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 7
+      file-name-pattern: logs/shop-%d{yyyy-MM-dd}.log
+      clean-history-on-start: true
