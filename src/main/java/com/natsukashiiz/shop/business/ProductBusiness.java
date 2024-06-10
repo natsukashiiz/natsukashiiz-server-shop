@@ -3,6 +3,7 @@ package com.natsukashiiz.shop.business;
 import com.natsukashiiz.shop.common.PaginationRequest;
 import com.natsukashiiz.shop.entity.Product;
 import com.natsukashiiz.shop.exception.BaseException;
+import com.natsukashiiz.shop.model.request.QueryProductRequest;
 import com.natsukashiiz.shop.model.response.PageResponse;
 import com.natsukashiiz.shop.model.response.ProductResponse;
 import com.natsukashiiz.shop.service.ProductService;
@@ -22,16 +23,19 @@ public class ProductBusiness {
     private final ProductService productService;
 
     public List<ProductResponse> getAll() {
-        return productService.getList()
-                .stream()
-                .map(ProductResponse::build)
-                .collect(Collectors.toList());
+        return ProductResponse.buildList(productService.getList());
     }
 
-//    @Cacheable(value = "productsPageResponse", key = "#pagination")
+    //    @Cacheable(value = "productsPageResponse", key = "#pagination")
     public PageResponse<List<ProductResponse>> getPage(PaginationRequest pagination) {
         Page<Product> page = productService.getPage(pagination);
-        List<ProductResponse> products = page.getContent().stream().map(ProductResponse::build).collect(Collectors.toList());
+        List<ProductResponse> products = ProductResponse.buildList(page.getContent());
+        return new PageResponse<>(products, page.getTotalElements());
+    }
+
+    public PageResponse<List<ProductResponse>> queryList(QueryProductRequest request, PaginationRequest pagination) {
+        Page<Product> page = productService.queryList(request.getName(), request.getCategoryId(), pagination);
+        List<ProductResponse> products = ProductResponse.buildList(page.getContent());
         return new PageResponse<>(products, page.getTotalElements());
     }
 

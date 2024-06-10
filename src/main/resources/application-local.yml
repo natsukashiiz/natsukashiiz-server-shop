@@ -55,12 +55,3 @@ logging:
     org.springframework.web: INFO
     org.springframework.security: INFO
     com.natsukashiiz.shop: DEBUG
-  file:
-    path: logs
-    name: shop.log
-  logback:
-    rollingpolicy:
-      max-file-size: 10MB
-      max-history: 7
-      file-name-pattern: logs/shop-%d{yyyy-MM-dd}.log
-      clean-history-on-start: true

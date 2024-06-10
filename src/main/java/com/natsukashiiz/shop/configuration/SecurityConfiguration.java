@@ -69,6 +69,8 @@ public class SecurityConfiguration implements WebMvcConfigurer {
                                         "/v*/auth/**")
                                 .permitAll()
                                 .antMatchers(HttpMethod.GET, "/v*/products/**").permitAll()
+                                .antMatchers(HttpMethod.GET, "/v*/carousels/**").permitAll()
+                                .antMatchers(HttpMethod.GET, "/v*/categories/**").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)

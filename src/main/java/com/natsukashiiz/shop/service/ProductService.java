@@ -39,6 +39,9 @@ public class ProductService {
     public Page<Product> getPage(PageRequest page) {
         return productRepository.findAll(page);
     }
+    public Page<Product> queryList(String name, Long categoryId, PageRequest page) {
+        return productRepository.findByNameContainingOrCategoryId(name, categoryId, page);
+    }
 
     public Product createOrUpdate(Product product) {
         return productRepository.save(product);

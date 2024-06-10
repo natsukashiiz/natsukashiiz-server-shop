@@ -15,30 +15,28 @@ import java.util.List;
 @Setter
 @ToString
 @Entity(name = "sp_products")
-public class Product implements Serializable {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Product extends BaseEntity implements Serializable {
 
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
-    private String thumbnail;
+    @ManyToOne
+    private Category category;
 
     @OneToMany(mappedBy = "product")
+    @ToString.Exclude
     private List<ProductOption> options;
 
-    @Column(columnDefinition = "bigint default 0")
+    @OneToMany(mappedBy = "product")
+    @ToString.Exclude
+    private List<ProductImage> images;
+
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String description;
+
+    @Column(columnDefinition = "BIGINT DEFAULT 0")
     private Long views;
 
-    @Column(columnDefinition = "bigint default 0")
+    @Column(columnDefinition = "BIGINT DEFAULT 0")
     private Long orders;
-
-    @CreationTimestamp
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
 }

@@ -12,20 +12,14 @@ import java.io.Serializable;
 @Getter
 @Setter
 @ToString
-@Entity(name = "sp_products_options")
-public class ProductOption extends BaseEntity implements Serializable {
+@Entity(name = "sp_products_images")
+public class ProductImage extends BaseEntity implements Serializable {
 
     @ManyToOne
     private Product product;
 
     @Column(nullable = false)
-    private String name;
-
-    @Column(nullable = false)
-    private Double price;
-
-    @Column(nullable = false)
-    private Integer quantity;
+    private String url;
 
     @Column(columnDefinition = "TINYINT(1) DEFAULT 0")
     private Integer sort;

@@ -4,6 +4,7 @@ import com.natsukashiiz.shop.business.ProductBusiness;
 import com.natsukashiiz.shop.common.Pagination;
 import com.natsukashiiz.shop.common.PaginationRequest;
 import com.natsukashiiz.shop.exception.BaseException;
+import com.natsukashiiz.shop.model.request.QueryProductRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,9 +21,14 @@ public class ProductController {
     private final ProductBusiness productBusiness;
 
     @Operation(summary = "Get All", description = "Get all product")
-    @GetMapping
+    @GetMapping("/all")
     private ResponseEntity<?> getAll() {
         return ResponseEntity.ok(productBusiness.getAll());
+    }
+
+    @GetMapping
+    private ResponseEntity<?> queryList(QueryProductRequest request, PaginationRequest pagination) {
+        return ResponseEntity.ok(productBusiness.queryList(request, pagination));
     }
 
     @Operation(summary = "Get All With Pagination", description = "Get all product With Pagination")
