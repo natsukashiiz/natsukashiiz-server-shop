@@ -7,14 +7,12 @@ import lombok.ToString;
 import java.io.Serializable;
 
 /**
- * DTO for {@link com.natsukashiiz.shop.entity.Product}
+ * DTO for {@link com.natsukashiiz.shop.entity.Category}
  */
 @Getter
 @Setter
 @ToString
-public class QueryProductRequest implements Serializable {
+public class QueryCategoryRequest implements Serializable {
     private Long id;
     private String name;
-    private String description;
-    private QueryCategoryRequest category;
 }
