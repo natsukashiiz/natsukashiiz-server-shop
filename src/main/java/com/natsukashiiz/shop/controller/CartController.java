@@ -21,6 +21,11 @@ public class CartController {
         return ResponseEntity.ok(cartBusiness.getAll());
     }
 
+    @GetMapping("/count")
+    public ResponseEntity<?> count() throws BaseException {
+        return ResponseEntity.ok(cartBusiness.count());
+    }
+
     @Operation(summary = "Create or Update", description = "Create or Update cart")
     @PutMapping
     public ResponseEntity<?> createOrUpdate(@RequestBody CartRequest request) throws BaseException {

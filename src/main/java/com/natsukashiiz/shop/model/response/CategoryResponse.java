@@ -14,11 +14,13 @@ public class CategoryResponse {
 
     private Long id;
     private String name;
+    private String thumbnail;
 
     public static CategoryResponse build(Category category) {
         CategoryResponse response = new CategoryResponse();
         response.setId(category.getId());
         response.setName(category.getName());
+        response.setThumbnail(category.getThumbnail());
         return response;
     }
 

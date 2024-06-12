@@ -39,6 +39,10 @@ public class CartBusiness {
                 .collect(Collectors.toList());
     }
 
+    public Integer count() throws BaseException {
+        return cartService.countByAccount(authService.getCurrent());
+    }
+
     public CartResponse create(ProductOption productOption, Integer quantity) throws BaseException {
         return CartResponse.build(cartService.create(productOption, quantity, authService.getCurrent()));
     }

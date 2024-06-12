@@ -74,6 +74,7 @@ public class DevApplication implements ApplicationRunner {
         Category category = new Category();
         category.setName(faker.commerce().department());
         category.setSort(faker.number().numberBetween(0, 99));
+        category.setThumbnail(randomCategoryImage());
         categoryRepository.save(category);
     }
 
@@ -161,6 +162,11 @@ public class DevApplication implements ApplicationRunner {
             images.add(image);
         }
         productImageRepository.saveAll(images);
+    }
+
+    public String randomCategoryImage() {
+        String url = "https://picsum.photos/312/312?random=" + System.currentTimeMillis();
+        return generateRandomImage(url);
     }
 
     public String randomProductImage() {

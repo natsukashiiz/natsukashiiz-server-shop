@@ -48,6 +48,7 @@ shop:
     url:
       base: http://localhost:4200/web
       verification: http://localhost:4200/web/verification?code=
+      resetPassword: http://localhost:4200/web/reset-password?email={EMAIL}&code={CODE}
       paymentReturn: http://localhost:4200/web/orders/detail/
 
 logging:

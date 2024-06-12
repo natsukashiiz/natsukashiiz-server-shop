@@ -19,6 +19,9 @@ public class Category extends BaseEntity implements Serializable {
     @Column(nullable = false)
     private String name;
 
+    @Column(nullable = false)
+    private String thumbnail;
+
     @Column(columnDefinition = "TINYINT DEFAULT 0")
     private Integer sort;
 

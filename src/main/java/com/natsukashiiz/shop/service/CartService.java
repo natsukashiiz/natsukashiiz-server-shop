@@ -26,6 +26,10 @@ public class CartService {
         return cartRepository.findByAccount(account);
     }
 
+    public Integer countByAccount(Account account) {
+        return cartRepository.sumQuantityByAccount(account);
+    }
+
     public Cart create(ProductOption productOption, Integer quantity, Account account) {
         Cart cart = new Cart();
         cart.setAccount(account);
