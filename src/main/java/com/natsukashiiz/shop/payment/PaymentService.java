@@ -33,20 +33,15 @@ public class PaymentService {
         }
     }
 
-    public Charge charge(Double amount, String source, UUID orderId, Long expires) {
-        try {
-            Request<Charge> request = new Charge.CreateRequestBuilder()
-                    .amount((long) (amount * 100))
-                    .currency("thb")
-                    .source(source)
-                    .returnUri(apiProperties.getPaymentReturn() + orderId)
-                    .metadata("orderId", orderId)
-                    .expiresAt(new DateTime(expires))
-                    .build();
-            return client().sendRequest(request);
-        } catch (IOException | OmiseException e) {
-            e.printStackTrace();
-        }
-        return null;
+    public Charge charge(Double amount, String source, UUID orderId, Long expires) throws IOException, OmiseException {
+        Request<Charge> request = new Charge.CreateRequestBuilder()
+                .amount((long) (amount * 100))
+                .currency("thb")
+                .source(source)
+                .returnUri(apiProperties.getPaymentReturn() + orderId)
+                .metadata("orderId", orderId)
+                .expiresAt(new DateTime(expires))
+                .build();
+        return client().sendRequest(request);
     }
 }

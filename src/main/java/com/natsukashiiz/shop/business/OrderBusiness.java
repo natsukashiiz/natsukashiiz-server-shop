@@ -3,6 +3,7 @@ package com.natsukashiiz.shop.business;
 import co.omise.models.Charge;
 import co.omise.models.ChargeStatus;
 import co.omise.models.Event;
+import co.omise.models.OmiseException;
 import com.natsukashiiz.shop.common.NotificationType;
 import com.natsukashiiz.shop.common.OrderStatus;
 import com.natsukashiiz.shop.common.PayUrlType;
@@ -27,6 +28,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import javax.transaction.Transactional;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ScheduledFuture;
@@ -114,32 +116,42 @@ public class OrderBusiness {
             throw OrderException.invalid();
         }
 
-        Charge charge = paymentService.charge(order.getTotalPay(), request.getSource(), order.getId(), order.getPayExpire());
+        try {
+            Charge charge = paymentService.charge(order.getTotalPay(), request.getSource(), order.getId(), order.getPayExpire());
 
-        if (ObjectUtils.isEmpty(charge.getId())) {
-            log.warn("Pay-[block]:(invalid chargeId). request:{}", request);
+            if (ObjectUtils.isEmpty(charge.getId())) {
+                log.warn("Pay-[block]:(invalid chargeId). request:{}", request);
+                throw PaymentException.invalid();
+            }
+
+            String url;
+            PayUrlType type;
+
+            if (ObjectUtils.isEmpty(charge.getSource().getScannableCode())) {
+                url = charge.getAuthorizeUri();
+                type = PayUrlType.LINK;
+            } else {
+                url = charge.getSource().getScannableCode().getImage().getDownloadUri();
+                type = PayUrlType.IMAGE;
+            }
+
+            order.setChargeId(charge.getId());
+            order.setPayMethod(charge.getSource().getType().toString());
+            order.setPayUrl(url);
+            order.setPaidAt(LocalDateTime.now());
+            orderService.update(order);
+
+            tasks.remove(order.getId());
+            return PayOrderResponse.build(order.getId(), type, url);
+        } catch (IOException | OmiseException e) {
+            if (e instanceof OmiseException) {
+                log.warn("Pay-[block]:(omise exception). request:{}, error:{}", request, e.getMessage());
+            } else {
+                log.warn("Pay-[block]:(io exception). request:{}, error:{}", request, e.getMessage());
+            }
+            
             throw PaymentException.invalid();
         }
-
-        String url;
-        PayUrlType type;
-
-        if (ObjectUtils.isEmpty(charge.getSource().getScannableCode())) {
-            url = charge.getAuthorizeUri();
-            type = PayUrlType.LINK;
-        } else {
-            url = charge.getSource().getScannableCode().getImage().getDownloadUri();
-            type = PayUrlType.IMAGE;
-        }
-
-        order.setChargeId(charge.getId());
-        order.setPayMethod(charge.getSource().getType().toString());
-        order.setPayUrl(url);
-        order.setPaidAt(LocalDateTime.now());
-        orderService.update(order);
-
-        tasks.remove(order.getId());
-        return PayOrderResponse.build(order.getId(), type, url);
     }
 
     @Transactional(rollbackOn = BaseException.class)
