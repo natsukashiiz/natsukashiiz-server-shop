@@ -28,25 +28,59 @@ public class DevApplication implements ApplicationRunner {
     private final ProductImageRepository productImageRepository;
     private final CategoryRepository categoryRepository;
     private final CarouselRepository carouselRepository;
+    private final ProductReviewRepository productReviewRepository;
+    private final AccountRepository accountRepository;
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
         log.debug("DevApplication running...");
 
         long categoryCount = categoryRepository.count();
-        if (categoryCount == 0) {
+        if (categoryCount < 100) {
             initCategories();
         }
 
         long count = productRepository.count();
-        if (count == 0) {
+        if (count < 100) {
             initProducts();
         }
 
         long carouselCount = carouselRepository.count();
-        if (carouselCount == 0) {
+        if (carouselCount < 10) {
             initCarousels();
         }
+
+        long accountCount = accountRepository.count();
+        if (accountCount < 100) {
+            initAccounts();
+        }
+
+        long reviewCount = productReviewRepository.count();
+        if (reviewCount < 1000) {
+            initReviews();
+        }
+
+        updateProductRating();
+    }
+
+    private void updateProductRating() {
+        log.debug("Updating product ratings...");
+
+        List<Product> products = productRepository.findAll();
+        for (Product product : products) {
+            List<ProductReview> reviews = productReviewRepository.findAllByProductId(product.getId());
+            if (!reviews.isEmpty()) {
+                float rating = 0f;
+                for (ProductReview review : reviews) {
+                    rating += review.getRating();
+                }
+                product.setRating(rating / reviews.size());
+                product.setReviews((long) reviews.size());
+                productRepository.save(product);
+            }
+        }
+
+        log.debug("Product ratings updated");
     }
 
     private void initCategories() {
@@ -137,6 +171,8 @@ public class DevApplication implements ApplicationRunner {
         product.setDescription(faker.lorem().paragraph(faker.number().numberBetween(10, 100)));
         product.setViews(Long.parseLong(String.valueOf(faker.number().numberBetween(1, 1000))));
         product.setOrders(Long.parseLong(String.valueOf(faker.number().numberBetween(1, 1000))));
+        product.setRating(0f);
+        product.setReviews(0L);
         Product ps = productRepository.save(product);
 
         List<ProductOption> options = new ArrayList<>();
@@ -162,6 +198,72 @@ public class DevApplication implements ApplicationRunner {
             images.add(image);
         }
         productImageRepository.saveAll(images);
+    }
+
+    private void initReviews() {
+        log.debug("Initializing reviews...");
+
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+
+        for (int i = 0; i < 100; i++) {
+            executorService.submit(this::randomAddReview);
+        }
+
+        executorService.shutdown();
+        try {
+            executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+            log.error("Error while waiting for tasks to finish", e);
+        }
+
+        log.debug("Reviews initialized");
+    }
+
+    private void randomAddReview() {
+        Faker faker = new Faker();
+
+        Account account = accountRepository.findById((long) faker.number().numberBetween(1, 100)).orElse(null);
+        Product product = productRepository.findById((long) faker.number().numberBetween(1, 100)).orElse(null);
+
+        if (account == null || product == null) {
+            return;
+        }
+
+        ProductReview review = new ProductReview();
+        review.setAccount(account);
+        review.setProduct(product);
+        review.setRating(Float.parseFloat(String.valueOf(faker.number().numberBetween(1, 5))));
+        review.setReview(faker.lorem().paragraph(faker.number().numberBetween(10, 100)));
+        productReviewRepository.save(review);
+    }
+
+    private void initAccounts() {
+        log.debug("Initializing accounts...");
+
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+
+        for (int i = 0; i < 100; i++) {
+            executorService.submit(this::randomAddAccount);
+        }
+
+        executorService.shutdown();
+        try {
+            executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+            log.error("Error while waiting for tasks to finish", e);
+        }
+
+        log.debug("Accounts initialized");
+    }
+
+    private void randomAddAccount() {
+        Faker faker = new Faker();
+
+        Account account = new Account();
+        account.setEmail(faker.internet().emailAddress());
+        account.setPassword(faker.internet().password());
+        account.setVerified(faker.bool().bool());
+        accountRepository.save(account);
     }
 
     public String randomCategoryImage() {

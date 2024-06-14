@@ -47,4 +47,9 @@ public class ProductController {
     private ResponseEntity<?> getById(@PathVariable Long productId) throws BaseException {
         return ResponseEntity.ok(productBusiness.getById(productId));
     }
+
+    @GetMapping("/{productId}/reviews")
+    private ResponseEntity<?> queryReview(@PathVariable Long productId, PaginationRequest pagination) {
+        return ResponseEntity.ok(productBusiness.queryReviews(productId, pagination));
+    }
 }

@@ -3,10 +3,13 @@ package com.natsukashiiz.shop.business;
 import com.natsukashiiz.shop.common.PaginationRequest;
 import com.natsukashiiz.shop.entity.Category;
 import com.natsukashiiz.shop.entity.Product;
+import com.natsukashiiz.shop.entity.ProductReview;
 import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.model.request.QueryProductRequest;
 import com.natsukashiiz.shop.model.response.PageResponse;
 import com.natsukashiiz.shop.model.response.ProductResponse;
+import com.natsukashiiz.shop.model.response.ProductReviewResponse;
+import com.natsukashiiz.shop.service.ProductReviewService;
 import com.natsukashiiz.shop.service.ProductService;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -21,6 +24,7 @@ import java.util.Objects;
 @Log4j2
 public class ProductBusiness {
     private final ProductService productService;
+    private final ProductReviewService reviewService;
 
     public List<ProductResponse> getAll() {
         return ProductResponse.buildList(productService.getList());
@@ -66,4 +70,9 @@ public class ProductBusiness {
         return ProductResponse.build(product);
     }
 
+    public PageResponse<List<ProductReviewResponse>> queryReviews(Long productId, PaginationRequest pagination) {
+        Page<ProductReview> page = reviewService.getByProductId(productId, pagination);
+        List<ProductReviewResponse> reviews = ProductReviewResponse.buildList(page.getContent());
+        return new PageResponse<>(reviews, page.getTotalElements());
+    }
 }

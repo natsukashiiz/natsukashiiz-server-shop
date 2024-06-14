@@ -26,6 +26,8 @@ public class ProductResponse implements Serializable {
     private CategoryResponse category;
     private Long views;
     private Long orders;
+    private Long reviews;
+    private Float rating;
     private LocalDateTime createdAt;
 
     public static List<ProductResponse> buildList(List<Product> products) {
@@ -45,6 +47,8 @@ public class ProductResponse implements Serializable {
                 .category(CategoryResponse.build(product.getCategory()))
                 .views(product.getViews())
                 .orders(product.getOrders())
+                .reviews(product.getReviews())
+                .rating(product.getRating())
                 .createdAt(product.getCreatedAt())
                 .build();
     }
