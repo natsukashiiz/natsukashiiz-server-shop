@@ -21,4 +21,12 @@ public class ProductException extends BaseException {
     public static ProductException insufficient() {
         return new ProductException("quantity.insufficient");
     }
+
+    public static ProductException invalidReviewContent() {
+        return new ProductException("review.content.invalid");
+    }
+
+    public static ProductException invalidReviewRating() {
+        return new ProductException("review.rating.invalid");
+    }
 }

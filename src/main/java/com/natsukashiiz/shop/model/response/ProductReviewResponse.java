@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 @ToString
 public class ProductReviewResponse implements Serializable {
     private Long id;
-    private String review;
+    private String content;
     private Float rating;
     private LocalDateTime createdAt;
     private ProfileResponse profile;
@@ -32,7 +32,7 @@ public class ProductReviewResponse implements Serializable {
     public static ProductReviewResponse build(ProductReview review) {
         ProductReviewResponse response = new ProductReviewResponse();
         response.setId(review.getId());
-        response.setReview(review.getReview());
+        response.setContent(review.getContent());
         response.setRating(review.getRating());
         response.setCreatedAt(review.getCreatedAt());
         response.setProfile(ProfileResponse.build(review.getAccount()));

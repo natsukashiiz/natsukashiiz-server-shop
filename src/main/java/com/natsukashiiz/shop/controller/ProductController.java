@@ -3,14 +3,12 @@ package com.natsukashiiz.shop.controller;
 import com.natsukashiiz.shop.business.ProductBusiness;
 import com.natsukashiiz.shop.common.PaginationRequest;
 import com.natsukashiiz.shop.exception.BaseException;
+import com.natsukashiiz.shop.model.request.ProductReviewRequest;
 import com.natsukashiiz.shop.model.request.QueryProductRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/v1/products")
@@ -51,5 +49,11 @@ public class ProductController {
     @GetMapping("/{productId}/reviews")
     private ResponseEntity<?> queryReview(@PathVariable Long productId, PaginationRequest pagination) {
         return ResponseEntity.ok(productBusiness.queryReviews(productId, pagination));
+    }
+
+    @PostMapping("/{productId}/reviews")
+    private ResponseEntity<?> createReview(@PathVariable Long productId, @RequestBody ProductReviewRequest request) throws BaseException {
+        productBusiness.createReview(productId, request);
+        return ResponseEntity.ok().build();
     }
 }

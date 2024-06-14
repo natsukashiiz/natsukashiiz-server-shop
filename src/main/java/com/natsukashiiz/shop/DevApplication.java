@@ -233,7 +233,7 @@ public class DevApplication implements ApplicationRunner {
         review.setAccount(account);
         review.setProduct(product);
         review.setRating(Float.parseFloat(String.valueOf(faker.number().numberBetween(1, 5))));
-        review.setReview(faker.lorem().paragraph(faker.number().numberBetween(10, 100)));
+        review.setContent(faker.lorem().paragraph(faker.number().numberBetween(3, 15)));
         productReviewRepository.save(review);
     }
 

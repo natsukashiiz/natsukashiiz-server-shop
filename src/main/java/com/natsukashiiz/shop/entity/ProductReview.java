@@ -18,8 +18,9 @@ public class ProductReview extends BaseEntity {
     @ManyToOne
     private Product product;
 
-    @Column(columnDefinition = "TEXT")
-    private String review;
+
+    @Column(columnDefinition = "TEXT COLLATE utf8mb4_general_ci")
+    private String content;
 
     @Column(nullable = false)
     private Float rating;

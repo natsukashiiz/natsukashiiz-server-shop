@@ -1,6 +1,7 @@
 package com.natsukashiiz.shop.utils;
 
 
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 public class ValidationUtils {
@@ -18,5 +19,9 @@ public class ValidationUtils {
 
     public static boolean isMatch(String pattern, String value) {
         return Pattern.matches(pattern, value);
+    }
+
+    public static boolean invalidRating(Float rating) {
+        return Objects.isNull(rating) || rating < 1 || rating > 5;
     }
 }

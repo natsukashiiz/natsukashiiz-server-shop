@@ -20,4 +20,12 @@ public class ProductReviewService {
     public Page<ProductReview> getByProductId(Long productId, Pageable pageable) {
         return productReviewRepository.findAllByProductId(productId, pageable);
     }
+
+    public List<ProductReview> getByProductId(Long productId) {
+        return productReviewRepository.findAllByProductId(productId);
+    }
+
+    public void createOrUpdate(ProductReview review) {
+        productReviewRepository.save(review);
+    }
 }
