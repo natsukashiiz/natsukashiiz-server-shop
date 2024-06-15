@@ -1,9 +1,7 @@
 package com.natsukashiiz.shop.business;
 
 import com.natsukashiiz.shop.common.PaginationRequest;
-import com.natsukashiiz.shop.entity.Category;
-import com.natsukashiiz.shop.entity.Product;
-import com.natsukashiiz.shop.entity.ProductReview;
+import com.natsukashiiz.shop.entity.*;
 import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.exception.ProductException;
 import com.natsukashiiz.shop.model.request.ProductReviewRequest;
@@ -11,6 +9,8 @@ import com.natsukashiiz.shop.model.request.QueryProductRequest;
 import com.natsukashiiz.shop.model.response.PageResponse;
 import com.natsukashiiz.shop.model.response.ProductResponse;
 import com.natsukashiiz.shop.model.response.ProductReviewResponse;
+import com.natsukashiiz.shop.model.response.ProductViewHistoryResponse;
+import com.natsukashiiz.shop.repository.ProductViewHistoryRepository;
 import com.natsukashiiz.shop.service.AuthService;
 import com.natsukashiiz.shop.service.ProductReviewService;
 import com.natsukashiiz.shop.service.ProductService;
@@ -18,12 +18,18 @@ import com.natsukashiiz.shop.utils.ValidationUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import javax.transaction.Transactional;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Random;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -32,6 +38,7 @@ public class ProductBusiness {
     private final ProductService productService;
     private final ProductReviewService reviewService;
     private final AuthService authService;
+    private final ProductViewHistoryRepository viewHistoryRepository;
 
     public List<ProductResponse> getAll() {
         return ProductResponse.buildList(productService.getList());
@@ -68,10 +75,34 @@ public class ProductBusiness {
     public ProductResponse getById(Long productId) throws BaseException {
         Product product = productService.getById(productId);
 
-        // random true or false
-        if (Math.random() < 0.5) {
-            product.setViews(product.getViews() + 1);
-            productService.createOrUpdate(product);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (Objects.nonNull(authentication) && !authentication.getPrincipal().equals("anonymousUser")) {
+            Account account = authService.getCurrent();
+            Optional<ProductViewHistory> productViewHistory = viewHistoryRepository.findFirstByAccountAndProductIdOrderByCreatedAtDesc(account, product.getId());
+            ProductViewHistory saveHistory = new ProductViewHistory();
+            if (productViewHistory.isPresent()) {
+                ProductViewHistory history = productViewHistory.get();
+                if (history.getCreatedAt().plusHours(1).isBefore(LocalDateTime.now())) {
+                    saveHistory.setAccount(account);
+                    saveHistory.setProduct(product);
+                    viewHistoryRepository.save(saveHistory);
+
+                    product.setViews(product.getViews() + 1);
+                    productService.createOrUpdate(product);
+                }
+            } else {
+                saveHistory.setAccount(account);
+                saveHistory.setProduct(product);
+                viewHistoryRepository.save(saveHistory);
+
+                product.setViews(product.getViews() + 1);
+                productService.createOrUpdate(product);
+            }
+        } else {
+            if (new Random().nextDouble() < 0.25) {
+                product.setViews(product.getViews() + 1);
+                productService.createOrUpdate(product);
+            }
         }
 
         return ProductResponse.build(product);
@@ -114,5 +145,14 @@ public class ProductBusiness {
         product.setRating(rating / reviews.size());
         product.setReviews((long) reviews.size());
         productService.createOrUpdate(product);
+    }
+
+    public PageResponse<List<ProductViewHistoryResponse>> queryViewHistory(PaginationRequest pagination) throws BaseException {
+        Page<ProductViewHistory> page = viewHistoryRepository.findAllByAccount(authService.getCurrent(), pagination);
+        List<ProductViewHistoryResponse> responses = page.getContent().stream()
+                .map(ProductViewHistoryResponse::build)
+                .collect(Collectors.toList());
+
+        return new PageResponse<>(responses, page.getTotalElements());
     }
 }

@@ -7,13 +7,14 @@ import com.natsukashiiz.shop.model.request.SignUpRequest;
 import com.natsukashiiz.shop.service.AuthService;
 import com.natsukashiiz.shop.service.GoogleService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/v1/auth")
@@ -24,7 +25,7 @@ public class AuthController {
 
     @Operation(summary = "Login", description = "Login for get Token use apis")
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) throws BaseException {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpServletRequest httpServletRequest) throws BaseException {
         return ResponseEntity.ok(authService.login(request));
     }
 

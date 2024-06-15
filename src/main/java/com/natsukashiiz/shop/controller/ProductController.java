@@ -56,4 +56,9 @@ public class ProductController {
         productBusiness.createReview(productId, request);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/view-history")
+    private ResponseEntity<?> getViewHistory(PaginationRequest pagination) throws BaseException {
+        return ResponseEntity.ok(productBusiness.queryViewHistory(pagination));
+    }
 }

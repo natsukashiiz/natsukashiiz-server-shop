@@ -35,14 +35,9 @@ public class DevApplication implements ApplicationRunner {
     public void run(ApplicationArguments args) throws Exception {
         log.debug("DevApplication running...");
 
-        long categoryCount = categoryRepository.count();
-        if (categoryCount < 100) {
-            initCategories();
-        }
-
-        long count = productRepository.count();
-        if (count < 100) {
-            initProducts();
+        long accountCount = accountRepository.count();
+        if (accountCount < 100) {
+            initAccounts();
         }
 
         long carouselCount = carouselRepository.count();
@@ -50,14 +45,14 @@ public class DevApplication implements ApplicationRunner {
             initCarousels();
         }
 
-        long accountCount = accountRepository.count();
-        if (accountCount < 100) {
-            initAccounts();
+        long categoryCount = categoryRepository.count();
+        if (categoryCount < 10) {
+            initCategories();
         }
 
-        long reviewCount = productReviewRepository.count();
-        if (reviewCount < 1000) {
-            initReviews();
+        long productCount = productRepository.count();
+        if (productCount < 100) {
+            initProducts();
         }
 
         updateProductRating();
@@ -86,17 +81,21 @@ public class DevApplication implements ApplicationRunner {
     private void initCategories() {
         log.debug("Initializing categories...");
 
-        ExecutorService executorService = Executors.newFixedThreadPool(10);
+//        ExecutorService executorService = Executors.newFixedThreadPool(10);
+//
+//        for (int i = 0; i < 10; i++) {
+//            executorService.submit(this::randomAddCategory);
+//        }
+//
+//        executorService.shutdown();
+//        try {
+//            executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+//        } catch (InterruptedException e) {
+//            log.error("Error while waiting for tasks to finish", e);
+//        }
 
         for (int i = 0; i < 10; i++) {
-            executorService.submit(this::randomAddCategory);
-        }
-
-        executorService.shutdown();
-        try {
-            executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-        } catch (InterruptedException e) {
-            log.error("Error while waiting for tasks to finish", e);
+            randomAddCategory();
         }
 
         log.debug("Categories initialized");
@@ -106,7 +105,12 @@ public class DevApplication implements ApplicationRunner {
         Faker faker = new Faker();
 
         Category category = new Category();
+
         category.setName(faker.commerce().department());
+        while (categoryRepository.existsByNameIgnoreCase(category.getName())) {
+            category.setName(faker.commerce().department());
+        }
+
         category.setSort(faker.number().numberBetween(0, 99));
         category.setThumbnail(randomCategoryImage());
         categoryRepository.save(category);
@@ -189,7 +193,7 @@ public class DevApplication implements ApplicationRunner {
         productOptionRepository.saveAll(options);
 
         List<ProductImage> images = new ArrayList<>();
-        int imgLen = faker.number().numberBetween(1, 5);
+        int imgLen = faker.number().numberBetween(5, 7);
         for (int x = 0; x < imgLen; x++) {
             ProductImage image = new ProductImage();
             image.setProduct(ps);
@@ -198,25 +202,23 @@ public class DevApplication implements ApplicationRunner {
             images.add(image);
         }
         productImageRepository.saveAll(images);
-    }
 
-    private void initReviews() {
-        log.debug("Initializing reviews...");
+        List<ProductReview> reviews = new ArrayList<>();
+        int reviewLen = faker.number().numberBetween(10, 30);
+        for (int x = 0; x < reviewLen; x++) {
+            Account account = accountRepository.findById((long) faker.number().numberBetween(1, 50)).orElse(null);
+            if (account == null) {
+                continue;
+            }
 
-        ExecutorService executorService = Executors.newFixedThreadPool(10);
-
-        for (int i = 0; i < 100; i++) {
-            executorService.submit(this::randomAddReview);
+            ProductReview review = new ProductReview();
+            review.setAccount(account);
+            review.setProduct(ps);
+            review.setRating(Float.parseFloat(String.valueOf(faker.number().numberBetween(1, 5))));
+            review.setContent(faker.lorem().paragraph(faker.number().numberBetween(3, 15)));
+            reviews.add(review);
         }
-
-        executorService.shutdown();
-        try {
-            executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-        } catch (InterruptedException e) {
-            log.error("Error while waiting for tasks to finish", e);
-        }
-
-        log.debug("Reviews initialized");
+        productReviewRepository.saveAll(reviews);
     }
 
     private void randomAddReview() {

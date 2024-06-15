@@ -29,6 +29,7 @@ public class GoogleService {
     private final PasswordEncoder passwordEncoder;
     private final GoogleIdTokenVerifier verifier;
 
+    @Transactional
     public TokenResponse login(GoogleLoginRequest request) throws BaseException {
 
         if (ObjectUtils.isEmpty(request.getIdToken())) {
