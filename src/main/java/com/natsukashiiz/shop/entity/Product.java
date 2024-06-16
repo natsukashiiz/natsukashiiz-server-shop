@@ -17,7 +17,7 @@ import java.util.List;
 @Entity(name = "sp_products")
 public class Product extends BaseEntity implements Serializable {
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true, columnDefinition = "VARCHAR(50) CHARSET utf8mb4")
     private String name;
 
     @ManyToOne
@@ -31,7 +31,7 @@ public class Product extends BaseEntity implements Serializable {
     @ToString.Exclude
     private List<ProductImage> images;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false, columnDefinition = "TEXT CHARSET utf8mb4")
     private String description;
 
     @Column(columnDefinition = "BIGINT DEFAULT 0")

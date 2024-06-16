@@ -15,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -30,7 +31,7 @@ public class GoogleService {
     private final GoogleIdTokenVerifier verifier;
 
     @Transactional
-    public TokenResponse login(GoogleLoginRequest request) throws BaseException {
+    public TokenResponse login(GoogleLoginRequest request, HttpServletRequest httpServletRequest) throws BaseException {
 
         if (ObjectUtils.isEmpty(request.getIdToken())) {
             log.warn("Login-[block]:(id token null). request:{}", request.getIdToken());
@@ -43,7 +44,7 @@ public class GoogleService {
             throw LoginException.invalid();
         }
         Account account = createOrUpdateAccount(accountOptional.get());
-        return authService.createTokenResponse(account);
+        return authService.createTokenResponse(account, httpServletRequest);
     }
 
     @Transactional

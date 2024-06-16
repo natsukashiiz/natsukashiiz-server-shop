@@ -18,7 +18,7 @@ public class ProductOption extends BaseEntity implements Serializable {
     @ManyToOne
     private Product product;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "VARCHAR(50) CHARSET utf8mb4")
     private String name;
 
     @Column(nullable = false)

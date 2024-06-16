@@ -180,11 +180,17 @@ public class DevApplication implements ApplicationRunner {
         Product ps = productRepository.save(product);
 
         List<ProductOption> options = new ArrayList<>();
-        int optionLen = faker.number().numberBetween(1, 5);
+        int optionLen = faker.number().numberBetween(3, 6);
         for (int x = 0; x < optionLen; x++) {
             ProductOption option = new ProductOption();
             option.setProduct(ps);
             option.setName(commerce.color());
+
+            // check if option name already exists in options
+            while (options.stream().anyMatch(o -> o.getName().equals(option.getName()))) {
+                option.setName(commerce.color());
+            }
+
             option.setPrice(faker.number().randomDouble(2, 1000, 50000));
             option.setQuantity(faker.number().numberBetween(1, 100));
             option.setSort(faker.number().numberBetween(0, 99));

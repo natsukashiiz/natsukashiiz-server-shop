@@ -1,14 +1,19 @@
 package com.natsukashiiz.shop.business;
 
 import com.natsukashiiz.shop.common.ApiProperties;
+import com.natsukashiiz.shop.common.PaginationRequest;
 import com.natsukashiiz.shop.entity.Account;
+import com.natsukashiiz.shop.entity.LoginHistory;
 import com.natsukashiiz.shop.exception.AccountException;
 import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.model.request.ChangePasswordRequest;
 import com.natsukashiiz.shop.model.request.ForgotPasswordRequest;
 import com.natsukashiiz.shop.model.request.ResetPasswordRequest;
+import com.natsukashiiz.shop.model.response.LoginHistoryResponse;
+import com.natsukashiiz.shop.model.response.PageResponse;
 import com.natsukashiiz.shop.model.response.TokenResponse;
 import com.natsukashiiz.shop.redis.RedisService;
+import com.natsukashiiz.shop.repository.LoginHistoryRepository;
 import com.natsukashiiz.shop.service.AccountService;
 import com.natsukashiiz.shop.service.AuthService;
 import com.natsukashiiz.shop.service.MailService;
@@ -16,11 +21,14 @@ import com.natsukashiiz.shop.service.PointService;
 import com.natsukashiiz.shop.utils.RandomUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.data.domain.Page;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.Duration;
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -35,6 +43,7 @@ public class AccountBusiness {
     private final MailService mailService;
     private final PasswordEncoder passwordEncoder;
     private final ApiProperties apiProperties;
+    private final LoginHistoryRepository loginHistoryRepository;
 
     private final String REDIS_KEY = "ACCOUNT:CODE:";
 
@@ -50,7 +59,7 @@ public class AccountBusiness {
         redisService.setValueByKey(REDIS_KEY + current.getEmail(), code, Duration.ofMinutes(15).toMillis());
     }
 
-    public TokenResponse verify(String verifyCode) throws BaseException {
+    public TokenResponse verify(String verifyCode, HttpServletRequest httpServletRequest) throws BaseException {
         Account current = authService.getCurrent(false);
         if (current.getVerified()) {
             log.warn("Verify-[block]:(account is verified). current:{}, ", current);
@@ -73,10 +82,10 @@ public class AccountBusiness {
         redisService.deleteByKey(REDIS_KEY + current.getEmail());
 
         current.setVerified(Boolean.TRUE);
-        return authService.createTokenResponse(current);
+        return authService.createTokenResponse(current, httpServletRequest);
     }
 
-    public void changePassword(ChangePasswordRequest request) throws BaseException {
+    public void changePassword(ChangePasswordRequest request, HttpServletRequest httpServletRequest) throws BaseException {
 
         if (!authService.passwordMatch(request.getCurrent(), authService.getCurrent().getPassword())) {
             log.warn("ChangePassword-[block]:(invalid current password)");
@@ -97,7 +106,7 @@ public class AccountBusiness {
         redisService.setValueByKey(REDIS_KEY + account.getEmail(), code, Duration.ofMinutes(5).toMillis());
     }
 
-    public TokenResponse resetPassword(ResetPasswordRequest request) throws BaseException {
+    public TokenResponse resetPassword(ResetPasswordRequest request, HttpServletRequest httpServletRequest) throws BaseException {
 
         if (ObjectUtils.isEmpty(request.getEmail())) {
             log.warn("ResetPassword-[block]:(invalid email). request:{}", request);
@@ -127,6 +136,13 @@ public class AccountBusiness {
         String encoded = passwordEncoder.encode(request.getPassword());
         account.setPassword(encoded);
         Account update = accountService.createOrUpdate(account);
-        return authService.createTokenResponse(update);
+        return authService.createTokenResponse(update, httpServletRequest);
+    }
+
+    public PageResponse<List<LoginHistoryResponse>> queryLoginHistory(PaginationRequest pagination) throws BaseException {
+        Account current = authService.getCurrent();
+        Page<LoginHistory> page = loginHistoryRepository.findByAccountId(current.getId(), pagination);
+        List<LoginHistoryResponse> responses = LoginHistoryResponse.buildList(page.getContent());
+        return new PageResponse<>(responses, page.getTotalElements());
     }
 }

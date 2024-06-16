@@ -16,7 +16,7 @@ public class LoginHistory extends BaseEntity {
     @ManyToOne
     private Account account;
 
-    private String ipAddress;
+    private String ip;
     private String userAgent;
     private String device;
     private String os;

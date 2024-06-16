@@ -2,12 +2,15 @@ package com.natsukashiiz.shop.service;
 
 import com.natsukashiiz.shop.common.ApiProperties;
 import com.natsukashiiz.shop.entity.Account;
+import com.natsukashiiz.shop.entity.LoginHistory;
 import com.natsukashiiz.shop.exception.*;
 import com.natsukashiiz.shop.model.request.LoginRequest;
 import com.natsukashiiz.shop.model.request.SignUpRequest;
 import com.natsukashiiz.shop.model.response.TokenResponse;
 import com.natsukashiiz.shop.redis.RedisService;
 import com.natsukashiiz.shop.repository.AccountRepository;
+import com.natsukashiiz.shop.repository.LoginHistoryRepository;
+import com.natsukashiiz.shop.utils.ServletUtils;
 import com.natsukashiiz.shop.utils.RandomUtils;
 import com.natsukashiiz.shop.utils.ValidationUtils;
 import lombok.AllArgsConstructor;
@@ -19,6 +22,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.Duration;
 import java.util.Optional;
 
@@ -32,8 +36,9 @@ public class AuthService {
     private final MailService mailService;
     private final RedisService redisService;
     private final ApiProperties apiProperties;
+    private final LoginHistoryRepository loginHistoryRepository;
 
-    public TokenResponse login(LoginRequest req) throws BaseException {
+    public TokenResponse login(LoginRequest req, HttpServletRequest httpServletRequest) throws BaseException {
         if (ValidationUtils.invalidEmail(req.getEmail())) {
             log.warn("Login-[block]:(invalid email). req:{}", req);
             throw LoginException.emailInvalid();
@@ -51,10 +56,10 @@ public class AuthService {
             throw LoginException.invalid();
         }
 
-        return createTokenResponse(account);
+        return createTokenResponse(account, httpServletRequest);
     }
 
-    public TokenResponse signUp(SignUpRequest req) throws BaseException {
+    public TokenResponse signUp(SignUpRequest req, HttpServletRequest httpServletRequest) throws BaseException {
         if (ValidationUtils.invalidEmail(req.getEmail())) {
             log.warn("SignUp-[block]:(invalid email). req:{}", req);
             throw LoginException.emailInvalid();
@@ -75,7 +80,7 @@ public class AuthService {
         mailService.sendActiveAccount(account.getEmail(), code, apiProperties.getVerification().replace("{CODE}", code));
         redisService.setValueByKey("ACCOUNT:CODE:" + account.getEmail(), code, Duration.ofMinutes(1).toMillis());
 
-        return createTokenResponse(account);
+        return createTokenResponse(account, httpServletRequest);
     }
 
     public Account getCurrent() throws BaseException {
@@ -133,7 +138,21 @@ public class AuthService {
         return passwordEncoder.matches(raw, hash);
     }
 
-    public TokenResponse createTokenResponse(Account account) {
+    public TokenResponse createTokenResponse(Account account, HttpServletRequest httpServletRequest) {
+
+        String userAgent = ServletUtils.getUserAgent(httpServletRequest);
+        String ipAddress = ServletUtils.getIpAddress(httpServletRequest);
+        String deviceName = ServletUtils.getDeviceName(userAgent);
+        String osName = ServletUtils.getOsName(userAgent);
+
+        LoginHistory loginHistory = new LoginHistory();
+        loginHistory.setAccount(account);
+        loginHistory.setIp(ipAddress);
+        loginHistory.setUserAgent(userAgent);
+        loginHistory.setDevice(deviceName);
+        loginHistory.setOs(osName);
+        loginHistoryRepository.save(loginHistory);
+
         return TokenResponse.build(tokenService.generate(account.getId(), account.getEmail(), account.getVerified()));
     }
 }

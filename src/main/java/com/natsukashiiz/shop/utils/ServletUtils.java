@@ -2,7 +2,7 @@ package com.natsukashiiz.shop.utils;
 
 import javax.servlet.http.HttpServletRequest;
 
-public class HttpUtils {
+public class ServletUtils {
 
     public static String getUserAgent(HttpServletRequest request) {
         return request.getHeader("User-Agent");

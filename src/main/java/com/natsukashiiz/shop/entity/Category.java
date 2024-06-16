@@ -16,7 +16,7 @@ import java.util.List;
 @Entity(name = "sp_categories")
 public class Category extends BaseEntity implements Serializable {
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true, columnDefinition = "VARCHAR(100) CHARACTER SET utf8mb4")
     private String name;
 
     @Column(nullable = false)

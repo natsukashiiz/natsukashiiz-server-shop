@@ -1,18 +1,14 @@
 package com.natsukashiiz.shop.controller;
 
+import com.natsukashiiz.shop.business.AccountBusiness;
 import com.natsukashiiz.shop.exception.BaseException;
-import com.natsukashiiz.shop.model.request.GoogleLoginRequest;
-import com.natsukashiiz.shop.model.request.LoginRequest;
-import com.natsukashiiz.shop.model.request.SignUpRequest;
+import com.natsukashiiz.shop.model.request.*;
 import com.natsukashiiz.shop.service.AuthService;
 import com.natsukashiiz.shop.service.GoogleService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -22,22 +18,49 @@ import javax.servlet.http.HttpServletRequest;
 public class AuthController {
     private final AuthService authService;
     private final GoogleService googleService;
+    private final AccountBusiness accountBusiness;
 
     @Operation(summary = "Login", description = "Login for get Token use apis")
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpServletRequest httpServletRequest) throws BaseException {
-        return ResponseEntity.ok(authService.login(request));
+        return ResponseEntity.ok(authService.login(request, httpServletRequest));
     }
 
     @Operation(summary = "SignUp", description = "SignUp for use in system and get Token use api")
-    @PostMapping("/signUp")
-    public ResponseEntity<?> signUp(@RequestBody SignUpRequest request) throws BaseException {
-        return ResponseEntity.ok(authService.signUp(request));
+    @PostMapping("/sign-up")
+    public ResponseEntity<?> signUp(@RequestBody SignUpRequest request, HttpServletRequest httpServletRequest) throws BaseException {
+        return ResponseEntity.ok(authService.signUp(request,httpServletRequest));
     }
 
     @Operation(summary = "Google", description = "SignUp / Login with google account")
     @PostMapping("/google")
-    public ResponseEntity<?> google(@RequestBody GoogleLoginRequest request) throws BaseException {
-        return ResponseEntity.ok(googleService.login(request));
+    public ResponseEntity<?> google(@RequestBody GoogleLoginRequest request, HttpServletRequest httpServletRequest) throws BaseException {
+        return ResponseEntity.ok(googleService.login(request,httpServletRequest));
+    }
+
+    @Operation(summary = "Get verify code", description = "Send verify code to email")
+    @PostMapping("/code")
+    public ResponseEntity<?> getVerifyCode() throws BaseException {
+        accountBusiness.getVerifyCode();
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Verify account", description = "Verify account with code")
+    @PostMapping("/verify/{code}")
+    public ResponseEntity<?> verify(@PathVariable String code, HttpServletRequest httpServletRequest) throws BaseException {
+        return ResponseEntity.ok(accountBusiness.verify(code, httpServletRequest));
+    }
+
+    @Operation(summary = "Forgot Password", description = "Forgot password")
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequest request) throws BaseException {
+        accountBusiness.forgotPassword(request);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Reset Password", description = "Reset password")
+    @PatchMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request, HttpServletRequest httpServletRequest) throws BaseException {
+        return ResponseEntity.ok(accountBusiness.resetPassword(request, httpServletRequest));
     }
 }

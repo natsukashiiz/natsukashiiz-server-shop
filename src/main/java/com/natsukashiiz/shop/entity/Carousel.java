@@ -14,7 +14,7 @@ import java.io.Serializable;
 @Entity(name = "sp_carousels")
 public class Carousel extends BaseEntity implements Serializable {
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "VARCHAR(50) CHARSET utf8mb4")
     private String title;
 
     @Column(nullable = false)
