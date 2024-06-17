@@ -2,6 +2,8 @@ package com.natsukashiiz.shop;
 
 import com.github.javafaker.Commerce;
 import com.github.javafaker.Faker;
+import com.natsukashiiz.shop.common.DiscountType;
+import com.natsukashiiz.shop.common.VoucherStatus;
 import com.natsukashiiz.shop.entity.*;
 import com.natsukashiiz.shop.repository.*;
 import lombok.AllArgsConstructor;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -30,6 +33,7 @@ public class DevApplication implements ApplicationRunner {
     private final CarouselRepository carouselRepository;
     private final ProductReviewRepository productReviewRepository;
     private final AccountRepository accountRepository;
+    private final VoucherRepository voucherRepository;
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
@@ -53,6 +57,11 @@ public class DevApplication implements ApplicationRunner {
         long productCount = productRepository.count();
         if (productCount < 100) {
             initProducts();
+        }
+
+        long voucherCount = voucherRepository.count();
+        if (voucherCount < 50) {
+            initVouchers();
         }
 
         updateProductRating();
@@ -227,24 +236,6 @@ public class DevApplication implements ApplicationRunner {
         productReviewRepository.saveAll(reviews);
     }
 
-    private void randomAddReview() {
-        Faker faker = new Faker();
-
-        Account account = accountRepository.findById((long) faker.number().numberBetween(1, 100)).orElse(null);
-        Product product = productRepository.findById((long) faker.number().numberBetween(1, 100)).orElse(null);
-
-        if (account == null || product == null) {
-            return;
-        }
-
-        ProductReview review = new ProductReview();
-        review.setAccount(account);
-        review.setProduct(product);
-        review.setRating(Float.parseFloat(String.valueOf(faker.number().numberBetween(1, 5))));
-        review.setContent(faker.lorem().paragraph(faker.number().numberBetween(3, 15)));
-        productReviewRepository.save(review);
-    }
-
     private void initAccounts() {
         log.debug("Initializing accounts...");
 
@@ -272,6 +263,75 @@ public class DevApplication implements ApplicationRunner {
         account.setPassword(faker.internet().password());
         account.setVerified(faker.bool().bool());
         accountRepository.save(account);
+    }
+
+    private void initVouchers() {
+        log.debug("Initializing vouchers...");
+
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+
+        for (int i = 0; i < 50; i++) {
+            executorService.submit(this::randomAddVoucher);
+        }
+
+        executorService.shutdown();
+        try {
+            executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+            log.error("Error while waiting for tasks to finish", e);
+        }
+
+        log.debug("Vouchers initialized");
+    }
+
+    private void randomAddVoucher() {
+        Faker faker = new Faker();
+
+        Voucher voucher = new Voucher();
+        voucher.setCode(randomVoucherCode());
+
+        while (voucherRepository.existsByCodeIgnoreCase(voucher.getCode())) {
+            voucher.setCode(randomVoucherCode());
+        }
+
+        DiscountType discountType = faker.options().option(DiscountType.PERCENTAGE, DiscountType.AMOUNT);
+        if (discountType == DiscountType.PERCENTAGE) {
+            voucher.setDiscountType(DiscountType.PERCENTAGE);
+            voucher.setDiscount(faker.number().randomDouble(0, 1, 100));
+            voucher.setMaxDiscount(faker.number().randomDouble(2, 100, 1000));
+        } else {
+            voucher.setDiscountType(DiscountType.AMOUNT);
+            voucher.setDiscount(faker.number().randomDouble(2, 100, 1000));
+        }
+
+        voucher.setMinOrderPrice(faker.number().randomDouble(0, 0, 10000));
+        voucher.setQuantity(faker.number().numberBetween(1, 100));
+        voucher.setBeginAt(randomBeginAt());
+        voucher.setExpiredAt(randomExpiredAt(voucher.getBeginAt()));
+        voucher.setStatus(VoucherStatus.ACTIVE);
+
+        if (faker.bool().bool()) {
+            voucher.setProduct(productRepository.findById((long) faker.number().numberBetween(1, 100)).orElse(null));
+        } else {
+            if (faker.bool().bool()) {
+                voucher.setCategory(categoryRepository.findById((long) faker.number().numberBetween(1, 10)).orElse(null));
+            }
+        }
+
+        voucherRepository.save(voucher);
+    }
+
+    private LocalDateTime randomBeginAt() {
+        return LocalDateTime.now().plusDays(new Faker().number().numberBetween(1, 30));
+    }
+
+    private LocalDateTime randomExpiredAt(LocalDateTime beginAt) {
+        return beginAt.plusDays(new Faker().number().numberBetween(1, 30));
+    }
+
+    private String randomVoucherCode() {
+        // code with length 5 with only uppercase letters
+        return new Faker().regexify("[A-Z]{5}");
     }
 
     public String randomCategoryImage() {

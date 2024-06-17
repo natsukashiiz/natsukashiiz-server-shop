@@ -74,8 +74,7 @@ public class ProductBusiness {
     public ProductResponse getById(Long productId) throws BaseException {
         Product product = productService.getById(productId);
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (Objects.nonNull(authentication) && !authentication.getPrincipal().equals("anonymousUser")) {
+        if (!authService.anonymous()) {
             Account account = authService.getCurrent();
             Optional<ProductViewHistory> productViewHistory = viewHistoryRepository.findFirstByAccountAndProductIdOrderByCreatedAtDesc(account, product.getId());
             ProductViewHistory saveHistory = new ProductViewHistory();

@@ -133,6 +133,10 @@ public class AuthService {
         return accountOptional.get();
     }
 
+    public boolean anonymous() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return ObjectUtils.isEmpty(authentication) || authentication.getPrincipal().equals("anonymousUser");
+    }
 
     public boolean passwordMatch(String raw, String hash) {
         return passwordEncoder.matches(raw, hash);
