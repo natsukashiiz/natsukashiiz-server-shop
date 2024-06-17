@@ -61,4 +61,26 @@ public class ProductController {
     private ResponseEntity<?> getViewHistory(PaginationRequest pagination) throws BaseException {
         return ResponseEntity.ok(productBusiness.queryViewHistory(pagination));
     }
+
+    @GetMapping("/favorites")
+    private ResponseEntity<?> getFavorite(PaginationRequest pagination) throws BaseException {
+        return ResponseEntity.ok(productBusiness.queryFavorite(pagination));
+    }
+
+    @GetMapping("/{productId}/favorites")
+    private ResponseEntity<?> isFavorite(@PathVariable Long productId) throws BaseException {
+        return ResponseEntity.ok(productBusiness.isFavorite(productId));
+    }
+
+    @PostMapping("/{productId}/favorites")
+    private ResponseEntity<?> addFavorite(@PathVariable Long productId) throws BaseException {
+        productBusiness.addFavorite(productId);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{productId}/favorites")
+    private ResponseEntity<?> removeFavorite(@PathVariable Long productId) throws BaseException {
+        productBusiness.removeFavorite(productId);
+        return ResponseEntity.ok().build();
+    }
 }

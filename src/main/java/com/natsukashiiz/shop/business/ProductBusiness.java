@@ -6,10 +6,8 @@ import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.exception.ProductException;
 import com.natsukashiiz.shop.model.request.ProductReviewRequest;
 import com.natsukashiiz.shop.model.request.QueryProductRequest;
-import com.natsukashiiz.shop.model.response.PageResponse;
-import com.natsukashiiz.shop.model.response.ProductResponse;
-import com.natsukashiiz.shop.model.response.ProductReviewResponse;
-import com.natsukashiiz.shop.model.response.ProductViewHistoryResponse;
+import com.natsukashiiz.shop.model.response.*;
+import com.natsukashiiz.shop.repository.ProductFavoriteRepository;
 import com.natsukashiiz.shop.repository.ProductViewHistoryRepository;
 import com.natsukashiiz.shop.service.AuthService;
 import com.natsukashiiz.shop.service.ProductReviewService;
@@ -39,6 +37,7 @@ public class ProductBusiness {
     private final ProductReviewService reviewService;
     private final AuthService authService;
     private final ProductViewHistoryRepository viewHistoryRepository;
+    private final ProductFavoriteRepository favoriteRepository;
 
     public List<ProductResponse> getAll() {
         return ProductResponse.buildList(productService.getList());
@@ -149,10 +148,40 @@ public class ProductBusiness {
 
     public PageResponse<List<ProductViewHistoryResponse>> queryViewHistory(PaginationRequest pagination) throws BaseException {
         Page<ProductViewHistory> page = viewHistoryRepository.findAllByAccount(authService.getCurrent(), pagination);
-        List<ProductViewHistoryResponse> responses = page.getContent().stream()
-                .map(ProductViewHistoryResponse::build)
-                .collect(Collectors.toList());
+        List<ProductViewHistoryResponse> responses = page.getContent().stream().map(ProductViewHistoryResponse::build).collect(Collectors.toList());
 
         return new PageResponse<>(responses, page.getTotalElements());
+    }
+
+    public void addFavorite(Long productId) throws BaseException {
+        Product product = productService.getById(productId);
+        Account account = authService.getCurrent();
+        ProductFavorite favorite = favoriteRepository.findByAccountAndProduct(account, product).orElseGet(() -> {
+            ProductFavorite newFavorite = new ProductFavorite();
+            newFavorite.setAccount(account);
+            newFavorite.setProduct(product);
+            return newFavorite;
+        });
+
+        favoriteRepository.save(favorite);
+    }
+
+    @Transactional
+    public void removeFavorite(Long productId) throws BaseException {
+        Product product = productService.getById(productId);
+        Account account = authService.getCurrent();
+        favoriteRepository.deleteByAccountAndProduct(account, product);
+    }
+
+    public PageResponse<List<ProductFavoriteResponse>> queryFavorite(PaginationRequest pagination) throws BaseException {
+        Page<ProductFavorite> page = favoriteRepository.findAllByAccount(authService.getCurrent(), pagination);
+        List<ProductFavoriteResponse> products = ProductFavoriteResponse.buildList(page.getContent());
+        return new PageResponse<>(products, page.getTotalElements());
+    }
+
+    public boolean isFavorite(Long productId) throws BaseException {
+        Product product = productService.getById(productId);
+        Account account = authService.getCurrent();
+        return favoriteRepository.existsByAccountAndProduct(account, product);
     }
 }
