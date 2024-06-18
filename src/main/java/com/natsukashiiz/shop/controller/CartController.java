@@ -18,7 +18,7 @@ public class CartController {
     @Operation(summary = "Get All", description = "Get all cart")
     @GetMapping
     public ResponseEntity<?> getAll() throws BaseException {
-        return ResponseEntity.ok(cartBusiness.getAll());
+        return ResponseEntity.ok(cartBusiness.queryCarts());
     }
 
     @GetMapping("/count")
@@ -28,14 +28,13 @@ public class CartController {
 
     @Operation(summary = "Create or Update", description = "Create or Update cart")
     @PutMapping
-    public ResponseEntity<?> createOrUpdate(@RequestBody CartRequest request) throws BaseException {
-        return ResponseEntity.ok(cartBusiness.upsert(request));
+    public ResponseEntity<?> updateCart(@RequestBody CartRequest request) throws BaseException {
+            return ResponseEntity.ok(cartBusiness.updateCart(request));
     }
 
     @Operation(summary = "Delete", description = "Delete cart by cart id")
     @DeleteMapping("/{cartId}")
     public ResponseEntity<?> delete(@PathVariable Long cartId) throws BaseException {
-        cartBusiness.delete(cartId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(cartBusiness.delete(cartId));
     }
 }

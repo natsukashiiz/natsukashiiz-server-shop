@@ -2,6 +2,7 @@ package com.natsukashiiz.shop.controller;
 
 import com.natsukashiiz.shop.business.OrderBusiness;
 import com.natsukashiiz.shop.exception.BaseException;
+import com.natsukashiiz.shop.model.request.CheckoutRequest;
 import com.natsukashiiz.shop.model.request.CreateOrderRequest;
 import com.natsukashiiz.shop.model.request.PayOrderRequest;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,7 +31,7 @@ public class OrderController {
     }
 
     @PostMapping("/checkout")
-    public ResponseEntity<?> checkout(@RequestBody CreateOrderRequest request) throws BaseException {
+    public ResponseEntity<?> checkout(@RequestBody CheckoutRequest request) throws BaseException {
         return ResponseEntity.ok(orderBusiness.checkout(request));
     }
 

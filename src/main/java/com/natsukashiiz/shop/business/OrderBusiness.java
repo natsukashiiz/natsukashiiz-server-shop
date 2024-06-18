@@ -8,15 +8,13 @@ import com.natsukashiiz.shop.common.*;
 import com.natsukashiiz.shop.entity.*;
 import com.natsukashiiz.shop.exception.*;
 import com.natsukashiiz.shop.model.NotificationPayload;
+import com.natsukashiiz.shop.model.request.CheckoutRequest;
 import com.natsukashiiz.shop.model.request.CreateOrderRequest;
 import com.natsukashiiz.shop.model.request.PayOrderRequest;
 import com.natsukashiiz.shop.model.response.OrderResponse;
 import com.natsukashiiz.shop.model.response.PayOrderResponse;
 import com.natsukashiiz.shop.payment.PaymentService;
-import com.natsukashiiz.shop.repository.AccountVoucherRepository;
-import com.natsukashiiz.shop.repository.OrderRepository;
-import com.natsukashiiz.shop.repository.ProductOptionRepository;
-import com.natsukashiiz.shop.repository.VoucherRepository;
+import com.natsukashiiz.shop.repository.*;
 import com.natsukashiiz.shop.service.*;
 import com.natsukashiiz.shop.task.OrderExpireTask;
 import com.natsukashiiz.shop.utils.TimeUtils;
@@ -53,18 +51,19 @@ public class OrderBusiness {
     private final ProductOptionRepository productOptionRepository;
     private final VoucherRepository voucherRepository;
     private final AccountVoucherRepository accountVoucherRepository;
+    private final CartRepository cartRepository;
 
     public List<OrderResponse> myOrders(String status) throws BaseException {
 
-        List<Order> list;
+        List<Order> orders;
         if (!Objects.equals(status.toUpperCase(), "ALL")) {
             OrderStatus orderStatus = OrderStatus.valueOf(status.toUpperCase());
-            list = orderService.myOrderListByStatusAndLatest(authService.getCurrent(), orderStatus);
+            orders = orderService.myOrderListByStatusAndLatest(authService.getCurrent(), orderStatus);
         } else {
-            list = orderService.myOrderListByLatest(authService.getCurrent());
+            orders = orderService.myOrderListByLatest(authService.getCurrent());
         }
 
-        return list.stream()
+        return orders.stream()
                 .map(OrderResponse::build)
                 .collect(Collectors.toList());
     }
@@ -73,9 +72,17 @@ public class OrderBusiness {
         return OrderResponse.build(orderService.findById(UUID.fromString(orderId)));
     }
 
-    public OrderResponse checkout(CreateOrderRequest request) throws BaseException {
+    public OrderResponse checkout(CheckoutRequest request) throws BaseException {
         Account account = authService.getCurrent();
+
+        List<Cart> carts = cartRepository.findAllByAccountAndSelectedIsTrue(account);
+        if (carts.isEmpty()) {
+            log.warn("Checkout-[block]:(cart selected is empty). account:{}", account);
+            throw CartException.selectedEmpty();
+        }
+
         Order order = new Order();
+        order.setAccount(account);
 
         Address address = addressService.getMain(account);
         order.setFirstName(address.getFirstName());
@@ -83,17 +90,14 @@ public class OrderBusiness {
         order.setMobile(address.getMobile());
         order.setAddress(address.getAddress());
 
-        List<CreateOrderRequest.OrderItem> orderItems = request.getOrderItems();
-        Map<Long, ProductOption> productOptionMap = productOptionRepository.findAllById(orderItems.stream().map(CreateOrderRequest.OrderItem::getOptionId).collect(Collectors.toSet())).stream().collect(Collectors.toMap(ProductOption::getId, Function.identity()));
+        List<ProductOption> orderItems = carts.stream().map(Cart::getProductOption).collect(Collectors.toList());
+        Map<Long, ProductOption> productOptionMap = productOptionRepository.findAllById(orderItems.stream().map(ProductOption::getId).collect(Collectors.toSet())).stream().collect(Collectors.toMap(ProductOption::getId, Function.identity()));
 
-        order.setAccount(account);
-        order.setPayExpire(Instant.now().plus(10, ChronoUnit.MINUTES).toEpochMilli());
-
-        List<OrderItem> items = new LinkedList<>();
+        List<OrderItem> items = new ArrayList<>();
 
         double totalPay = 0.0;
-        for (CreateOrderRequest.OrderItem orderItem : orderItems) {
-            ProductOption productOption = productOptionMap.get(orderItem.getOptionId());
+        for (ProductOption orderItem : orderItems) {
+            ProductOption productOption = productOptionMap.get(orderItem.getId());
             if (Objects.isNull(productOption)) {
                 log.warn("Checkout-[block]:(not found product option). req:{}", orderItem);
                 throw ProductException.invalid();

@@ -30,12 +30,13 @@ public class CartService {
         return cartRepository.sumQuantityByAccount(account);
     }
 
-    public Cart create(ProductOption productOption, Integer quantity, Account account) {
+    public Cart create(ProductOption productOption, Integer quantity, Account account, Boolean selected) {
         Cart cart = new Cart();
         cart.setAccount(account);
         cart.setProduct(productOption.getProduct());
         cart.setProductOption(productOption);
         cart.setQuantity(quantity);
+        cart.setSelected(selected);
         return cartRepository.save(cart);
     }
 

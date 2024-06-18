@@ -12,4 +12,5 @@ public class CartRequest {
     private Long productId;
     private Long optionId;
     private Integer quantity;
+    private Boolean selected;
 }

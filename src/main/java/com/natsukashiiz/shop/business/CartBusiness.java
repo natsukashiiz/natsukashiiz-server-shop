@@ -1,13 +1,15 @@
 package com.natsukashiiz.shop.business;
 
+import com.natsukashiiz.shop.entity.Account;
 import com.natsukashiiz.shop.entity.Cart;
 import com.natsukashiiz.shop.entity.ProductOption;
 import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.exception.CartException;
 import com.natsukashiiz.shop.exception.ProductException;
 import com.natsukashiiz.shop.model.request.CartRequest;
+import com.natsukashiiz.shop.model.response.CartItemResponse;
 import com.natsukashiiz.shop.model.response.CartResponse;
-import com.natsukashiiz.shop.model.response.ProductResponse;
+import com.natsukashiiz.shop.repository.CartRepository;
 import com.natsukashiiz.shop.service.AuthService;
 import com.natsukashiiz.shop.service.CartService;
 import com.natsukashiiz.shop.service.ProductOptionService;
@@ -28,44 +30,29 @@ public class CartBusiness {
     private final AuthService authService;
     private final CartService cartService;
     private final ProductOptionService optionService;
+    private final CartRepository cartRepository;
 
-    public List<CartResponse> getAll() throws BaseException {
-        return cartService.findAllByAccount(authService.getCurrent())
-                .stream()
-                .map(e -> {
-                    ProductResponse product = ProductResponse.build(e.getProduct());
-                    return CartResponse.build(e, product);
-                })
-                .collect(Collectors.toList());
+    public CartResponse queryCarts() throws BaseException {
+        List<CartItemResponse> itemResponses = cartService.findAllByAccount(authService.getCurrent()).stream().map(CartItemResponse::build).collect(Collectors.toList());
+
+        CartResponse response = new CartResponse();
+        response.setItems(itemResponses);
+        response.setCountSelected(itemResponses.stream().filter(CartItemResponse::getSelected).count());
+        response.setTotalQuantity(itemResponses.stream().mapToInt(CartItemResponse::getQuantity).sum());
+        response.setTotalSelectedQuantity(itemResponses.stream().filter(CartItemResponse::getSelected).mapToInt(CartItemResponse::getQuantity).sum());
+        response.setTotalPrice(itemResponses.stream().filter(CartItemResponse::getSelected).mapToDouble(e -> e.getPrice() * e.getQuantity()).sum());
+
+        return response;
     }
 
     public Integer count() throws BaseException {
         return cartService.countByAccount(authService.getCurrent());
     }
 
-    public CartResponse create(ProductOption productOption, Integer quantity) throws BaseException {
-        return CartResponse.build(cartService.create(productOption, quantity, authService.getCurrent()));
-    }
 
-    public CartResponse update(ProductOption productOption, Integer quantity) throws BaseException {
-        Optional<Cart> cartOptional = cartService.findByProductOptionAndAccount(productOption, authService.getCurrent());
-        if (!cartOptional.isPresent()) {
-            log.warn("Update-[block]:(product option in cart not found). productOption:{}", productOption);
-            throw CartException.invalid();
-        }
-        Cart cart = cartOptional.get();
+    public CartResponse updateCart(CartRequest request) throws BaseException {
+        Account account = authService.getCurrent();
 
-        if (Objects.equals(cart.getQuantity(), quantity)) {
-            // ถ้าจำนวนเท่าเดิมให้ตอบกลับเลย
-            return CartResponse.build(cart);
-        }
-
-        cart.setQuantity(quantity);
-        return CartResponse.build(cartService.update(cart));
-    }
-
-    // กระบวนการในการ inserts rows เข้าไปใน db table ถ้าข้อมูลนั้นยังไม่มี หรือ update ข้อมูลถ้าข้อมูลนั้นมีแล้ว
-    public CartResponse upsert(CartRequest request) throws BaseException {
         Optional<ProductOption> optionOptional = optionService.getById(request.getOptionId());
         if (!optionOptional.isPresent()) {
             log.warn("Upsert-[block]:(product option not found). request:{}", request);
@@ -83,24 +70,27 @@ public class CartBusiness {
             throw ProductException.insufficient();
         }
 
-        Optional<Cart> cartOptional = cartService.findByProductOptionAndAccount(productOption, authService.getCurrent());
-        if (cartOptional.isPresent()) {
-            if (request.getQuantity() == 1) {
-                return update(productOption, cartOptional.get().getQuantity() + 1);
-            } else {
-                return update(productOption, request.getQuantity());
-            }
-        } else {
-            return create(productOption, request.getQuantity());
-        }
+        Cart cart = new Cart();
+        cart.setAccount(account);
+        cart.setProduct(productOption.getProduct());
+        cart.setProductOption(productOption);
+
+        cartRepository.findByAccountAndProductOption(account, productOption)
+                .ifPresent(c -> cart.setId(c.getId()));
+
+        cart.setQuantity(request.getQuantity());
+        cart.setSelected(request.getSelected());
+        cartRepository.save(cart);
+
+        return queryCarts();
     }
 
-    public void delete(Long cartId) throws BaseException {
+    public CartResponse delete(Long cartId) throws BaseException {
         if (!cartService.existsById(cartId)) {
             log.warn("Upsert-[block]:(cart not found). cartId:{}", cartId);
             throw CartException.invalid();
         }
-
         cartService.delete(cartId);
+        return queryCarts();
     }
 }

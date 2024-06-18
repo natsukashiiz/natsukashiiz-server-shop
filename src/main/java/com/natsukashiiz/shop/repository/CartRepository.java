@@ -19,8 +19,10 @@ public interface CartRepository extends JpaRepository<Cart, Long> {
     Optional<Cart> findByIdAndAccount(Long id, Account account);
 
     Optional<Cart> findByProductOptionAndAccount(ProductOption productOption, Account account);
+    Optional<Cart> findByAccountAndProductOption(Account account, ProductOption productOption);
 
     boolean existsByProductOptionAndAccount(ProductOption productOption, Account account);
 
     void deleteByProductOptionAndAccount(ProductOption productOption, Account account);
+    List<Cart> findAllByAccountAndSelectedIsTrue(Account account);
 }

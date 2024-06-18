@@ -9,4 +9,8 @@ public class CartException extends BaseException {
     public static CartException invalid() {
         return new CartException("invalid");
     }
+
+    public static BaseException selectedEmpty() {
+        return new CartException("selected.empty");
+    }
 }
