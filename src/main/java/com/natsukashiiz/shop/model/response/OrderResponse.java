@@ -23,6 +23,9 @@ public class OrderResponse implements Serializable {
     private String mobile;
     private String address;
     private Double totalPay;
+    private Double totalDiscount;
+    private Double actualPay;
+
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
     private String payUrl;
@@ -46,6 +49,8 @@ public class OrderResponse implements Serializable {
         response.setMobile(order.getMobile());
         response.setAddress(order.getAddress());
         response.setTotalPay(order.getTotalPay());
+        response.setTotalDiscount(order.getTotalDiscount());
+        response.setActualPay(order.getActualPay());
         response.setStatus(order.getStatus());
         response.setPayUrl(order.getPayUrl());
         response.setPayExpire(order.getPayExpire());

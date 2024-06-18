@@ -10,6 +10,8 @@ import com.natsukashiiz.shop.model.response.VoucherResponse;
 import com.natsukashiiz.shop.repository.AccountVoucherRepository;
 import com.natsukashiiz.shop.repository.VoucherRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -24,7 +26,17 @@ public class VoucherService {
     private final AccountVoucherRepository accountVoucherRepository;
 
     public List<VoucherResponse> queryVouchers() throws BaseException {
-        List<Voucher> vouchers = voucherRepository.findAll();
+
+        ExampleMatcher matcher = ExampleMatcher.matchingAny()
+                .withIgnoreNullValues()
+                .withIgnoreCase()
+                .withMatcher("status", ExampleMatcher.GenericPropertyMatchers.exact());
+
+        Voucher search = new Voucher();
+        search.setStatus(VoucherStatus.ACTIVE);
+
+        Example<Voucher> example = Example.of(search, matcher);
+        List<Voucher> vouchers = voucherRepository.findAll(example);
         List<VoucherResponse> responses = VoucherResponse.buildList(vouchers);
 
         if (!authService.anonymous()) {
@@ -46,7 +58,8 @@ public class VoucherService {
     @Transactional
     public void claimVoucher(Long voucherId) throws BaseException {
         Account account = authService.getCurrent();
-        Voucher voucher = voucherRepository.findById(voucherId).orElseThrow(VoucherException::invalid);
+        Voucher voucher = voucherRepository.findById(voucherId)
+                .orElseThrow(VoucherException::invalid);
 
         if (accountVoucherRepository.existsByVoucherAndAccount(voucher, account)) {
             throw VoucherException.alreadyClaimed();
@@ -65,6 +78,11 @@ public class VoucherService {
         }
 
         voucher.setQuantity(voucher.getQuantity() - 1);
+
+        if (voucher.getQuantity() <= 0) {
+            voucher.setStatus(VoucherStatus.INACTIVE);
+        }
+
         voucherRepository.save(voucher);
 
         AccountVoucher accountVoucher = new AccountVoucher();

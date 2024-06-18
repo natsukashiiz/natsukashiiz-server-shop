@@ -32,6 +32,12 @@ public class OrderItem extends BaseEntity {
     private String optionName;
 
     @Column(nullable = false)
+    private Long categoryId;
+
+    @Column(nullable = false)
+    private String categoryName;
+
+    @Column(nullable = false)
     private Double price;
 
     @Column(nullable = false)

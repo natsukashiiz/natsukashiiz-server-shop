@@ -29,9 +29,14 @@ public class OrderController {
         return ResponseEntity.ok(orderBusiness.myOrders(status));
     }
 
+    @PostMapping("/checkout")
+    public ResponseEntity<?> checkout(@RequestBody CreateOrderRequest request) throws BaseException {
+        return ResponseEntity.ok(orderBusiness.checkout(request));
+    }
+
     @Operation(summary = "Create", description = "Create order")
     @PostMapping
-    public ResponseEntity<?> createOrder(@RequestBody List<CreateOrderRequest> request) throws BaseException {
+    public ResponseEntity<?> createOrder(@RequestBody CreateOrderRequest request) throws BaseException {
         return ResponseEntity.ok(orderBusiness.create(request));
     }
 

@@ -294,9 +294,9 @@ public class DevApplication implements ApplicationRunner {
             voucher.setCode(randomVoucherCode());
         }
 
-        DiscountType discountType = faker.options().option(DiscountType.PERCENTAGE, DiscountType.AMOUNT);
-        if (discountType == DiscountType.PERCENTAGE) {
-            voucher.setDiscountType(DiscountType.PERCENTAGE);
+        DiscountType discountType = faker.options().option(DiscountType.PERCENT, DiscountType.AMOUNT);
+        if (discountType == DiscountType.PERCENT) {
+            voucher.setDiscountType(DiscountType.PERCENT);
             voucher.setDiscount(faker.number().randomDouble(0, 1, 100));
             voucher.setMaxDiscount(faker.number().randomDouble(2, 100, 1000));
         } else {

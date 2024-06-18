@@ -7,9 +7,9 @@ import java.util.List;
 
 @Getter
 public class CreateOrderEvent {
-    private final List<CreateOrderRequest> createOrderRequests;
+    private final List<CreateOrderRequest.OrderItem> createOrderRequests;
 
-    public CreateOrderEvent(List<CreateOrderRequest> createOrderRequests) {
+    public CreateOrderEvent(List<CreateOrderRequest.OrderItem> createOrderRequests) {
         this.createOrderRequests = createOrderRequests;
     }
 }

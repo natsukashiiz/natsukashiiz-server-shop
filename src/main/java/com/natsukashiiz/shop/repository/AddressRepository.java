@@ -16,6 +16,7 @@ public interface AddressRepository extends JpaRepository<Address, Long> {
     Long countByAccount(Account account);
 
     Optional<Address> findByAccountAndMain(Account account, boolean main);
+    Optional<Address> findByAccountAndMainIsTrue(Account account);
 
     List<Address> findByAccount(Account account);
 

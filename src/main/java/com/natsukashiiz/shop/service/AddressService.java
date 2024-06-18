@@ -21,7 +21,7 @@ public class AddressService {
     private final AddressRepository addressRepository;
 
     public Address getMain(Account account) throws BaseException {
-        Optional<Address> addressOptional = addressRepository.findByAccountAndMain(account, Boolean.TRUE);
+        Optional<Address> addressOptional = addressRepository.findByAccountAndMainIsTrue(account);
         if (!addressOptional.isPresent()) {
             log.warn("GetMain-[block]:(not found main address). account:{}", account);
             throw AddressException.invalid();

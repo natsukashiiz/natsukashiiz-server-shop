@@ -11,7 +11,7 @@ public class BuyListener {
 
     @EventListener
     public void handleEvent(CreateOrderEvent event) {
-        for (CreateOrderRequest buy : event.getCreateOrderRequests()) {
+        for (CreateOrderRequest.OrderItem buy : event.getCreateOrderRequests()) {
             log.info(buy.getProductId());
         }
     }

@@ -46,6 +46,12 @@ public class Order {
     @Column(nullable = false)
     private Double totalPay;
 
+    @Column
+    private Double totalDiscount;
+
+    @Column(nullable = false)
+    private Double actualPay;
+
     @Column(nullable = false)
     @Enumerated(EnumType.ORDINAL)
     private OrderStatus status;

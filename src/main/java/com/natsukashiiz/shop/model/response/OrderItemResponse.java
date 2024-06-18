@@ -15,6 +15,8 @@ public class OrderItemResponse implements Serializable {
     private String productThumbnail;
     private Long optionId;
     private String optionName;
+    private Long categoryId;
+    private String categoryName;
     private Double price;
     private Integer quantity;
     private Double totalPrice;
@@ -27,6 +29,8 @@ public class OrderItemResponse implements Serializable {
         response.setProductThumbnail(item.getProductThumbnail());
         response.setOptionId(item.getOptionId());
         response.setOptionName(item.getOptionName());
+        response.setCategoryId(item.getCategoryId());
+        response.setCategoryName(item.getCategoryName());
         response.setPrice(item.getPrice());
         response.setQuantity(item.getQuantity());
         response.setTotalPrice(item.getTotalPrice());
