@@ -179,8 +179,12 @@ public class ProductBusiness {
     }
 
     public boolean isFavorite(Long productId) throws BaseException {
-        Product product = productService.getById(productId);
-        Account account = authService.getCurrent();
-        return favoriteRepository.existsByAccountAndProduct(account, product);
+        if (authService.anonymous()) {
+            return false;
+        } else {
+            Product product = productService.getById(productId);
+            Account account = authService.getCurrent();
+            return favoriteRepository.existsByAccountAndProduct(account, product);
+        }
     }
 }
