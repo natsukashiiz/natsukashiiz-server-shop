@@ -50,37 +50,39 @@ public class CartBusiness {
     }
 
 
-    public CartResponse updateCart(CartRequest request) throws BaseException {
+    public CartResponse updateCart(List<CartRequest> requests) throws BaseException {
         Account account = authService.getCurrent();
 
-        Optional<ProductOption> optionOptional = optionService.getById(request.getOptionId());
-        if (!optionOptional.isPresent()) {
-            log.warn("Upsert-[block]:(product option not found). request:{}", request);
-            throw ProductException.invalid();
+        for (CartRequest request : requests) {
+            Optional<ProductOption> optionOptional = optionService.getById(request.getOptionId());
+            if (!optionOptional.isPresent()) {
+                log.warn("Upsert-[block]:(product option not found). request:{}", request);
+                throw ProductException.invalid();
+            }
+            ProductOption productOption = optionOptional.get();
+
+            if (!Objects.equals(productOption.getProduct().getId(), request.getProductId())) {
+                log.warn("Upsert-[block]:(invalid product). request:{}", request);
+                throw ProductException.invalid();
+            }
+
+            if ((productOption.getQuantity() - request.getQuantity()) < 0) {
+                log.warn("Upsert-[block]:(product option insufficient). request:{}", request);
+                throw ProductException.insufficient();
+            }
+
+            Cart cart = new Cart();
+            cart.setAccount(account);
+            cart.setProduct(productOption.getProduct());
+            cart.setProductOption(productOption);
+
+            cartRepository.findByAccountAndProductOption(account, productOption)
+                    .ifPresent(c -> cart.setId(c.getId()));
+
+            cart.setQuantity(request.getQuantity());
+            cart.setSelected(request.getSelected());
+            cartRepository.save(cart);
         }
-        ProductOption productOption = optionOptional.get();
-
-        if (!Objects.equals(productOption.getProduct().getId(), request.getProductId())) {
-            log.warn("Upsert-[block]:(invalid product). request:{}", request);
-            throw ProductException.invalid();
-        }
-
-        if ((productOption.getQuantity() - request.getQuantity()) < 0) {
-            log.warn("Upsert-[block]:(product option insufficient). request:{}", request);
-            throw ProductException.insufficient();
-        }
-
-        Cart cart = new Cart();
-        cart.setAccount(account);
-        cart.setProduct(productOption.getProduct());
-        cart.setProductOption(productOption);
-
-        cartRepository.findByAccountAndProductOption(account, productOption)
-                .ifPresent(c -> cart.setId(c.getId()));
-
-        cart.setQuantity(request.getQuantity());
-        cart.setSelected(request.getSelected());
-        cartRepository.save(cart);
 
         return queryCarts();
     }

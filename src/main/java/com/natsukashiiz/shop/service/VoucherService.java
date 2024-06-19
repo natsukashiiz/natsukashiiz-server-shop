@@ -41,7 +41,7 @@ public class VoucherService {
 
         if (!authService.anonymous()) {
             Account account = authService.getCurrent();
-            accountVoucherRepository.findByAccount(account)
+            accountVoucherRepository.findAllByAccount(account)
                     .stream()
                     .map(e -> e.getVoucher().getId())
                     .forEach(id -> responses.stream().filter(e -> e.getId().equals(id)).forEach(e -> e.setClaimed(Boolean.TRUE)));

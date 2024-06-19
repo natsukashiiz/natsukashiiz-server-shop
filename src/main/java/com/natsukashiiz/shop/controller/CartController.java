@@ -8,6 +8,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/v1/cart")
 @AllArgsConstructor
@@ -28,8 +30,8 @@ public class CartController {
 
     @Operation(summary = "Create or Update", description = "Create or Update cart")
     @PutMapping
-    public ResponseEntity<?> updateCart(@RequestBody CartRequest request) throws BaseException {
-            return ResponseEntity.ok(cartBusiness.updateCart(request));
+    public ResponseEntity<?> updateCart(@RequestBody List<CartRequest> requests) throws BaseException {
+            return ResponseEntity.ok(cartBusiness.updateCart(requests));
     }
 
     @Operation(summary = "Delete", description = "Delete cart by cart id")

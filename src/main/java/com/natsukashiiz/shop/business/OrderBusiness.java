@@ -11,10 +11,12 @@ import com.natsukashiiz.shop.model.NotificationPayload;
 import com.natsukashiiz.shop.model.request.CheckoutRequest;
 import com.natsukashiiz.shop.model.request.CreateOrderRequest;
 import com.natsukashiiz.shop.model.request.PayOrderRequest;
-import com.natsukashiiz.shop.model.response.OrderResponse;
-import com.natsukashiiz.shop.model.response.PayOrderResponse;
+import com.natsukashiiz.shop.model.response.*;
 import com.natsukashiiz.shop.payment.PaymentService;
-import com.natsukashiiz.shop.repository.*;
+import com.natsukashiiz.shop.repository.AccountVoucherRepository;
+import com.natsukashiiz.shop.repository.CartRepository;
+import com.natsukashiiz.shop.repository.OrderRepository;
+import com.natsukashiiz.shop.repository.VoucherRepository;
 import com.natsukashiiz.shop.service.*;
 import com.natsukashiiz.shop.task.OrderExpireTask;
 import com.natsukashiiz.shop.utils.TimeUtils;
@@ -29,10 +31,8 @@ import javax.transaction.Transactional;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.ScheduledFuture;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -48,7 +48,6 @@ public class OrderBusiness {
     private final ProductService productService;
     private final TaskScheduler taskScheduler;
     private final Map<UUID, ScheduledFuture<?>> tasks;
-    private final ProductOptionRepository productOptionRepository;
     private final VoucherRepository voucherRepository;
     private final AccountVoucherRepository accountVoucherRepository;
     private final CartRepository cartRepository;
@@ -72,7 +71,7 @@ public class OrderBusiness {
         return OrderResponse.build(orderService.findById(UUID.fromString(orderId)));
     }
 
-    public OrderResponse checkout(CheckoutRequest request) throws BaseException {
+    public OrderCheckoutResponse checkout(CheckoutRequest request) throws BaseException {
         Account account = authService.getCurrent();
 
         List<Cart> carts = cartRepository.findAllByAccountAndSelectedIsTrue(account);
@@ -81,56 +80,37 @@ public class OrderBusiness {
             throw CartException.selectedEmpty();
         }
 
-        Order order = new Order();
-        order.setAccount(account);
+        OrderCheckoutResponse response = new OrderCheckoutResponse();
 
         Address address = addressService.getMain(account);
-        order.setFirstName(address.getFirstName());
-        order.setLastName(address.getLastName());
-        order.setMobile(address.getMobile());
-        order.setAddress(address.getAddress());
+        response.setAddress(AddressResponse.build(address));
+        response.setTotalDiscount(0.0);
+        response.setTotalQuantity(0);
+        response.setTotalPay(0.0);
 
-        List<ProductOption> orderItems = carts.stream().map(Cart::getProductOption).collect(Collectors.toList());
-        Map<Long, ProductOption> productOptionMap = productOptionRepository.findAllById(orderItems.stream().map(ProductOption::getId).collect(Collectors.toSet())).stream().collect(Collectors.toMap(ProductOption::getId, Function.identity()));
+        List<OrderCheckoutResponse.OrderCheckoutItem> items = new ArrayList<>();
 
-        List<OrderItem> items = new ArrayList<>();
+        for (Cart cart : carts) {
+            Product product = cart.getProduct();
+            ProductOption option = cart.getProductOption();
 
-        double totalPay = 0.0;
-        for (ProductOption orderItem : orderItems) {
-            ProductOption productOption = productOptionMap.get(orderItem.getId());
-            if (Objects.isNull(productOption)) {
-                log.warn("Checkout-[block]:(not found product option). req:{}", orderItem);
-                throw ProductException.invalid();
-            }
-            Product product = productOption.getProduct();
-            Category category = product.getCategory();
-
-            if (productOption.getQuantity() - orderItem.getQuantity() < 0) {
-                log.warn("Checkout-[block]:(Insufficient quantity of product option). req:{}, product:{}", orderItem, product);
+            if (option.getQuantity() - cart.getQuantity() < 0) {
+                log.warn("Checkout-[block]:(insufficient quantity). request:{}", request);
                 throw ProductException.insufficient();
             }
 
-            double totalPrice = productOption.getPrice() * orderItem.getQuantity();
+            double totalPrice = option.getPrice() * cart.getQuantity();
+            response.setTotalPay(response.getTotalPay() + totalPrice);
 
-            OrderItem item = new OrderItem();
-            item.setOrder(order);
-            item.setProductId(product.getId());
-            item.setProductName(product.getName());
-            item.setProductThumbnail(product.getImages().get(0).getUrl());
-            item.setOptionId(productOption.getId());
-            item.setOptionName(productOption.getName());
-            item.setCategoryId(category.getId());
-            item.setCategoryName(category.getName());
-            item.setPrice(productOption.getPrice());
-            item.setQuantity(orderItem.getQuantity());
-            item.setTotalPrice(totalPrice);
-
+            OrderCheckoutResponse.OrderCheckoutItem item = new OrderCheckoutResponse.OrderCheckoutItem();
+            item.setProduct(ProductResponse.build(product));
+            item.setOption(ProductOptionResponse.build(option));
+            item.setQuantity(cart.getQuantity());
             items.add(item);
 
-            totalPay += totalPrice;
+            response.setTotalQuantity(response.getTotalQuantity() + item.getQuantity());
         }
-
-        order.setTotalPay(totalPay);
+        response.setItems(items);
 
         if (!ObjectUtils.isEmpty(request.getVoucherId())) {
             Voucher voucher = voucherRepository.findById(request.getVoucherId()).orElseThrow(VoucherException::invalid);
@@ -153,7 +133,7 @@ public class OrderBusiness {
             }
 
             if (Objects.nonNull(voucher.getProduct())) {
-                boolean isContain = items.stream().anyMatch(item -> item.getProductId().equals(voucher.getProduct().getId()));
+                boolean isContain = items.stream().anyMatch(item -> item.getProduct().getId().equals(voucher.getProduct().getId()));
                 if (!isContain) {
                     log.warn("Checkout-[block]:(Voucher not applicable for this product). req:{}, voucher:{}", request, voucher);
                     throw VoucherException.notUsedForProduct();
@@ -161,7 +141,7 @@ public class OrderBusiness {
             }
 
             if (Objects.nonNull(voucher.getCategory())) {
-                boolean isContain = items.stream().anyMatch(item -> item.getCategoryId().equals(voucher.getCategory().getId()));
+                boolean isContain = items.stream().anyMatch(item -> item.getProduct().getCategory().getId().equals(voucher.getCategory().getId()));
                 if (!isContain) {
                     log.warn("Checkout-[block]:(Voucher not applicable for this category). req:{}, voucher:{}", request, voucher);
                     throw VoucherException.notUsedForCategory();
@@ -169,7 +149,7 @@ public class OrderBusiness {
             }
 
             if (voucher.getMinOrderPrice() > 0) {
-                if (totalPay < voucher.getMinOrderPrice()) {
+                if (response.getTotalPay() < voucher.getMinOrderPrice()) {
                     log.warn("Checkout-[block]:(Voucher min order price not reached). req:{}, voucher:{}", request, voucher);
                     throw VoucherException.minOrderPrice();
                 }
@@ -180,24 +160,33 @@ public class OrderBusiness {
             if (DiscountType.AMOUNT.equals(voucher.getDiscountType())) {
                 totalDiscount = voucher.getDiscount();
             } else if (DiscountType.PERCENT.equals(voucher.getDiscountType())) {
-                totalDiscount = Math.min(voucher.getMaxDiscount(), totalPay * voucher.getDiscount() / 100);
+                totalDiscount = Math.min(voucher.getMaxDiscount(), (response.getTotalPay() * voucher.getDiscount()) / 100);
             } else {
                 log.warn("Checkout-[block]:(Voucher discount type not supported). req:{}, voucher:{}", request, voucher);
                 throw VoucherException.invalid();
             }
 
-            totalPay -= totalDiscount;
-            if (totalPay <= 0) {
-                totalPay = 1;
-            }
-
-            order.setTotalDiscount(voucher.getDiscount());
+            response.setTotalDiscount(totalDiscount);
         }
 
-        order.setActualPay(totalPay);
-        order.setItems(items);
+        response.setVouchers(accountVoucherRepository.findAllByAccountAndUsedIsFalseAndVoucherStatusAndVoucherMinOrderPriceLessThanEqual(account, VoucherStatus.ACTIVE, response.getTotalPay())
+                .stream()
+                .filter(e -> {
+                    if (Objects.nonNull(e.getVoucher().getProduct())) {
+                        return items.stream().anyMatch(item -> item.getProduct().getId().equals(e.getVoucher().getProduct().getId()));
+                    } else if (Objects.nonNull(e.getVoucher().getCategory())) {
+                        return items.stream().anyMatch(item -> item.getProduct().getCategory().getId().equals(e.getVoucher().getCategory().getId()));
+                    } else {
+                        return true;
+                    }
+                })
+                .map(e -> VoucherResponse.build(e.getVoucher()))
+                .collect(Collectors.toList()));
 
-        return OrderResponse.build(order);
+        response.setActualPay(Math.max(1, response.getTotalPay() - response.getTotalDiscount()));
+        response.setTotalShipping(0.0);
+
+        return response;
     }
 
     public OrderResponse create(CreateOrderRequest request) throws BaseException {

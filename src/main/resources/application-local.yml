@@ -48,7 +48,7 @@ shop:
     url:
       base: http://localhost:4200/web
       verification: http://localhost:4200/web/verification?code=
-      paymentReturn: http://localhost:4200/web/orders/detail/
+      paymentReturn: http://localhost:4200/web/profile/orders/detail/
 
 logging:
   level:
