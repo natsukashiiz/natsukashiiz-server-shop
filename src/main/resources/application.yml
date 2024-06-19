@@ -49,7 +49,7 @@ shop:
       base: https://shop.natsukashiiz.xyz
       verification: https://shop.natsukashiiz.xyz/verification?code={CODE}
       resetPassword: https://shop.natsukashiiz.xyz/reset-password?email={EMAIL}&code={CODE}
-      paymentReturn: https://shop.natsukashiiz.xyz/orders/detail/
+      paymentReturn: https://shop.natsukashiiz.xyz/profile/history/orders/
 
 logging:
   level:

@@ -152,24 +152,20 @@ public class ProductBusiness {
         return new PageResponse<>(responses, page.getTotalElements());
     }
 
-    public void addFavorite(Long productId) throws BaseException {
+    public boolean favorite(Long productId) throws BaseException {
         Product product = productService.getById(productId);
         Account account = authService.getCurrent();
-        ProductFavorite favorite = favoriteRepository.findByAccountAndProduct(account, product).orElseGet(() -> {
-            ProductFavorite newFavorite = new ProductFavorite();
-            newFavorite.setAccount(account);
-            newFavorite.setProduct(product);
-            return newFavorite;
-        });
-
-        favoriteRepository.save(favorite);
-    }
-
-    @Transactional
-    public void removeFavorite(Long productId) throws BaseException {
-        Product product = productService.getById(productId);
-        Account account = authService.getCurrent();
-        favoriteRepository.deleteByAccountAndProduct(account, product);
+        Optional<ProductFavorite> favoriteOptional = favoriteRepository.findByAccountAndProduct(account, product);
+        if (favoriteOptional.isPresent()) {
+            favoriteRepository.delete(favoriteOptional.get());
+            return false;
+        } else {
+            ProductFavorite favorite = new ProductFavorite();
+            favorite.setAccount(account);
+            favorite.setProduct(product);
+            favoriteRepository.save(favorite);
+            return true;
+        }
     }
 
     public PageResponse<List<ProductFavoriteResponse>> queryFavorite(PaginationRequest pagination) throws BaseException {

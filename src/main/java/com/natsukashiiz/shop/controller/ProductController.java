@@ -73,14 +73,7 @@ public class ProductController {
     }
 
     @PostMapping("/{productId}/favorites")
-    private ResponseEntity<?> addFavorite(@PathVariable Long productId) throws BaseException {
-        productBusiness.addFavorite(productId);
-        return ResponseEntity.ok().build();
-    }
-
-    @DeleteMapping("/{productId}/favorites")
-    private ResponseEntity<?> removeFavorite(@PathVariable Long productId) throws BaseException {
-        productBusiness.removeFavorite(productId);
-        return ResponseEntity.ok().build();
+    private ResponseEntity<?> favorite(@PathVariable Long productId) throws BaseException {
+        return ResponseEntity.ok(productBusiness.favorite(productId));
     }
 }
