@@ -6,12 +6,14 @@ import lombok.Setter;
 @Getter
 @Setter
 public class TokenResponse {
-    private String token;
+    private String accessToken;
+    private String refreshToken;
 
-    public static TokenResponse build(String token) {
+    public static TokenResponse build(String accessToken, String refreshToken) {
 
         TokenResponse response = new TokenResponse();
-        response.setToken(token);
+        response.setAccessToken(accessToken);
+        response.setRefreshToken(refreshToken);
 
         return response;
     }

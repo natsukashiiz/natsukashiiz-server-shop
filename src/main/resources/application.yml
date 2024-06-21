@@ -46,10 +46,10 @@ shop:
       secretKey: skey_test_5un49ncyly5rx5dpjwi
   web:
     url:
-      base: https://shop.natsukashiiz.xyz
-      verification: https://shop.natsukashiiz.xyz/verification?code={CODE}
-      resetPassword: https://shop.natsukashiiz.xyz/reset-password?email={EMAIL}&code={CODE}
-      paymentReturn: https://shop.natsukashiiz.xyz/profile/history/orders/
+      base: https://shop.natsukashiiz.online
+      verification: https://shop.natsukashiiz.online/verification?code={CODE}
+      resetPassword: https://shop.natsukashiiz.online/reset-password?email={EMAIL}&code={CODE}
+      paymentReturn: https://shop.natsukashiiz.online/profile/history/orders/
 
 logging:
   level:

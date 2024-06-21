@@ -5,13 +5,14 @@ import com.natsukashiiz.shop.entity.Account;
 import com.natsukashiiz.shop.entity.LoginHistory;
 import com.natsukashiiz.shop.exception.*;
 import com.natsukashiiz.shop.model.request.LoginRequest;
+import com.natsukashiiz.shop.model.request.RefreshTokenRequest;
 import com.natsukashiiz.shop.model.request.SignUpRequest;
 import com.natsukashiiz.shop.model.response.TokenResponse;
 import com.natsukashiiz.shop.redis.RedisService;
 import com.natsukashiiz.shop.repository.AccountRepository;
 import com.natsukashiiz.shop.repository.LoginHistoryRepository;
-import com.natsukashiiz.shop.utils.ServletUtils;
 import com.natsukashiiz.shop.utils.RandomUtils;
+import com.natsukashiiz.shop.utils.ServletUtils;
 import com.natsukashiiz.shop.utils.ValidationUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -79,6 +80,37 @@ public class AuthService {
         String code = RandomUtils.Number6Characters();
         mailService.sendActiveAccount(account.getEmail(), code, apiProperties.getVerification().replace("{CODE}", code));
         redisService.setValueByKey("ACCOUNT:CODE:" + account.getEmail(), code, Duration.ofMinutes(1).toMillis());
+
+        return createTokenResponse(account, httpServletRequest);
+    }
+
+    public TokenResponse refresh(RefreshTokenRequest request, HttpServletRequest httpServletRequest) throws BaseException {
+        Jwt jwt = tokenService.decode(request.getRefreshToken());
+
+        if (jwt == null) {
+            log.warn("Refresh-[block]:(jwt is null). refreshToken:{}", request.getRefreshToken());
+            throw AuthException.unauthorized();
+        }
+
+        String email = jwt.getClaimAsString("email");
+        Long accountId = Long.parseLong(jwt.getSubject());
+
+        if (ObjectUtils.isEmpty(email) || ObjectUtils.isEmpty(accountId)) {
+            log.warn("Refresh-[block]:(email or accountId is empty). email:{}, accountId:{}", email, accountId);
+            throw AuthException.unauthorized();
+        }
+
+        Optional<Account> accountOptional = accountRepository.findByIdAndEmail(accountId, email);
+        if (!accountOptional.isPresent()) {
+            log.warn("Refresh-[block]:(not found account). email:{}, accountId:{}", email, accountId);
+            throw AuthException.unauthorized();
+        }
+
+        Account account = accountOptional.get();
+        if (!account.getVerified()) {
+            log.warn("Refresh-[block]:(account not verify). email:{}, accountId:{}", email, accountId);
+            throw AccountException.notVerify();
+        }
 
         return createTokenResponse(account, httpServletRequest);
     }
@@ -157,6 +189,9 @@ public class AuthService {
         loginHistory.setOs(osName);
         loginHistoryRepository.save(loginHistory);
 
-        return TokenResponse.build(tokenService.generate(account.getId(), account.getEmail(), account.getVerified()));
+        String accessToken = tokenService.generateAccessToken(account.getId(), account.getEmail(), account.getVerified());
+        String refreshToken = tokenService.generateRefreshToken(account.getId(), account.getEmail());
+
+        return TokenResponse.build(accessToken, refreshToken);
     }
 }

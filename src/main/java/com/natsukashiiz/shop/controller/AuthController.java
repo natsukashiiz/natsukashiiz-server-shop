@@ -38,6 +38,11 @@ public class AuthController {
         return ResponseEntity.ok(googleService.login(request,httpServletRequest));
     }
 
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refresh(@RequestBody RefreshTokenRequest request, HttpServletRequest httpServletRequest) throws BaseException {
+        return ResponseEntity.ok(authService.refresh(request, httpServletRequest));
+    }
+
     @Operation(summary = "Get verify code", description = "Send verify code to email")
     @PostMapping("/code")
     public ResponseEntity<?> getVerifyCode() throws BaseException {
