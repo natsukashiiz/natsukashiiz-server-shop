@@ -85,15 +85,26 @@ public class AuthService {
     }
 
     public TokenResponse refresh(RefreshTokenRequest request, HttpServletRequest httpServletRequest) throws BaseException {
-        Jwt jwt = tokenService.decode(request.getRefreshToken());
 
-        if (jwt == null) {
-            log.warn("Refresh-[block]:(jwt is null). refreshToken:{}", request.getRefreshToken());
+        if (ObjectUtils.isEmpty(request.getRefreshToken())) {
+            log.warn("Refresh-[block]:(refresh token is empty)");
             throw AuthException.unauthorized();
         }
 
-        String email = jwt.getClaimAsString("email");
+        Jwt jwt = tokenService.decode(request.getRefreshToken());
+
+        if (jwt == null) {
+            log.warn("Refresh-[block]:(jwt is null)");
+            throw AuthException.unauthorized();
+        }
+
         Long accountId = Long.parseLong(jwt.getSubject());
+        String email = jwt.getClaimAsString("email");
+
+        if (!tokenService.isRefreshToken(jwt)) {
+            log.warn("Refresh-[block]:(not refresh token)");
+            throw AuthException.unauthorized();
+        }
 
         if (ObjectUtils.isEmpty(email) || ObjectUtils.isEmpty(accountId)) {
             log.warn("Refresh-[block]:(email or accountId is empty). email:{}, accountId:{}", email, accountId);
@@ -139,11 +150,16 @@ public class AuthService {
             throw AuthException.unauthorized();
         }
 
+        if (!tokenService.isAccessToken(jwt)) {
+            log.warn("GetCurrent-[block]:(not access token)");
+            throw AuthException.unauthorized();
+        }
+
         String accountId = authentication.getName();
         String email = jwt.getClaimAsString("email");
 
         if (ObjectUtils.isEmpty(accountId) || ObjectUtils.isEmpty(email)) {
-            log.warn("GetCurrent-[block]:(accountId or email is empty)");
+            log.warn("GetCurrent-[block]:(accountId or email is empty). accountId:{}, email:{}", accountId, email);
             throw AuthException.unauthorized();
         }
 

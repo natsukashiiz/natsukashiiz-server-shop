@@ -1,6 +1,7 @@
 package com.natsukashiiz.shop.service;
 
 import com.natsukashiiz.shop.common.ApiProperties;
+import com.natsukashiiz.shop.common.TokenType;
 import com.natsukashiiz.shop.utils.RandomUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.security.oauth2.jwt.*;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Objects;
 
 @Service
 @AllArgsConstructor
@@ -27,6 +29,7 @@ public class TokenService {
                 .subject(String.valueOf(id))
                 .claim("email", email)
                 .claim("verified", verified)
+                .claim("type", TokenType.ACCESS)
                 .build();
         return this.encoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
     }
@@ -40,11 +43,21 @@ public class TokenService {
                 .id(RandomUtils.notSymbol())
                 .subject(String.valueOf(id))
                 .claim("email", email)
+                .claim("type", TokenType.REFRESH)
                 .build();
         return this.encoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
     }
 
     public Jwt decode(String token) {
         return this.decoder.decode(token);
+    }
+
+
+    public boolean isAccessToken(Jwt jwt) {
+        return Objects.equals(jwt.getClaim("type"), TokenType.ACCESS.name());
+    }
+
+    public boolean isRefreshToken(Jwt jwt) {
+        return Objects.equals(jwt.getClaim("type"), TokenType.REFRESH.name());
     }
 }

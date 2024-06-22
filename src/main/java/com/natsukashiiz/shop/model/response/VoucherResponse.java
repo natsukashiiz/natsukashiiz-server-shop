@@ -52,6 +52,7 @@ public class VoucherResponse implements Serializable {
 
         response.setBeginAt(voucher.getBeginAt());
         response.setExpiredAt(voucher.getExpiredAt());
+        response.setClaimed(Boolean.FALSE);
         return response;
     }
 
