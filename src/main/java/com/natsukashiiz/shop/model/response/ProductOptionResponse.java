@@ -17,6 +17,7 @@ public class ProductOptionResponse implements Serializable {
     private Double price;
     private Integer quantity;
     private Boolean selected;
+    private Integer imageIndex;
 
     public static ProductOptionResponse build(ProductOption option) {
 

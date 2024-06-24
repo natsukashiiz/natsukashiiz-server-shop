@@ -48,4 +48,7 @@ public class Voucher extends BaseEntity {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private VoucherStatus status;
+
+    @Column(nullable = false)
+    private String thumbnail;
 }

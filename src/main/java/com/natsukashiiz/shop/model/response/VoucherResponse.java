@@ -31,6 +31,8 @@ public class VoucherResponse implements Serializable {
     private LocalDateTime beginAt;
     private LocalDateTime expiredAt;
     private Boolean claimed;
+    private String thumbnail;
+
 
     public static VoucherResponse build(Voucher voucher) {
         VoucherResponse response = new VoucherResponse();
@@ -53,6 +55,8 @@ public class VoucherResponse implements Serializable {
         response.setBeginAt(voucher.getBeginAt());
         response.setExpiredAt(voucher.getExpiredAt());
         response.setClaimed(Boolean.FALSE);
+        response.setThumbnail(voucher.getThumbnail());
+
         return response;
     }
 

@@ -2,12 +2,15 @@ package com.natsukashiiz.shop.service;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.natsukashiiz.shop.common.SocialProvider;
 import com.natsukashiiz.shop.entity.Account;
+import com.natsukashiiz.shop.entity.AccountSocial;
 import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.exception.LoginException;
 import com.natsukashiiz.shop.model.request.GoogleLoginRequest;
 import com.natsukashiiz.shop.model.response.TokenResponse;
 import com.natsukashiiz.shop.repository.AccountRepository;
+import com.natsukashiiz.shop.repository.AccountSocialRepository;
 import com.natsukashiiz.shop.utils.RandomUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -29,6 +32,7 @@ public class GoogleService {
     private final AuthService authService;
     private final PasswordEncoder passwordEncoder;
     private final GoogleIdTokenVerifier verifier;
+    private final AccountSocialRepository accountSocialRepository;
 
     @Transactional
     public TokenResponse login(GoogleLoginRequest request, HttpServletRequest httpServletRequest) throws BaseException {
@@ -43,7 +47,23 @@ public class GoogleService {
             log.warn("Login-[block]:(invalid id token). request:{}", request.getIdToken());
             throw LoginException.invalid();
         }
-        Account account = createOrUpdateAccount(accountOptional.get());
+
+
+        Account googleAccount = accountOptional.get();
+        Optional<AccountSocial> socialOptional = accountSocialRepository.findByProviderAndEmail(SocialProvider.GOOGLE, googleAccount.getEmail());
+
+        Account account;
+        if (socialOptional.isPresent()) {
+            account = socialOptional.get().getAccount();
+        } else {
+            account = createOrUpdateAccount(googleAccount);
+            AccountSocial social = new AccountSocial();
+            social.setAccount(account);
+            social.setEmail(account.getEmail());
+            social.setProvider(SocialProvider.GOOGLE);
+            accountSocialRepository.save(social);
+        }
+
         return authService.createTokenResponse(account, httpServletRequest);
     }
 

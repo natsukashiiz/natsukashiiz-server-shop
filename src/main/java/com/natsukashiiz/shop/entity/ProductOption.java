@@ -7,6 +7,7 @@ import lombok.ToString;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import java.io.Serializable;
 
 @Getter
@@ -29,4 +30,7 @@ public class ProductOption extends BaseEntity implements Serializable {
 
     @Column(columnDefinition = "TINYINT(1) DEFAULT 0")
     private Integer sort;
+
+    @OneToOne
+    private ProductImage image;
 }

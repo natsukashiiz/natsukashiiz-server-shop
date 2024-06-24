@@ -54,16 +54,21 @@ public class ProductResponse implements Serializable {
     }
 
     public static ProductResponse build(Product product) {
-        List<ProductOptionResponse> productOptionResponses = product.getOptions()
-                .stream()
-                .sorted(Comparator.comparingInt(ProductOption::getSort))
-                .map(ProductOptionResponse::build)
-                .collect(Collectors.toList());
 
         List<String> productImageResponses = product.getImages()
                 .stream()
                 .sorted(Comparator.comparingInt(ProductImage::getSort))
                 .map(ProductImage::getUrl)
+                .collect(Collectors.toList());
+
+        List<ProductOptionResponse> productOptionResponses = product.getOptions()
+                .stream()
+                .sorted(Comparator.comparingInt(ProductOption::getSort))
+                .map(o -> {
+                    ProductOptionResponse productOptionResponse = ProductOptionResponse.build(o);
+                    productOptionResponse.setImageIndex(productImageResponses.indexOf(o.getImage().getUrl()));
+                    return productOptionResponse;
+                })
                 .collect(Collectors.toList());
 
         return ProductResponse.build(product, productOptionResponses, productImageResponses);

@@ -7,6 +7,7 @@ import lombok.ToString;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import java.io.Serializable;
 
 @Getter
@@ -17,6 +18,9 @@ public class ProductImage extends BaseEntity implements Serializable {
 
     @ManyToOne
     private Product product;
+
+    @OneToOne
+    private ProductOption option;
 
     @Column(nullable = false)
     private String url;

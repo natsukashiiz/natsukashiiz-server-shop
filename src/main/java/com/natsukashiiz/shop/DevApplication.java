@@ -40,7 +40,7 @@ public class DevApplication implements ApplicationRunner {
         log.debug("DevApplication running...");
 
         long accountCount = accountRepository.count();
-        if (accountCount < 100) {
+        if (accountCount < 10) {
             initAccounts();
         }
 
@@ -60,7 +60,7 @@ public class DevApplication implements ApplicationRunner {
         }
 
         long voucherCount = voucherRepository.count();
-        if (voucherCount < 50) {
+        if (voucherCount < 20) {
             initVouchers();
         }
 
@@ -121,7 +121,13 @@ public class DevApplication implements ApplicationRunner {
         }
 
         category.setSort(faker.number().numberBetween(0, 99));
+
         category.setThumbnail(randomCategoryImage());
+
+        while (category.getThumbnail() == null) {
+            category.setThumbnail(randomCategoryImage());
+        }
+
         categoryRepository.save(category);
     }
 
@@ -150,6 +156,11 @@ public class DevApplication implements ApplicationRunner {
         Carousel carousel = new Carousel();
         carousel.setTitle(faker.commerce().productName());
         carousel.setImageUrl(randomCarouselImage());
+
+        while(carousel.getImageUrl() == null) {
+            carousel.setImageUrl(randomCarouselImage());
+        }
+
         carousel.setSort(faker.number().numberBetween(0, 99));
         carouselRepository.save(carousel);
     }
@@ -203,6 +214,15 @@ public class DevApplication implements ApplicationRunner {
             option.setPrice(faker.number().randomDouble(2, 1000, 50000));
             option.setQuantity(faker.number().numberBetween(1, 100));
             option.setSort(faker.number().numberBetween(0, 99));
+
+            ProductImage image = new ProductImage();
+            image.setProduct(ps);
+            image.setUrl(randomProductImage());
+            image.setSort(faker.number().numberBetween(0, 99));
+            productImageRepository.save(image);
+
+            option.setImage(image);
+
             options.add(option);
         }
         productOptionRepository.saveAll(options);
@@ -213,7 +233,24 @@ public class DevApplication implements ApplicationRunner {
             ProductImage image = new ProductImage();
             image.setProduct(ps);
             image.setUrl(randomProductImage());
+
+            while (image.getUrl() == null) {
+                image.setUrl(randomProductImage());
+            }
+
             image.setSort(faker.number().numberBetween(0, 99));
+
+//            if (faker.bool().bool()) {
+//                if (!options.isEmpty()) {
+//                    image.setOption(options.get(faker.number().numberBetween(0, options.size() - 1)));
+//                    while (images.stream().anyMatch(i -> i.getOption().equals(image.getOption()))) {
+//                        image.setOption(options.get(faker.number().numberBetween(0, options.size() - 1)));
+//                    }
+//                } else {
+//                    image.setOption(options.get(faker.number().numberBetween(0, options.size() - 1)));
+//                }
+//            }
+
             images.add(image);
         }
         productImageRepository.saveAll(images);
@@ -241,7 +278,7 @@ public class DevApplication implements ApplicationRunner {
 
         ExecutorService executorService = Executors.newFixedThreadPool(10);
 
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 10; i++) {
             executorService.submit(this::randomAddAccount);
         }
 
@@ -270,7 +307,7 @@ public class DevApplication implements ApplicationRunner {
 
         ExecutorService executorService = Executors.newFixedThreadPool(10);
 
-        for (int i = 0; i < 50; i++) {
+        for (int i = 0; i < 20; i++) {
             executorService.submit(this::randomAddVoucher);
         }
 
@@ -309,6 +346,11 @@ public class DevApplication implements ApplicationRunner {
         voucher.setBeginAt(randomBeginAt());
         voucher.setExpiredAt(randomExpiredAt(voucher.getBeginAt()));
         voucher.setStatus(VoucherStatus.ACTIVE);
+        voucher.setThumbnail(randomVoucherImage());
+
+        while (voucher.getThumbnail() == null) {
+            voucher.setThumbnail(randomVoucherImage());
+        }
 
         if (faker.bool().bool()) {
             voucher.setProduct(productRepository.findById((long) faker.number().numberBetween(1, 100)).orElse(null));
@@ -332,6 +374,11 @@ public class DevApplication implements ApplicationRunner {
     private String randomVoucherCode() {
         // code with length 5 with only uppercase letters
         return new Faker().regexify("[A-Z]{5}");
+    }
+
+    public String randomVoucherImage() {
+        String url = "https://picsum.photos/200/150?random=" + System.currentTimeMillis();
+        return generateRandomImage(url);
     }
 
     public String randomCategoryImage() {
