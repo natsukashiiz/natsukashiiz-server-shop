@@ -36,3 +36,6 @@ build/
 /logs
 natsukashiiz-server-shop-1.0.0.jar
 /.jpb
+/uploads
+application-local.yml
+docker-compose-test.yml

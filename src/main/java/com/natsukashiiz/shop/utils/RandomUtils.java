@@ -20,6 +20,6 @@ public class RandomUtils {
     }
 
     public static String randomNickName() {
-        return "user" + Number(10000, 999999);
+        return "user" + Number6Characters();
     }
 }
