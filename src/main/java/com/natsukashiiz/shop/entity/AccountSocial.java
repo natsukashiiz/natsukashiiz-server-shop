@@ -1,6 +1,6 @@
 package com.natsukashiiz.shop.entity;
 
-import com.natsukashiiz.shop.common.SocialProvider;
+import com.natsukashiiz.shop.common.SocialProviders;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -19,7 +19,7 @@ public class AccountSocial extends BaseEntity implements Serializable {
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private SocialProvider provider;
+    private SocialProviders provider;
 
     @Column(nullable = false)
     private String email;

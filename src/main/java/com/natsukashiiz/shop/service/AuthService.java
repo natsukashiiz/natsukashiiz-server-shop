@@ -57,6 +57,11 @@ public class AuthService {
             throw LoginException.invalid();
         }
 
+        if (account.getDeleted()) {
+            log.warn("Login-[block]:(account deleted). req:{}", req);
+            throw AccountException.deleted();
+        }
+
         return createTokenResponse(account, httpServletRequest);
     }
 
@@ -73,8 +78,15 @@ public class AuthService {
 
         Account account = new Account();
         account.setEmail(req.getEmail());
+
+        account.setNickName(RandomUtils.randomNickName());
+        while (accountRepository.existsByNickName(account.getNickName())) {
+            account.setNickName(RandomUtils.randomNickName());
+        }
+
         account.setPassword(passwordEncoder.encode(req.getPassword()));
         account.setVerified(Boolean.FALSE);
+        account.setDeleted(Boolean.FALSE);
         accountRepository.save(account);
 
         String code = RandomUtils.Number6Characters();

@@ -2,9 +2,10 @@ package com.natsukashiiz.shop.service;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
-import com.natsukashiiz.shop.common.SocialProvider;
+import com.natsukashiiz.shop.common.SocialProviders;
 import com.natsukashiiz.shop.entity.Account;
 import com.natsukashiiz.shop.entity.AccountSocial;
+import com.natsukashiiz.shop.exception.AccountException;
 import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.exception.LoginException;
 import com.natsukashiiz.shop.model.request.GoogleLoginRequest;
@@ -48,9 +49,8 @@ public class GoogleService {
             throw LoginException.invalid();
         }
 
-
         Account googleAccount = accountOptional.get();
-        Optional<AccountSocial> socialOptional = accountSocialRepository.findByProviderAndEmail(SocialProvider.GOOGLE, googleAccount.getEmail());
+        Optional<AccountSocial> socialOptional = accountSocialRepository.findByProviderAndEmail(SocialProviders.GOOGLE, googleAccount.getEmail());
 
         Account account;
         if (socialOptional.isPresent()) {
@@ -60,8 +60,13 @@ public class GoogleService {
             AccountSocial social = new AccountSocial();
             social.setAccount(account);
             social.setEmail(account.getEmail());
-            social.setProvider(SocialProvider.GOOGLE);
+            social.setProvider(SocialProviders.GOOGLE);
             accountSocialRepository.save(social);
+        }
+
+        if (account.getDeleted()) {
+            log.warn("Login-[block]:(account deleted). account:{}", account);
+            throw AccountException.deleted();
         }
 
         return authService.createTokenResponse(account, httpServletRequest);
@@ -90,8 +95,15 @@ public class GoogleService {
             GoogleIdToken.Payload payload = googleIdToken.getPayload();
             Account account = new Account();
             account.setEmail(payload.getEmail());
+
+            account.setNickName(RandomUtils.randomNickName());
+            while (accountRepository.existsByNickName(account.getNickName())) {
+                account.setNickName(RandomUtils.randomNickName());
+            }
+
             account.setPassword(passwordEncoder.encode(RandomUtils.notSymbol() + payload.getSubject()));
             account.setVerified(Boolean.TRUE);
+            account.setDeleted(Boolean.FALSE);
 
             return Optional.of(account);
         } catch (GeneralSecurityException | IOException e) {

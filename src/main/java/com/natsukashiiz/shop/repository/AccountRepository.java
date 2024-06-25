@@ -22,4 +22,6 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     @Modifying
     @Query("UPDATE sp_accounts SET password = :password WHERE id = :id")
     void changePassword(@Param("password") String password, @Param("id") Long id);
+
+    boolean existsByNickName(String nickName);
 }

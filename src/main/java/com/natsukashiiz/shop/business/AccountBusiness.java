@@ -9,10 +9,10 @@ import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.model.request.ChangePasswordRequest;
 import com.natsukashiiz.shop.model.request.ForgotPasswordRequest;
 import com.natsukashiiz.shop.model.request.ResetPasswordRequest;
-import com.natsukashiiz.shop.model.response.LoginHistoryResponse;
-import com.natsukashiiz.shop.model.response.PageResponse;
-import com.natsukashiiz.shop.model.response.TokenResponse;
+import com.natsukashiiz.shop.model.response.*;
 import com.natsukashiiz.shop.redis.RedisService;
+import com.natsukashiiz.shop.repository.AccountRepository;
+import com.natsukashiiz.shop.repository.AccountSocialRepository;
 import com.natsukashiiz.shop.repository.LoginHistoryRepository;
 import com.natsukashiiz.shop.service.AccountService;
 import com.natsukashiiz.shop.service.AuthService;
@@ -28,6 +28,7 @@ import org.springframework.util.ObjectUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -35,7 +36,8 @@ import java.util.Objects;
 @AllArgsConstructor
 @Log4j2
 public class AccountBusiness {
-
+    private final AccountRepository accountRepository;
+    private final AccountSocialRepository accountSocialRepository;
     private final AuthService authService;
     private final RedisService redisService;
     private final AccountService accountService;
@@ -46,6 +48,15 @@ public class AccountBusiness {
     private final LoginHistoryRepository loginHistoryRepository;
 
     private final String REDIS_KEY = "ACCOUNT:CODE:";
+
+    public ProfileResponse queryProfile() throws BaseException {
+        Account current = authService.getCurrent();
+
+        ProfileResponse response = ProfileResponse.build(current);
+        response.setSocials(AccountSocialResponse.buildList(current.getSocials()));
+
+        return response;
+    }
 
     public void getVerifyCode() throws BaseException {
         Account current = authService.getCurrent(false);
@@ -144,5 +155,12 @@ public class AccountBusiness {
         Page<LoginHistory> page = loginHistoryRepository.findByAccountId(current.getId(), pagination);
         List<LoginHistoryResponse> responses = LoginHistoryResponse.buildList(page.getContent());
         return new PageResponse<>(responses, page.getTotalElements());
+    }
+
+    public void deleteAccount() throws BaseException {
+        Account account = authService.getCurrent();
+        account.setDeleted(Boolean.TRUE);
+        account.setDeletedAt(LocalDateTime.now());
+        accountRepository.save(account);
     }
 }

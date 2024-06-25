@@ -12,6 +12,7 @@ spring:
     hibernate:
       ddl-auto: update
       dialect: org.hibernate.dialect.MySQL5Dialect
+      format_sql: true
   redis:
     host: 212.80.213.8
     port: 6379

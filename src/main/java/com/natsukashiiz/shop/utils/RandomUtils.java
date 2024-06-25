@@ -18,4 +18,8 @@ public class RandomUtils {
     public static String Number6Characters() {
         return String.valueOf(Number(10000, 999999));
     }
+
+    public static String randomNickName() {
+        return "user" + Number(10000, 999999);
+    }
 }

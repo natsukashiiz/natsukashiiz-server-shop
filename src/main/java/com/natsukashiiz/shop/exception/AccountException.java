@@ -27,4 +27,7 @@ public class AccountException extends BaseException {
     public static AccountException invalidCurrentPassword() {
         return new AccountException("current.password.invalid");
     }
+    public static AccountException deleted() {
+        return new AccountException("deleted");
+    }
 }

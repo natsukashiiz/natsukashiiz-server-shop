@@ -6,6 +6,7 @@ import com.natsukashiiz.shop.common.DiscountType;
 import com.natsukashiiz.shop.common.VoucherStatus;
 import com.natsukashiiz.shop.entity.*;
 import com.natsukashiiz.shop.repository.*;
+import com.natsukashiiz.shop.utils.RandomUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.boot.ApplicationArguments;
@@ -225,6 +226,26 @@ public class DevApplication implements ApplicationRunner {
 
             options.add(option);
         }
+
+        if (options.isEmpty()) {
+            ProductOption option = new ProductOption();
+            option.setProduct(ps);
+            option.setName("Default");
+            option.setPrice(faker.number().randomDouble(2, 1000, 50000));
+            option.setQuantity(faker.number().numberBetween(1, 100));
+            option.setSort(faker.number().numberBetween(0, 99));
+
+            ProductImage image = new ProductImage();
+            image.setProduct(ps);
+            image.setUrl(randomProductImage());
+            image.setSort(faker.number().numberBetween(0, 99));
+            productImageRepository.save(image);
+
+            option.setImage(image);
+
+            options.add(option);
+        }
+
         productOptionRepository.saveAll(options);
 
         List<ProductImage> images = new ArrayList<>();
@@ -297,6 +318,12 @@ public class DevApplication implements ApplicationRunner {
 
         Account account = new Account();
         account.setEmail(faker.internet().emailAddress());
+
+        account.setNickName(RandomUtils.randomNickName());
+        while (accountRepository.existsByNickName(account.getNickName())) {
+            account.setNickName(RandomUtils.randomNickName());
+        }
+
         account.setPassword(faker.internet().password());
         account.setVerified(faker.bool().bool());
         accountRepository.save(account);

@@ -20,8 +20,8 @@ public class ProfileController {
 
     @Operation(summary = "Get Profile", description = "Get my profile")
     @GetMapping
-    public ResponseEntity<?> myProfile() {
-        return ResponseEntity.ok("my profile");
+    public ResponseEntity<?> myProfile() throws BaseException {
+        return ResponseEntity.ok(accountBusiness.queryProfile());
     }
 
     @Operation(summary = "Change Password", description = "Change password")
@@ -34,5 +34,11 @@ public class ProfileController {
     @GetMapping("/login-history")
     public ResponseEntity<?> queryLoginHistory(PaginationRequest request) throws BaseException {
         return ResponseEntity.ok(accountBusiness.queryLoginHistory(request));
+    }
+
+    @DeleteMapping
+    public ResponseEntity<?> deleteAccount() throws BaseException {
+        accountBusiness.deleteAccount();
+        return ResponseEntity.ok().build();
     }
 }

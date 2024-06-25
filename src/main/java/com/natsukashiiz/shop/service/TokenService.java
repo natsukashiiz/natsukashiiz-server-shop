@@ -24,7 +24,7 @@ public class TokenService {
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer(properties.getBaseUrl())
                 .issuedAt(now)
-                .expiresAt(now.plus(1, ChronoUnit.MINUTES))
+                .expiresAt(now.plus(1, ChronoUnit.HOURS))
                 .id(RandomUtils.notSymbol())
                 .subject(String.valueOf(id))
                 .claim("email", email)
