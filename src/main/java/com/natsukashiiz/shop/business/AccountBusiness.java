@@ -15,10 +15,7 @@ import com.natsukashiiz.shop.redis.RedisService;
 import com.natsukashiiz.shop.repository.AccountRepository;
 import com.natsukashiiz.shop.repository.AccountSocialRepository;
 import com.natsukashiiz.shop.repository.LoginHistoryRepository;
-import com.natsukashiiz.shop.service.AccountService;
-import com.natsukashiiz.shop.service.AuthService;
-import com.natsukashiiz.shop.service.MailService;
-import com.natsukashiiz.shop.service.PointService;
+import com.natsukashiiz.shop.service.*;
 import com.natsukashiiz.shop.utils.RandomUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -47,6 +44,7 @@ public class AccountBusiness {
     private final PasswordEncoder passwordEncoder;
     private final ApiProperties apiProperties;
     private final LoginHistoryRepository loginHistoryRepository;
+    private final FileService fileService;
 
     private final String REDIS_KEY = "ACCOUNT:CODE:";
 
@@ -81,6 +79,9 @@ public class AccountBusiness {
 
     public ProfileResponse deleteAvatar() throws BaseException {
         Account current = authService.getCurrent();
+
+        fileService.deleteWithUrl(current.getAvatar());
+
         current.setAvatar(null);
         Account update = accountRepository.save(current);
 

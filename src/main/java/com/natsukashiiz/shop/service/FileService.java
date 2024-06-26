@@ -110,6 +110,17 @@ public class FileService {
         }
     }
 
+    public void deleteWithUrl(String url) throws BaseException {
+        try {
+            String[] split = url.split("/");
+            String filename = split[split.length - 1];
+            delete(filename);
+        } catch (Exception e) {
+            log.warn("DeleteWithUrl-[unknown].", e);
+            throw FileException.unknown();
+        }
+    }
+
     public void deleteAll() {
         FileSystemUtils.deleteRecursively(properties.getFileUploadDir().toFile());
     }
