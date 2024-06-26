@@ -29,4 +29,8 @@ public class FileException extends BaseException {
     public static BaseException invalidType() {
         return new FileException("invalid.type");
     }
+
+    public static BaseException typeNotSupported() {
+        return new FileException("type.not.supported");
+    }
 }

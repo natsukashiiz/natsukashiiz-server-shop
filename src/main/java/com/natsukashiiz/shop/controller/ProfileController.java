@@ -4,6 +4,7 @@ import com.natsukashiiz.shop.business.AccountBusiness;
 import com.natsukashiiz.shop.common.PaginationRequest;
 import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.model.request.ChangePasswordRequest;
+import com.natsukashiiz.shop.model.request.UpdateProfileRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,16 @@ public class ProfileController {
     @GetMapping
     public ResponseEntity<?> myProfile() throws BaseException {
         return ResponseEntity.ok(accountBusiness.queryProfile());
+    }
+
+    @PutMapping
+    public ResponseEntity<?> updateProfile(@RequestBody UpdateProfileRequest request) throws BaseException {
+        return ResponseEntity.ok(accountBusiness.updateProfile(request));
+    }
+
+    @DeleteMapping("/avatar")
+    public ResponseEntity<?> deleteAvatar() throws BaseException {
+        return ResponseEntity.ok(accountBusiness.deleteAvatar());
     }
 
     @Operation(summary = "Change Password", description = "Change password")

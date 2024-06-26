@@ -4,6 +4,10 @@ import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+
 @Component
 @Getter
 public class ApiProperties {
@@ -19,4 +23,17 @@ public class ApiProperties {
 
     @Value("${shop.web.url.paymentReturn}")
     private String paymentReturn;
+
+    @Value("${shop.files.upload-dir}")
+    private String fileUploadDir;
+
+    @Value("${shop.files.allowed-types}")
+    private List<String> fileAllowedTypes;
+
+    @Value("${shop.files.base-url}")
+    private String fileBaseUrl;
+
+    public Path getFileUploadDir() {
+        return Paths.get(fileUploadDir);
+    }
 }

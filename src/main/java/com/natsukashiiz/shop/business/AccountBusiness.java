@@ -9,6 +9,7 @@ import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.model.request.ChangePasswordRequest;
 import com.natsukashiiz.shop.model.request.ForgotPasswordRequest;
 import com.natsukashiiz.shop.model.request.ResetPasswordRequest;
+import com.natsukashiiz.shop.model.request.UpdateProfileRequest;
 import com.natsukashiiz.shop.model.response.*;
 import com.natsukashiiz.shop.redis.RedisService;
 import com.natsukashiiz.shop.repository.AccountRepository;
@@ -54,6 +55,37 @@ public class AccountBusiness {
 
         ProfileResponse response = ProfileResponse.build(current);
         response.setSocials(AccountSocialResponse.buildList(current.getSocials()));
+
+        return response;
+    }
+
+    public ProfileResponse updateProfile(UpdateProfileRequest request) throws BaseException {
+        Account current = authService.getCurrent();
+        current.setAvatar(request.getAvatar());
+
+        if (!Objects.equals(request.getNickName(), current.getNickName())) {
+            if (accountRepository.existsByNickName(request.getNickName())) {
+                log.warn("UpdateProfile-[block]:(nickname is already exist). request:{}", request);
+                throw AccountException.nickNameExist();
+            }
+            current.setNickName(request.getNickName());
+        }
+
+        Account update = accountService.createOrUpdate(current);
+
+        ProfileResponse response = ProfileResponse.build(update);
+        response.setSocials(AccountSocialResponse.buildList(update.getSocials()));
+
+        return response;
+    }
+
+    public ProfileResponse deleteAvatar() throws BaseException {
+        Account current = authService.getCurrent();
+        current.setAvatar(null);
+        Account update = accountRepository.save(current);
+
+        ProfileResponse response = ProfileResponse.build(update);
+        response.setSocials(AccountSocialResponse.buildList(update.getSocials()));
 
         return response;
     }

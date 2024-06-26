@@ -1,8 +1,9 @@
 package com.natsukashiiz.shop.service;
 
+import com.natsukashiiz.shop.common.ApiProperties;
 import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.exception.FileException;
-import com.natsukashiiz.shop.model.response.FileStoreRequest;
+import com.natsukashiiz.shop.model.response.FileStoreResponse;
 import com.natsukashiiz.shop.utils.RandomUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -13,12 +14,9 @@ import org.springframework.util.FileSystemUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.activation.MimetypesFileTypeMap;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
-import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -29,52 +27,54 @@ import java.nio.file.StandardCopyOption;
 @AllArgsConstructor
 public class FileService {
 
-    private final Path rootLocation = Paths.get("uploads");
-    private final AuthService authService;
+    private final ApiProperties properties;
 
-    public String store(MultipartFile file) throws BaseException {
-//        MultipartFile file = request.getFile();
-
-//        if (!ObjectUtils.isEmpty(request.getType())) {
-//            // concat upload location with user id and type
-//            this.rootLocation.resolve(
-//                    Paths.get(
-//                            String.valueOf(authService.getCurrent().getId()),
-//                            String.valueOf(request.getType()).toLowerCase()
-//                    )
-//            );
-//        }
+    public FileStoreResponse store(MultipartFile file) throws BaseException {
+        log.debug("Store-[next]. file:{}", file);
 
         try {
             if (file.isEmpty()) {
+                log.warn("Store-[block]:(file is empty). file:{}", file);
                 throw FileException.emptyFile();
             }
-            if (file.getOriginalFilename() == null) {
+            if (ObjectUtils.isEmpty(file.getOriginalFilename())) {
+                log.warn("Store-[block]:(file name is empty). file:{}", file);
                 throw FileException.invalidName();
             }
+            if (ObjectUtils.isEmpty(file.getContentType())) {
+                log.warn("Store-[block]:(file type is empty). file:{}", file);
+                throw FileException.typeNotSupported();
+            }
+            if (!properties.getFileAllowedTypes().contains(file.getContentType())) {
+                log.warn("Store-[block]:(file type not supported). file:{}", file);
+                throw FileException.typeNotSupported();
+            }
+
+            Path rootLocation = properties.getFileUploadDir();
             if (!Files.exists(rootLocation)) {
+                log.debug("Store-[next]:(create directory). rootLocation:{}", rootLocation);
                 Files.createDirectories(rootLocation);
             }
 
-//            String mimeType = URLConnection.guessContentTypeFromName(file.getName());
-//            log.debug("Mime type: {}", mimeType);
-//            if (mimeType == null) {
-//                throw FileException.invalidType();
-//            }
-
-            String fileType = "jpg";
+            String fileType = file.getContentType().split("/")[1];
             String newFileName = RandomUtils.notSymbol() + "." + fileType;
 
-            Path destinationFile = this.rootLocation.resolve(Paths.get(newFileName)).normalize().toAbsolutePath();
-            if (!destinationFile.getParent().equals(this.rootLocation.toAbsolutePath())) {
-                // This is a security check
-                throw FileException.invalidPath();
+            Path destinationFile = rootLocation.resolve(Paths.get(newFileName)).normalize().toAbsolutePath();
+            if (!destinationFile.getParent().equals(rootLocation.toAbsolutePath())) {
+                log.warn("Store-[block]:(invalid path). destinationFile:{}", destinationFile);
+                throw FileException.unknown();
             }
             try (InputStream inputStream = file.getInputStream()) {
                 Files.copy(inputStream, destinationFile, StandardCopyOption.REPLACE_EXISTING);
             }
 
-            return newFileName;
+            FileStoreResponse response = new FileStoreResponse();
+            response.setName(newFileName);
+            response.setType(fileType);
+            response.setUrl(properties.getFileBaseUrl() + newFileName);
+            response.setSize(file.getSize());
+
+            return response;
         } catch (IOException e) {
             log.warn("Store-[unknown].", e);
             throw FileException.unknown();
@@ -82,7 +82,7 @@ public class FileService {
     }
 
     public Path load(String filename) {
-        return rootLocation.resolve(filename);
+        return properties.getFileUploadDir().resolve(filename);
     }
 
     public Resource loadAsResource(String filename) throws BaseException {
@@ -111,6 +111,6 @@ public class FileService {
     }
 
     public void deleteAll() {
-        FileSystemUtils.deleteRecursively(rootLocation.toFile());
+        FileSystemUtils.deleteRecursively(properties.getFileUploadDir().toFile());
     }
 }

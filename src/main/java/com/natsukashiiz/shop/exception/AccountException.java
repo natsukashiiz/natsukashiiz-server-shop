@@ -30,4 +30,8 @@ public class AccountException extends BaseException {
     public static AccountException deleted() {
         return new AccountException("deleted");
     }
+
+    public static BaseException nickNameExist() {
+        return new AccountException("nickName.exist");
+    }
 }
