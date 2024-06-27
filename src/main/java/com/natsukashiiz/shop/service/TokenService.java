@@ -1,6 +1,7 @@
 package com.natsukashiiz.shop.service;
 
 import com.natsukashiiz.shop.common.ApiProperties;
+import com.natsukashiiz.shop.common.Roles;
 import com.natsukashiiz.shop.common.TokenType;
 import com.natsukashiiz.shop.utils.RandomUtils;
 import lombok.AllArgsConstructor;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.Objects;
 
 @Service
@@ -30,6 +32,7 @@ public class TokenService {
                 .claim("email", email)
                 .claim("verified", verified)
                 .claim("type", TokenType.ACCESS)
+                .claim("roles", Collections.singletonList(Roles.USER.name()))
                 .build();
         return this.encoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
     }
@@ -42,7 +45,6 @@ public class TokenService {
                 .expiresAt(now.plus(1, ChronoUnit.DAYS))
                 .id(RandomUtils.notSymbol())
                 .subject(String.valueOf(id))
-                .claim("email", email)
                 .claim("type", TokenType.REFRESH)
                 .build();
         return this.encoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
