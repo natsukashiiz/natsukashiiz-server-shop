@@ -135,7 +135,7 @@ public class AuthService {
             throw AccountException.notVerify();
         }
 
-        return createTokenResponse(account, httpServletRequest);
+        return createTokenResponse(account, httpServletRequest, false);
     }
 
     public Account getCurrent() throws BaseException {
@@ -202,24 +202,30 @@ public class AuthService {
         return passwordEncoder.matches(raw, hash);
     }
 
-    public TokenResponse createTokenResponse(Account account, HttpServletRequest httpServletRequest) {
+    public TokenResponse createTokenResponse(Account account, HttpServletRequest httpServletRequest, boolean enableLoginLog) {
 
         String userAgent = ServletUtils.getUserAgent(httpServletRequest);
         String ipAddress = ServletUtils.getIpAddress(httpServletRequest);
         String deviceName = ServletUtils.getDeviceName(userAgent);
         String osName = ServletUtils.getOsName(userAgent);
 
-        LoginHistory loginHistory = new LoginHistory();
-        loginHistory.setAccount(account);
-        loginHistory.setIp(ipAddress);
-        loginHistory.setUserAgent(userAgent);
-        loginHistory.setDevice(deviceName);
-        loginHistory.setOs(osName);
-        loginHistoryRepository.save(loginHistory);
+        if (enableLoginLog) {
+            LoginHistory loginHistory = new LoginHistory();
+            loginHistory.setAccount(account);
+            loginHistory.setIp(ipAddress);
+            loginHistory.setUserAgent(userAgent);
+            loginHistory.setDevice(deviceName);
+            loginHistory.setOs(osName);
+            loginHistoryRepository.save(loginHistory);
+        }
 
         String accessToken = tokenService.generateAccessToken(account.getId(), account.getEmail(), account.getVerified());
         String refreshToken = tokenService.generateRefreshToken(account.getId(), account.getEmail());
 
         return TokenResponse.build(accessToken, refreshToken);
+    }
+
+    public TokenResponse createTokenResponse(Account account, HttpServletRequest httpServletRequest) {
+        return createTokenResponse(account, httpServletRequest, true);
     }
 }
