@@ -2,7 +2,7 @@ package com.natsukashiiz.shop.api.controller;
 
 import co.omise.models.Charge;
 import co.omise.models.Event;
-import com.natsukashiiz.shop.business.OrderBusiness;
+import com.natsukashiiz.shop.api.business.OrderBusiness;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;

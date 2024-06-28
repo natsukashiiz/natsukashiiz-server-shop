@@ -1,6 +1,6 @@
 package com.natsukashiiz.shop.api.controller;
 
-import com.natsukashiiz.shop.business.OrderBusiness;
+import com.natsukashiiz.shop.api.business.OrderBusiness;
 import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.model.request.CheckoutRequest;
 import com.natsukashiiz.shop.model.request.CreateOrderRequest;

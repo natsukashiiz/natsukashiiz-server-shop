@@ -1,6 +1,6 @@
 package com.natsukashiiz.shop.api.controller;
 
-import com.natsukashiiz.shop.business.ProductBusiness;
+import com.natsukashiiz.shop.api.business.ProductBusiness;
 import com.natsukashiiz.shop.common.PaginationRequest;
 import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.model.request.ProductReviewRequest;

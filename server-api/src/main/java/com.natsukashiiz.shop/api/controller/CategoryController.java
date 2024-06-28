@@ -1,6 +1,6 @@
 package com.natsukashiiz.shop.api.controller;
 
-import com.natsukashiiz.shop.business.CategoryBusiness;
+import com.natsukashiiz.shop.api.business.CategoryBusiness;
 import com.natsukashiiz.shop.exception.BaseException;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;

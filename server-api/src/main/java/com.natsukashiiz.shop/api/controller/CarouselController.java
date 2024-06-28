@@ -1,6 +1,6 @@
 package com.natsukashiiz.shop.api.controller;
 
-import com.natsukashiiz.shop.business.CarouselBusiness;
+import com.natsukashiiz.shop.api.business.CarouselBusiness;
 import com.natsukashiiz.shop.model.response.CarouselResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;

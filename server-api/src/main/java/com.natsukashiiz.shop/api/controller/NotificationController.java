@@ -1,6 +1,6 @@
 package com.natsukashiiz.shop.api.controller;
 
-import com.natsukashiiz.shop.business.NotificationBusiness;
+import com.natsukashiiz.shop.api.business.NotificationBusiness;
 import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.service.PushNotificationService;
 import io.swagger.v3.oas.annotations.Operation;

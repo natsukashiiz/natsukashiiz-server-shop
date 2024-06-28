@@ -1,6 +1,6 @@
 package com.natsukashiiz.shop.api.controller;
 
-import com.natsukashiiz.shop.business.CartBusiness;
+import com.natsukashiiz.shop.api.business.CartBusiness;
 import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.model.request.CartRequest;
 import io.swagger.v3.oas.annotations.Operation;

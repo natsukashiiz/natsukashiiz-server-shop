@@ -13,7 +13,31 @@
     <dependencies>
         <dependency>
             <groupId>com.natsukashiiz.shop</groupId>
-            <artifactId>common</artifactId>
+            <artifactId>entity</artifactId>
+            <version>1.0.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.natsukashiiz.shop</groupId>
+            <artifactId>repository</artifactId>
+            <version>1.0.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.natsukashiiz.shop</groupId>
+            <artifactId>utils</artifactId>
+            <version>1.0.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.natsukashiiz.shop</groupId>
+            <artifactId>exception</artifactId>
+            <version>1.0.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.natsukashiiz.shop</groupId>
+            <artifactId>service</artifactId>
             <version>1.0.1</version>
             <scope>compile</scope>
         </dependency>

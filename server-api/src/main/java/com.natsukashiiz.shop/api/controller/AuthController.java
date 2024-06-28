@@ -1,6 +1,6 @@
 package com.natsukashiiz.shop.api.controller;
 
-import com.natsukashiiz.shop.business.AccountBusiness;
+import com.natsukashiiz.shop.api.business.AccountBusiness;
 import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.model.request.*;
 import com.natsukashiiz.shop.service.AuthService;

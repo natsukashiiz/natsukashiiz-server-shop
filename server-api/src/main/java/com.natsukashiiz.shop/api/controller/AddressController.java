@@ -1,6 +1,6 @@
 package com.natsukashiiz.shop.api.controller;
 
-import com.natsukashiiz.shop.business.AddressBusiness;
+import com.natsukashiiz.shop.api.business.AddressBusiness;
 import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.model.request.CreateAddressRequest;
 import com.natsukashiiz.shop.model.request.UpdateAddressRequest;

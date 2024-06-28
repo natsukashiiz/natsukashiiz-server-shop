@@ -1,6 +1,6 @@
 package com.natsukashiiz.shop.api.controller;
 
-import com.natsukashiiz.shop.business.PointBusiness;
+import com.natsukashiiz.shop.api.business.PointBusiness;
 import com.natsukashiiz.shop.exception.BaseException;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
