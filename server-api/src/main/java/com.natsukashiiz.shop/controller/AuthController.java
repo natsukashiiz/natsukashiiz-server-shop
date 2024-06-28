@@ -29,31 +29,18 @@ public class AuthController {
     @Operation(summary = "SignUp", description = "SignUp for use in system and get Token use api")
     @PostMapping("/sign-up")
     public ResponseEntity<?> signUp(@RequestBody SignUpRequest request, HttpServletRequest httpServletRequest) throws BaseException {
-        return ResponseEntity.ok(authService.signUp(request,httpServletRequest));
+        return ResponseEntity.ok(authService.signUp(request, httpServletRequest));
     }
 
     @Operation(summary = "Google", description = "SignUp / Login with google account")
     @PostMapping("/google")
     public ResponseEntity<?> google(@RequestBody GoogleLoginRequest request, HttpServletRequest httpServletRequest) throws BaseException {
-        return ResponseEntity.ok(googleService.login(request,httpServletRequest));
+        return ResponseEntity.ok(googleService.login(request, httpServletRequest));
     }
 
     @PostMapping("/refresh")
     public ResponseEntity<?> refresh(@RequestBody RefreshTokenRequest request, HttpServletRequest httpServletRequest) throws BaseException {
         return ResponseEntity.ok(authService.refresh(request, httpServletRequest));
-    }
-
-    @Operation(summary = "Get verify code", description = "Send verify code to email")
-    @PostMapping("/code")
-    public ResponseEntity<?> getVerifyCode() throws BaseException {
-        accountBusiness.getVerifyCode();
-        return ResponseEntity.ok().build();
-    }
-
-    @Operation(summary = "Verify account", description = "Verify account with code")
-    @PostMapping("/verify/{code}")
-    public ResponseEntity<?> verify(@PathVariable String code, HttpServletRequest httpServletRequest) throws BaseException {
-        return ResponseEntity.ok(accountBusiness.verify(code, httpServletRequest));
     }
 
     @Operation(summary = "Forgot Password", description = "Forgot password")

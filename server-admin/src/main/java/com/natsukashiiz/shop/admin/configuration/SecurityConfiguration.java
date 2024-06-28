@@ -1,4 +1,4 @@
-package com.natsukashiiz.shop.configuration;
+package com.natsukashiiz.shop.admin.configuration;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
@@ -67,20 +67,10 @@ public class SecurityConfiguration implements WebMvcConfigurer {
                                         "/swagger-ui/**",
                                         "/swagger-resources/**",
                                         "/v*/notifications/subscribe/**",
-                                        "/v1/payment/webhook",
                                         "/v*/auth/**")
                                 .permitAll()
 
-                                .antMatchers(HttpMethod.GET, "/v*/products/**").permitAll()
-                                .antMatchers(HttpMethod.GET, "/v*/carousels/**").permitAll()
-                                .antMatchers(HttpMethod.GET, "/v*/categories/**").permitAll()
-                                .antMatchers(HttpMethod.GET, "/v*/vouchers/**").permitAll()
-                                .antMatchers(HttpMethod.GET, "/v*/files/**").permitAll()
-
-                                .antMatchers("/v*/cart/**").hasRole(Roles.USER.name())
-                                .antMatchers("/v*/addresses/**").hasRole(Roles.USER.name())
-                                .antMatchers("/v*/orders/**").hasRole(Roles.USER.name())
-
+                                .antMatchers(HttpMethod.GET, "/v*/demo/**").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 ->

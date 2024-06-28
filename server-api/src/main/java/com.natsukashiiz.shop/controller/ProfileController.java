@@ -52,4 +52,17 @@ public class ProfileController {
         accountBusiness.deleteAccount();
         return ResponseEntity.ok().build();
     }
+
+    @Operation(summary = "Get verify code", description = "Send verify code to email")
+    @PostMapping("/code")
+    public ResponseEntity<?> getVerifyCode() throws BaseException {
+        accountBusiness.getVerifyCode();
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Verify account", description = "Verify account with code")
+    @PostMapping("/verify/{code}")
+    public ResponseEntity<?> verify(@PathVariable String code, HttpServletRequest httpServletRequest) throws BaseException {
+        return ResponseEntity.ok(accountBusiness.verify(code, httpServletRequest));
+    }
 }
