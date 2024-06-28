@@ -1,6 +1,6 @@
 package com.natsukashiiz.shop.service;
 
-import com.natsukashiiz.shop.common.ApiProperties;
+import com.natsukashiiz.shop.common.ServerProperties;
 import com.natsukashiiz.shop.common.Roles;
 import com.natsukashiiz.shop.common.TokenType;
 import com.natsukashiiz.shop.utils.RandomUtils;
@@ -19,9 +19,9 @@ public class TokenService {
 
     private final JwtEncoder encoder;
     private final JwtDecoder decoder;
-    private final ApiProperties properties;
+    private final ServerProperties properties;
 
-    public String generateAccessToken(Long id, String email, boolean verified) {
+    public String generateAccessToken(Long id, String email, boolean verified, Roles role) {
         Instant now = Instant.now();
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer(properties.getBaseUrl())
@@ -32,7 +32,7 @@ public class TokenService {
                 .claim("email", email)
                 .claim("verified", verified)
                 .claim("type", TokenType.ACCESS)
-                .claim("roles", Collections.singletonList(Roles.USER.name()))
+                .claim("roles", Collections.singletonList(role.name()))
                 .build();
         return this.encoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
     }

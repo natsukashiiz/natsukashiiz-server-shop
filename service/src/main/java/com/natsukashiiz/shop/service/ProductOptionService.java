@@ -15,7 +15,7 @@ public class ProductOptionService {
 
     private final ProductOptionRepository optionRepository;
 
-    public Optional<ProductOption> getById(Long id) {
-        return optionRepository.findById(id);
+    public Optional<ProductOption> findById(Long optionId) {
+        return optionRepository.findById(optionId);
     }
 }

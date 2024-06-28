@@ -15,7 +15,7 @@ public class VoucherController {
 
     @GetMapping
     public ResponseEntity<?> queryVouchers() throws BaseException {
-        return ResponseEntity.ok(voucherService.queryVouchers());
+        return ResponseEntity.ok(voucherService.queryAllVoucher());
     }
 
     @GetMapping("/{voucherId}")

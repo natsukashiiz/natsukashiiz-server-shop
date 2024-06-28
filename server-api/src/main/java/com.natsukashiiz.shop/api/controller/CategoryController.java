@@ -1,7 +1,7 @@
 package com.natsukashiiz.shop.api.controller;
 
-import com.natsukashiiz.shop.api.business.CategoryBusiness;
 import com.natsukashiiz.shop.exception.BaseException;
+import com.natsukashiiz.shop.service.CategoryService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,15 +14,15 @@ import org.springframework.web.bind.annotation.RestController;
 @AllArgsConstructor
 public class CategoryController {
 
-    private final CategoryBusiness categoryBusiness;
+    private final CategoryService categoryService;
 
     @GetMapping
     public ResponseEntity<?> getAllCategories() {
-        return ResponseEntity.ok(categoryBusiness.getAllCategories());
+        return ResponseEntity.ok(categoryService.getAllCategory());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getCategoryById(@PathVariable Long id) throws BaseException {
-        return ResponseEntity.ok(categoryBusiness.getCategoryById(id));
+        return ResponseEntity.ok(categoryService.queryCategoryById(id));
     }
 }

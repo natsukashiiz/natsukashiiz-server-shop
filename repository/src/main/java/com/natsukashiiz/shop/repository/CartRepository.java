@@ -11,7 +11,7 @@ import java.util.Optional;
 
 public interface CartRepository extends JpaRepository<Cart, Long> {
     List<Cart> findByAccount(Account account);
-    Integer countByAccount(Account account);
+    Long countByAccount(Account account);
 
     @Query("SELECT SUM(c.quantity) FROM sp_cart c WHERE c.account = :account")
     Integer sumQuantityByAccount(Account account);
@@ -25,4 +25,6 @@ public interface CartRepository extends JpaRepository<Cart, Long> {
 
     void deleteByProductOptionAndAccount(ProductOption productOption, Account account);
     List<Cart> findAllByAccountAndSelectedIsTrue(Account account);
+
+    boolean existsByIdAndAccount(Long id, Account account);
 }

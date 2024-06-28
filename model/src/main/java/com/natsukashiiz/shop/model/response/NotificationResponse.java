@@ -8,6 +8,8 @@ import lombok.Setter;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -35,5 +37,11 @@ public class NotificationResponse {
         response.setCreatedAt(notification.getCreatedAt());
 
         return response;
+    }
+
+    public static List<NotificationResponse> buildList(List<Notification> notifications) {
+        return notifications.stream()
+                .map(NotificationResponse::build)
+                .collect(Collectors.toList());
     }
 }

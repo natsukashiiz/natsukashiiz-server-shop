@@ -1,6 +1,6 @@
 package com.natsukashiiz.shop.service;
 
-import com.natsukashiiz.shop.common.ApiProperties;
+import com.natsukashiiz.shop.common.ServerProperties;
 import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.exception.FileException;
 import com.natsukashiiz.shop.model.response.FileStoreResponse;
@@ -27,7 +27,7 @@ import java.nio.file.StandardCopyOption;
 @AllArgsConstructor
 public class FileService {
 
-    private final ApiProperties properties;
+    private final ServerProperties properties;
 
     public FileStoreResponse store(MultipartFile file) throws BaseException {
         log.debug("Store-[next]. file:{}", file);

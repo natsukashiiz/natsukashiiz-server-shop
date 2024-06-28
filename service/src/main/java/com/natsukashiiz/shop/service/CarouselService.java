@@ -1,6 +1,7 @@
 package com.natsukashiiz.shop.service;
 
 import com.natsukashiiz.shop.entity.Carousel;
+import com.natsukashiiz.shop.model.response.CarouselResponse;
 import com.natsukashiiz.shop.repository.CarouselRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -15,7 +16,8 @@ public class CarouselService {
 
     private final CarouselRepository carouselRepository;
 
-    public List<Carousel> getAll() {
-        return carouselRepository.findAll();
+    public List<CarouselResponse> queryAllCarousel() {
+        List<Carousel> carousels = carouselRepository.findAll();
+        return CarouselResponse.buildList(carousels);
     }
 }

@@ -1,15 +1,16 @@
 package com.natsukashiiz.shop.service;
 
 import com.natsukashiiz.shop.entity.Account;
+import com.natsukashiiz.shop.entity.Notification;
+import com.natsukashiiz.shop.exception.BaseException;
+import com.natsukashiiz.shop.exception.NotificationException;
 import com.natsukashiiz.shop.model.response.NotificationResponse;
 import com.natsukashiiz.shop.repository.NotificationRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -17,25 +18,26 @@ import java.util.stream.Collectors;
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
+    private final AuthService authService;
 
-    public List<NotificationResponse> getAllByAccount(Account account) {
-        return notificationRepository.findByAccount(account)
-                .stream()
-                .map(NotificationResponse::build)
-                .collect(Collectors.toList());
+    public List<NotificationResponse> queryAllNotification() throws BaseException {
+        Account account = authService.getAccount();
+        List<Notification> notifications = notificationRepository.findAllByAccount(account);
+        return NotificationResponse.buildList(notifications);
     }
 
-    @Transactional
-    public void readByIdAndAccount(Long id, Account account) {
-        notificationRepository.isRead(id, account.getId());
+    public void readNotificationById(Long notificationId) throws BaseException {
+        Account account = authService.getAccount();
+        if (!notificationRepository.existsByIdAndAccount(notificationId, account)) {
+            log.warn("Read-[block]:(notification not found). notificationId:{}, accountId:{}", notificationId, account.getId());
+            throw NotificationException.invalid();
+        }
+
+        notificationRepository.updateRead(notificationId, account.getId());
     }
 
-    @Transactional
-    public void readAllByAccount(Account account) {
-        notificationRepository.isReadAll(account.getId());
-    }
-
-    public boolean existsByIdAndAccount(Long id, Account account) {
-        return notificationRepository.existsByIdAndAccount(id, account);
+    public void readAllNotification() throws BaseException {
+        Account account = authService.getAccount();
+        notificationRepository.updateReadAll(account.getId());
     }
 }

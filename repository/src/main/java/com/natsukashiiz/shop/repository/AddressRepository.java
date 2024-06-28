@@ -29,4 +29,6 @@ public interface AddressRepository extends JpaRepository<Address, Long> {
     void setMain(Long addressId, Long accountId);
 
     boolean existsByIdAndAccount(Long addressId, Account account);
+
+    Optional<Address> findByIdAndAccount(Long id, Account account);
 }

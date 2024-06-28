@@ -4,6 +4,9 @@ import com.natsukashiiz.shop.entity.Cart;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Getter
 @Setter
 public class CartItemResponse {
@@ -35,5 +38,11 @@ public class CartItemResponse {
         response.setSelected(cart.getSelected());
 
         return response;
+    }
+
+    public static List<CartItemResponse> buildList(List<Cart> carts) {
+        return carts.stream()
+                .map(CartItemResponse::build)
+                .collect(Collectors.toList());
     }
 }

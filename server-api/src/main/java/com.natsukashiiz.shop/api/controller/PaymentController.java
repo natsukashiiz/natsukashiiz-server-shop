@@ -2,7 +2,7 @@ package com.natsukashiiz.shop.api.controller;
 
 import co.omise.models.Charge;
 import co.omise.models.Event;
-import com.natsukashiiz.shop.api.business.OrderBusiness;
+import com.natsukashiiz.shop.service.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,12 +16,12 @@ import org.springframework.web.bind.annotation.RestController;
 @AllArgsConstructor
 public class PaymentController {
 
-    private final OrderBusiness orderBusiness;
+    private final OrderService orderService;
 
     @Operation(summary = "Webhook", description = "Webhook for omise")
     @PostMapping("/webhook")
     public ResponseEntity<?> webhook(@RequestBody Event<Charge> request) {
-        orderBusiness.updateOrderFromWebhook(request);
+        orderService.updateOrderFromWebhook(request);
         return ResponseEntity.ok(request);
     }
 }

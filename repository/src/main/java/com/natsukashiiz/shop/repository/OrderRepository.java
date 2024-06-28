@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface OrderRepository extends JpaRepository<Order, UUID> {
@@ -25,4 +26,6 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
     @Modifying
     @Query("UPDATE sp_orders SET status = :status WHERE id = :orderId")
     void updateStatus(@Param("orderId") UUID orderId, @Param("status") OrderStatus status);
+
+    Optional<Order> findByIdAndAccount(UUID id, Account account);
 }

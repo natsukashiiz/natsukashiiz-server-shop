@@ -17,15 +17,15 @@ public class ProductReviewService {
 
     private final ProductReviewRepository productReviewRepository;
 
-    public Page<ProductReview> getByProductId(Long productId, Pageable pageable) {
+    public Page<ProductReview> findProductReviewById(Long productId, Pageable pageable) {
         return productReviewRepository.findAllByProductId(productId, pageable);
     }
 
-    public List<ProductReview> getByProductId(Long productId) {
+    public List<ProductReview> findProductReviewById(Long productId) {
         return productReviewRepository.findAllByProductId(productId);
     }
 
-    public void createOrUpdate(ProductReview review) {
+    public void updateProductReview(ProductReview review) {
         productReviewRepository.save(review);
     }
 }

@@ -28,16 +28,16 @@ public class PushNotificationService {
         try {
             sseEmitter.send(SseEmitter.event().name("INIT"));
         } catch (IOException e) {
-            e.printStackTrace();
+            log.warn("Subscribe-[io exception]. accountId:{}", accountId, e);
         }
         sseEmitter.onCompletion(() -> emitters.remove(accountId));
         emitters.put(accountId, sseEmitter);
         return sseEmitter;
     }
 
-    public void dispatchTo(NotificationPayload request) {
+    public void pushTo(NotificationPayload request) {
 
-        log.debug("DispatchTo-[next]. request:{}", request);
+        log.debug("PushTo-[next]. request:{}", request);
 
         Notification notify = notificationRepository.save(request.getNotification());
         SseEmitter emitter = emitters.get(request.getAccount().getId());
@@ -50,7 +50,7 @@ public class PushNotificationService {
                 );
             } catch (IOException e) {
                 emitters.remove(request.getAccount().getId());
-                log.error("DispatchTo-[error]. accountId:{}, error:{}", request.getAccount().getId(), e.getMessage());
+                log.warn("PushTo-[io exception]. accountId:{}", request.getAccount().getId(), e);
             }
         }
     }

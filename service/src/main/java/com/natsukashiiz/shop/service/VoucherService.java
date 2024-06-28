@@ -10,6 +10,7 @@ import com.natsukashiiz.shop.model.response.VoucherResponse;
 import com.natsukashiiz.shop.repository.AccountVoucherRepository;
 import com.natsukashiiz.shop.repository.VoucherRepository;
 import lombok.AllArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.stereotype.Service;
@@ -17,15 +18,17 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
+@Log4j2
 @AllArgsConstructor
 public class VoucherService {
     private final VoucherRepository voucherRepository;
     private final AuthService authService;
     private final AccountVoucherRepository accountVoucherRepository;
 
-    public List<VoucherResponse> queryVouchers() throws BaseException {
+    public List<VoucherResponse> queryAllVoucher() throws BaseException {
 
         ExampleMatcher matcher = ExampleMatcher.matchingAny()
                 .withIgnoreNullValues()
@@ -40,7 +43,7 @@ public class VoucherService {
         List<VoucherResponse> responses = VoucherResponse.buildList(vouchers);
 
         if (!authService.anonymous()) {
-            Account account = authService.getCurrent();
+            Account account = authService.getAccount();
             accountVoucherRepository.findAllByAccount(account)
                     .stream()
                     .map(e -> e.getVoucher().getId())
@@ -51,29 +54,43 @@ public class VoucherService {
     }
 
     public VoucherResponse queryVoucherById(Long voucherId) throws BaseException {
-        Voucher voucher = voucherRepository.findById(voucherId).orElseThrow(VoucherException::invalid);
-        return VoucherResponse.build(voucher);
+        Optional<Voucher> voucherOptional = voucherRepository.findById(voucherId);
+        if (!voucherOptional.isPresent()) {
+            log.warn("QueryVoucherById-[block]:(voucher not found). voucherId:{}", voucherId);
+            throw VoucherException.invalid();
+        }
+        return VoucherResponse.build(voucherOptional.get());
     }
 
     @Transactional
     public void claimVoucher(Long voucherId) throws BaseException {
-        Account account = authService.getCurrent();
-        Voucher voucher = voucherRepository.findById(voucherId)
-                .orElseThrow(VoucherException::invalid);
+        Account account = authService.getAccount();
+
+        Optional<Voucher> voucherOptional = voucherRepository.findById(voucherId);
+        if (!voucherOptional.isPresent()) {
+            log.warn("ClaimVoucher-[block]:(voucher not found). voucherId:{}, accountId:{}", voucherId, account.getId());
+            throw VoucherException.invalid();
+        }
+
+        Voucher voucher = voucherOptional.get();
 
         if (accountVoucherRepository.existsByVoucherAndAccount(voucher, account)) {
+            log.warn("ClaimVoucher-[block]:(voucher already claimed). voucherId:{}, accountId:{}", voucherId, account.getId());
             throw VoucherException.alreadyClaimed();
         }
 
         if (VoucherStatus.INACTIVE.equals(voucher.getStatus())) {
+            log.warn("ClaimVoucher-[block]:(voucher not available). voucherId:{}, accountId:{}", voucherId, account.getId());
             throw VoucherException.notAvailable();
         }
 
         if (voucher.getQuantity() <= 0) {
+            log.warn("ClaimVoucher-[block]:(voucher not enough). voucherId:{}, accountId:{}", voucherId, account.getId());
             throw VoucherException.notEnough();
         }
 
         if (voucher.getExpiredAt().isBefore(LocalDateTime.now())) {
+            log.warn("ClaimVoucher-[block]:(voucher expired). voucherId:{}, accountId:{}", voucherId, account.getId());
             throw VoucherException.expired();
         }
 

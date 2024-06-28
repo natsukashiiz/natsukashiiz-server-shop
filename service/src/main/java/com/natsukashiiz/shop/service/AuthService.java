@@ -1,6 +1,7 @@
 package com.natsukashiiz.shop.service;
 
-import com.natsukashiiz.shop.common.ApiProperties;
+import com.natsukashiiz.shop.common.Roles;
+import com.natsukashiiz.shop.common.ServerProperties;
 import com.natsukashiiz.shop.entity.Account;
 import com.natsukashiiz.shop.entity.LoginHistory;
 import com.natsukashiiz.shop.exception.*;
@@ -11,6 +12,7 @@ import com.natsukashiiz.shop.model.response.TokenResponse;
 import com.natsukashiiz.shop.repository.AccountRepository;
 import com.natsukashiiz.shop.repository.LoginHistoryRepository;
 import com.natsukashiiz.shop.utils.RandomUtils;
+import com.natsukashiiz.shop.utils.RedisKeyUtils;
 import com.natsukashiiz.shop.utils.ServletUtils;
 import com.natsukashiiz.shop.utils.ValidationUtils;
 import lombok.AllArgsConstructor;
@@ -35,62 +37,63 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final MailService mailService;
     private final RedisService redisService;
-    private final ApiProperties apiProperties;
+    private final ServerProperties serverProperties;
     private final LoginHistoryRepository loginHistoryRepository;
 
-    public TokenResponse login(LoginRequest req, HttpServletRequest httpServletRequest) throws BaseException {
-        if (ValidationUtils.invalidEmail(req.getEmail())) {
-            log.warn("Login-[block]:(invalid email). req:{}", req);
-            throw LoginException.emailInvalid();
+    public TokenResponse login(LoginRequest request, HttpServletRequest httpServletRequest) throws BaseException {
+        if (ValidationUtils.invalidEmail(request.getEmail())) {
+            log.warn("Login-[block]:(invalid email). request:{}", request);
+            throw LoginException.invalidEmail();
         }
 
-        Optional<Account> accountOptional = accountRepository.findByEmail(req.getEmail());
+        Optional<Account> accountOptional = accountRepository.findByEmail(request.getEmail());
         if (!accountOptional.isPresent()) {
-            log.warn("Login-[block]:(not found). req:{}", req);
+            log.warn("Login-[block]:(not found account). request:{}", request);
             throw LoginException.invalid();
         }
 
         Account account = accountOptional.get();
-        if (!passwordMatch(req.getPassword(), account.getPassword())) {
-            log.warn("Login-[block]:(password not matches). req:{}", req);
+        if (passwordNotMatch(request.getPassword(), account.getPassword())) {
+            log.warn("Login-[block]:(password not matches). request:{}", request);
             throw LoginException.invalid();
         }
 
         if (account.getDeleted()) {
-            log.warn("Login-[block]:(account deleted). req:{}", req);
+            log.warn("Login-[block]:(account deleted). request:{}", request);
             throw AccountException.deleted();
         }
 
         return createTokenResponse(account, httpServletRequest);
     }
 
-    public TokenResponse signUp(SignUpRequest req, HttpServletRequest httpServletRequest) throws BaseException {
-        if (ValidationUtils.invalidEmail(req.getEmail())) {
-            log.warn("SignUp-[block]:(invalid email). req:{}", req);
-            throw LoginException.emailInvalid();
+    public TokenResponse signUp(SignUpRequest request, HttpServletRequest httpServletRequest) throws BaseException {
+        if (ValidationUtils.invalidEmail(request.getEmail())) {
+            log.warn("SignUp-[block]:(invalid email). request:{}", request);
+            throw LoginException.invalidEmail();
         }
 
-        if (accountRepository.existsByEmail(req.getEmail())) {
-            log.warn("SignUp-[block]:(exists email). req:{}", req);
+        if (accountRepository.existsByEmail(request.getEmail())) {
+            log.warn("SignUp-[block]:(exists email). request:{}", request);
             throw SignUpException.emailDuplicate();
         }
 
         Account account = new Account();
-        account.setEmail(req.getEmail());
+        account.setEmail(request.getEmail());
 
-        account.setNickName(RandomUtils.randomNickName());
-        while (accountRepository.existsByNickName(account.getNickName())) {
+        do {
             account.setNickName(RandomUtils.randomNickName());
-        }
+        } while (accountRepository.existsByNickName(account.getNickName()));
 
-        account.setPassword(passwordEncoder.encode(req.getPassword()));
+        account.setPassword(passwordEncoder.encode(request.getPassword()));
         account.setVerified(Boolean.FALSE);
         account.setDeleted(Boolean.FALSE);
         accountRepository.save(account);
 
         String code = RandomUtils.Number6Characters();
-        mailService.sendActiveAccount(account.getEmail(), code, apiProperties.getVerification().replace("{CODE}", code));
-        redisService.setValueByKey("ACCOUNT:CODE:" + account.getEmail(), code, Duration.ofMinutes(1).toMillis());
+        mailService.sendActiveAccount(account.getEmail(), code, serverProperties.getVerification().replace("{CODE}", code));
+
+        String redisKey = RedisKeyUtils.accountVerifyCodeKey(account.getEmail());
+        redisService.setValueByKey(redisKey, code, Duration.ofMinutes(5).toMillis());
 
         return createTokenResponse(account, httpServletRequest);
     }
@@ -137,32 +140,32 @@ public class AuthService {
         return createTokenResponse(account, httpServletRequest, false);
     }
 
-    public Account getCurrent() throws BaseException {
-        return getCurrent(true);
+    public Account getAccount() throws BaseException {
+        return getAccount(true);
     }
 
-    public Account getCurrent(boolean checkVerified) throws BaseException {
+    public Account getAccount(boolean checkVerified) throws BaseException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null) {
-            log.warn("GetCurrent-[block]:(authentication is null)");
+            log.warn("GetAccount-[block]:(authentication is null)");
             throw AuthException.unauthorized();
         }
 
         if (!authentication.isAuthenticated()) {
-            log.warn("GetCurrent-[block]:(not authenticated)");
+            log.warn("GetAccount-[block]:(not authenticated)");
             throw AuthException.unauthorized();
         }
 
         Jwt jwt = (Jwt) authentication.getCredentials();
 
         if (jwt == null) {
-            log.warn("GetCurrent-[block]:(jwt is null)");
+            log.warn("GetAccount-[block]:(jwt is null)");
             throw AuthException.unauthorized();
         }
 
         if (!tokenService.isAccessToken(jwt)) {
-            log.warn("GetCurrent-[block]:(not access token)");
+            log.warn("GetAccount-[block]:(not access token)");
             throw AuthException.unauthorized();
         }
 
@@ -170,13 +173,13 @@ public class AuthService {
         String email = jwt.getClaimAsString("email");
 
         if (ObjectUtils.isEmpty(accountId) || ObjectUtils.isEmpty(email)) {
-            log.warn("GetCurrent-[block]:(accountId or email is empty). accountId:{}, email:{}", accountId, email);
+            log.warn("GetAccount-[block]:(accountId or email is empty). accountId:{}, email:{}", accountId, email);
             throw AuthException.unauthorized();
         }
 
         Optional<Account> accountOptional = accountRepository.findByIdAndEmail(Long.parseLong(accountId), email);
         if (!accountOptional.isPresent()) {
-            log.warn("GetCurrent-[block]:(not found account). accountId:{}, email:{}", accountId, email);
+            log.warn("GetAccount-[block]:(not found account). accountId:{}, email:{}", accountId, email);
             throw AuthException.unauthorized();
         }
 
@@ -184,7 +187,7 @@ public class AuthService {
 
         if (checkVerified) {
             if (!account.getVerified()) {
-                log.warn("GetCurrent-[block]:(account not verify). accountId:{}, email:{}", accountId, email);
+                log.warn("GetAccount-[block]:(account not verify). accountId:{}, email:{}", accountId, email);
                 throw AccountException.notVerify();
             }
         }
@@ -197,8 +200,8 @@ public class AuthService {
         return ObjectUtils.isEmpty(authentication) || authentication.getPrincipal().equals("anonymousUser");
     }
 
-    public boolean passwordMatch(String raw, String hash) {
-        return passwordEncoder.matches(raw, hash);
+    public boolean passwordNotMatch(String raw, String hash) {
+        return !passwordEncoder.matches(raw, hash);
     }
 
     public TokenResponse createTokenResponse(Account account, HttpServletRequest httpServletRequest, boolean enableLoginLog) {
@@ -218,7 +221,7 @@ public class AuthService {
             loginHistoryRepository.save(loginHistory);
         }
 
-        String accessToken = tokenService.generateAccessToken(account.getId(), account.getEmail(), account.getVerified());
+        String accessToken = tokenService.generateAccessToken(account.getId(), account.getEmail(), account.getVerified(), Roles.USER);
         String refreshToken = tokenService.generateRefreshToken(account.getId(), account.getEmail());
 
         return TokenResponse.build(accessToken, refreshToken);

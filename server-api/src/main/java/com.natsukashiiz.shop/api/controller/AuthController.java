@@ -1,8 +1,8 @@
 package com.natsukashiiz.shop.api.controller;
 
-import com.natsukashiiz.shop.api.business.AccountBusiness;
 import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.model.request.*;
+import com.natsukashiiz.shop.service.AccountService;
 import com.natsukashiiz.shop.service.AuthService;
 import com.natsukashiiz.shop.service.GoogleService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,7 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 public class AuthController {
     private final AuthService authService;
     private final GoogleService googleService;
-    private final AccountBusiness accountBusiness;
+    private final AccountService accountService;
 
     @Operation(summary = "Login", description = "Login for get Token use apis")
     @PostMapping("/login")
@@ -46,13 +46,13 @@ public class AuthController {
     @Operation(summary = "Forgot Password", description = "Forgot password")
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequest request) throws BaseException {
-        accountBusiness.forgotPassword(request);
+        accountService.forgotPassword(request);
         return ResponseEntity.ok().build();
     }
 
     @Operation(summary = "Reset Password", description = "Reset password")
     @PatchMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request, HttpServletRequest httpServletRequest) throws BaseException {
-        return ResponseEntity.ok(accountBusiness.resetPassword(request, httpServletRequest));
+        return ResponseEntity.ok(accountService.resetPassword(request, httpServletRequest));
     }
 }

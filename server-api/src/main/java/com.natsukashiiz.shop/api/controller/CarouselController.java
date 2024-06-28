@@ -1,7 +1,7 @@
 package com.natsukashiiz.shop.api.controller;
 
-import com.natsukashiiz.shop.api.business.CarouselBusiness;
 import com.natsukashiiz.shop.model.response.CarouselResponse;
+import com.natsukashiiz.shop.service.CarouselService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,11 +15,11 @@ import java.util.List;
 @AllArgsConstructor
 public class CarouselController {
 
-    private final CarouselBusiness carouselBusiness;
+    private final CarouselService carouselService;
 
     @GetMapping
     public ResponseEntity<?> getCarousels() {
-        List<CarouselResponse> carousels = carouselBusiness.getCarousels();
+        List<CarouselResponse> carousels = carouselService.queryAllCarousel();
         return ResponseEntity.ok(carousels);
     }
 }

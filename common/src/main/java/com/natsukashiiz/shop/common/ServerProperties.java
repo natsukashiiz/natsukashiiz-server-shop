@@ -10,7 +10,7 @@ import java.util.List;
 
 @Component
 @Getter
-public class ApiProperties {
+public class ServerProperties {
 
     @Value("${shop.web.url.base}")
     private String baseUrl;
@@ -20,9 +20,6 @@ public class ApiProperties {
 
     @Value("${shop.web.url.resetPassword}")
     private String resetPassword;
-
-    @Value("${shop.web.url.paymentReturn}")
-    private String paymentReturn;
 
     @Value("${shop.files.upload-dir}")
     private String fileUploadDir;

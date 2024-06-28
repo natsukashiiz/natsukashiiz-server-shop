@@ -2,6 +2,7 @@ package com.natsukashiiz.shop.service;
 
 import com.natsukashiiz.shop.entity.Account;
 import com.natsukashiiz.shop.entity.Point;
+import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.model.response.PointResponse;
 import com.natsukashiiz.shop.repository.PointRepository;
 import lombok.AllArgsConstructor;
@@ -13,13 +14,11 @@ import org.springframework.stereotype.Service;
 @Log4j2
 public class PointService {
     private final PointRepository pointRepository;
+    private final AuthService authService;
 
-    public PointResponse getByAccount(Account account) {
+    public PointResponse queryPoint() throws BaseException {
+        Account account = authService.getAccount();
         Point point = pointRepository.findByAccount(account).get();
         return PointResponse.build(point);
-    }
-
-    public Point create(Point point) {
-        return pointRepository.save(point);
     }
 }
