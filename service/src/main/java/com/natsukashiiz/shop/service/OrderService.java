@@ -65,6 +65,11 @@ public class OrderService {
         productOptionRepository.increaseQuantity(optionId, quantity);
     }
 
+    @Transactional
+    public void updateStatus(UUID orderId, OrderStatus status) {
+        orderRepository.updateStatus(orderId, status);
+    }
+
     public List<OrderItem> findItemByOrder(Order order) {
         return itemRepository.findByOrder(order);
     }
