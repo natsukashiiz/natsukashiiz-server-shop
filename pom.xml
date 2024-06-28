@@ -8,11 +8,36 @@
         <version>2.7.17</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>com.natsukashiiz</groupId>
+    <groupId>com.natsukashiiz.shop</groupId>
     <artifactId>natsukashiiz-server-shop</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
+    <packaging>pom</packaging>
     <name>natsukashiiz-server-shop</name>
     <description>natsukashiiz-server-shop</description>
+    <url/>
+    <licenses>
+        <license/>
+    </licenses>
+    <developers>
+        <developer/>
+    </developers>
+    <modules>
+        <module>entity</module>
+        <module>repository</module>
+        <module>server-api</module>
+        <module>common</module>
+        <module>utils</module>
+        <module>exception</module>
+        <module>service</module>
+        <module>model</module>
+        <module>tool</module>
+    </modules>
+    <scm>
+        <connection/>
+        <developerConnection/>
+        <tag/>
+        <url/>
+    </scm>
     <properties>
         <java.version>1.8</java.version>
     </properties>
