@@ -45,13 +45,13 @@ import java.util.stream.Collectors;
 public class SecurityConfiguration implements WebMvcConfigurer {
 
     @Value("${shop.jwt.pubKey}")
-    RSAPublicKey key;
+    RSAPublicKey jwtPublicKey;
 
     @Value("${shop.jwt.pvKey}")
-    RSAPrivateKey priv;
+    RSAPrivateKey jwtPrivateKey;
 
     @Value("${shop.google.clientId}")
-    String clientId;
+    String googleClientId;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -110,12 +110,12 @@ public class SecurityConfiguration implements WebMvcConfigurer {
 
     @Bean
     JwtDecoder jwtDecoder() {
-        return NimbusJwtDecoder.withPublicKey(this.key).build();
+        return NimbusJwtDecoder.withPublicKey(jwtPublicKey).build();
     }
 
     @Bean
     JwtEncoder jwtEncoder() {
-        JWK jwk = new RSAKey.Builder(this.key).privateKey(this.priv).build();
+        JWK jwk = new RSAKey.Builder(jwtPublicKey).privateKey(jwtPrivateKey).build();
         JWKSource<SecurityContext> jwks = new ImmutableJWKSet<>(new JWKSet(jwk));
         return new NimbusJwtEncoder(jwks);
     }
@@ -129,7 +129,7 @@ public class SecurityConfiguration implements WebMvcConfigurer {
     public GoogleIdTokenVerifier googleIdTokenVerifier() {
         return new GoogleIdTokenVerifier
                 .Builder(new NetHttpTransport(), new JacksonFactory())
-                .setAudience(Collections.singleton(clientId))
+                .setAudience(Collections.singleton(googleClientId))
                 .build();
     }
 
