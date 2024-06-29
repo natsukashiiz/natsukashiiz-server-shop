@@ -2,9 +2,9 @@ package com.natsukashiiz.shop.api.controller;
 
 import com.natsukashiiz.shop.common.PaginationRequest;
 import com.natsukashiiz.shop.exception.BaseException;
-import com.natsukashiiz.shop.model.request.ProductReviewRequest;
-import com.natsukashiiz.shop.model.request.QueryProductRequest;
-import com.natsukashiiz.shop.service.ProductService;
+import com.natsukashiiz.shop.api.model.request.ProductReviewRequest;
+import com.natsukashiiz.shop.api.model.request.QueryProductRequest;
+import com.natsukashiiz.shop.api.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;

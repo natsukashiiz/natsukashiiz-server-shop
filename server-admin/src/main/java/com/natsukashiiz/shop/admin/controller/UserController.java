@@ -1,6 +1,6 @@
 package com.natsukashiiz.shop.admin.controller;
 
-import com.natsukashiiz.shop.model.response.ProfileResponse;
+import com.natsukashiiz.shop.admin.model.response.QueryUserResponse;
 import com.natsukashiiz.shop.repository.AccountRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,10 +18,10 @@ public class UserController {
     private final AccountRepository accountRepository;
 
     @GetMapping
-    public List<ProfileResponse> getUsers() {
+    public List<QueryUserResponse> getUsers() {
         return accountRepository.findAll()
                 .stream()
-                .map(ProfileResponse::build)
+                .map(QueryUserResponse::build)
                 .collect(Collectors.toList());
     }
 }

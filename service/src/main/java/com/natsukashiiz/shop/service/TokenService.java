@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
@@ -21,15 +22,14 @@ public class TokenService {
     private final JwtDecoder decoder;
     private final ServerProperties properties;
 
-    public String generateAccessToken(Long id, String email, boolean verified, Roles role) {
+    public String generateAccessToken(Long id, Boolean verified, Roles role) {
         Instant now = Instant.now();
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer(properties.getBaseUrl())
                 .issuedAt(now)
-                .expiresAt(now.plus(1, ChronoUnit.HOURS))
+                .expiresAt(now.plus(properties.getJwtAccessExpiration()))
                 .id(RandomUtils.notSymbol())
                 .subject(String.valueOf(id))
-                .claim("email", email)
                 .claim("verified", verified)
                 .claim("type", TokenType.ACCESS)
                 .claim("roles", Collections.singletonList(role.name()))
@@ -37,12 +37,12 @@ public class TokenService {
         return this.encoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
     }
 
-    public String generateRefreshToken(Long id, String email) {
+    public String generateRefreshToken(Long id) {
         Instant now = Instant.now();
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer(properties.getBaseUrl())
                 .issuedAt(now)
-                .expiresAt(now.plus(1, ChronoUnit.DAYS))
+                .expiresAt(now.plus(properties.getJwtRefreshExpiration()))
                 .id(RandomUtils.notSymbol())
                 .subject(String.valueOf(id))
                 .claim("type", TokenType.REFRESH)

@@ -1,8 +1,8 @@
 package com.natsukashiiz.shop.api.controller;
 
 import com.natsukashiiz.shop.exception.BaseException;
-import com.natsukashiiz.shop.service.NotificationService;
-import com.natsukashiiz.shop.service.PushNotificationService;
+import com.natsukashiiz.shop.api.service.NotificationService;
+import com.natsukashiiz.shop.api.service.PushNotificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
 import org.springframework.http.MediaType;

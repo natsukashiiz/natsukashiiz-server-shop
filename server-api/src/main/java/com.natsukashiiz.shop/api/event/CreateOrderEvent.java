@@ -1,6 +1,6 @@
 package com.natsukashiiz.shop.api.event;
 
-import com.natsukashiiz.shop.model.request.CreateOrderRequest;
+import com.natsukashiiz.shop.api.model.request.CreateOrderRequest;
 import lombok.Getter;
 
 import java.util.List;

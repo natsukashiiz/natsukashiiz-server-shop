@@ -1,10 +1,10 @@
 package com.natsukashiiz.shop.api.controller;
 
 import com.natsukashiiz.shop.exception.BaseException;
-import com.natsukashiiz.shop.model.request.CheckoutRequest;
-import com.natsukashiiz.shop.model.request.CreateOrderRequest;
-import com.natsukashiiz.shop.model.request.PayOrderRequest;
-import com.natsukashiiz.shop.service.OrderService;
+import com.natsukashiiz.shop.api.model.request.CheckoutRequest;
+import com.natsukashiiz.shop.api.model.request.CreateOrderRequest;
+import com.natsukashiiz.shop.api.model.request.PayOrderRequest;
+import com.natsukashiiz.shop.api.service.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;

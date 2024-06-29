@@ -1,9 +1,9 @@
 package com.natsukashiiz.shop.api.controller;
 
 import com.natsukashiiz.shop.exception.BaseException;
-import com.natsukashiiz.shop.model.request.CreateAddressRequest;
-import com.natsukashiiz.shop.model.request.UpdateAddressRequest;
-import com.natsukashiiz.shop.service.AddressService;
+import com.natsukashiiz.shop.api.model.request.CreateAddressRequest;
+import com.natsukashiiz.shop.api.model.request.UpdateAddressRequest;
+import com.natsukashiiz.shop.api.service.AddressService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;

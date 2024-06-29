@@ -13,4 +13,8 @@ public class SignUpException extends BaseException {
     public static SignUpException emailInvalid() {
         return new SignUpException("email.invalid");
     }
+
+    public static BaseException usernameExist() {
+        return new SignUpException("username.exist");
+    }
 }

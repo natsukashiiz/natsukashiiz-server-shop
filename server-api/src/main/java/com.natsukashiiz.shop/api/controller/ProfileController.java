@@ -2,9 +2,9 @@ package com.natsukashiiz.shop.api.controller;
 
 import com.natsukashiiz.shop.common.PaginationRequest;
 import com.natsukashiiz.shop.exception.BaseException;
-import com.natsukashiiz.shop.model.request.ChangePasswordRequest;
-import com.natsukashiiz.shop.model.request.UpdateProfileRequest;
-import com.natsukashiiz.shop.service.AccountService;
+import com.natsukashiiz.shop.api.model.request.ChangePasswordRequest;
+import com.natsukashiiz.shop.api.model.request.UpdateProfileRequest;
+import com.natsukashiiz.shop.api.service.AccountService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;

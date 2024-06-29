@@ -1,7 +1,7 @@
 package com.natsukashiiz.shop.api.controller;
 
 import com.natsukashiiz.shop.exception.BaseException;
-import com.natsukashiiz.shop.service.VoucherService;
+import com.natsukashiiz.shop.api.service.VoucherService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

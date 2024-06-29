@@ -13,6 +13,10 @@ public class ValidationUtils {
         return !isMatch(EMAIL_REGEXP, value);
     }
 
+    public static boolean invalidUsername(String value) {
+        return !isMatch(USER_NAME_REGEXP, value);
+    }
+
     public static boolean inRange(String str, int min, int max) {
         return str.length() >= min && str.length() <= max;
     }

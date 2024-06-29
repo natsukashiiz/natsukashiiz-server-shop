@@ -4,7 +4,7 @@ import com.natsukashiiz.shop.common.OrderStatus;
 import com.natsukashiiz.shop.entity.Order;
 import com.natsukashiiz.shop.entity.OrderItem;
 import com.natsukashiiz.shop.exception.BaseException;
-import com.natsukashiiz.shop.service.OrderService;
+import com.natsukashiiz.shop.api.service.OrderService;
 
 import java.util.List;
 import java.util.UUID;

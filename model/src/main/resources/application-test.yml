@@ -1,0 +1,67 @@
+spring:
+  main:
+    allow-circular-references: true
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://212.80.213.8:3306/shop_db?useSSL=false&serverTimezone=UTC
+    username: root
+    password: 0yUKxpK9nkAPRg4
+  jpa:
+    show-sql: true
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update
+      dialect: org.hibernate.dialect.MySQL5Dialect
+      format_sql: true
+  redis:
+    host: 212.80.213.8
+    port: 6379
+    password: gaEvE9ben98OXmv
+  cache:
+    type: redis
+    redis:
+      time-to-live: 60000 # 1 Minute
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: natsukashiiz.dev@gmail.com
+    password: zavn qpoh qpot ocmq
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+shop:
+  jwt:
+    pvKey: classpath:app.key
+    pubKey: classpath:app.pub
+  google:
+    clientId: 213921102049-buchqc6diom118vnsidm9fito3cr51dd.apps.googleusercontent.com
+  payment:
+    omise:
+      pubKey: pkey_test_5un4a0mz82obwpz257q
+      secretKey: skey_test_5un49ncyly5rx5dpjwi
+  files:
+    upload-dir: uploads
+    allowed-types: image/jpeg, image/png
+    base-url: http://localhost:8080/v1/files/
+  web:
+    url:
+      base: http://localhost:4200/web
+      verification: http://localhost:4200/web/verification?code=
+      resetPassword: http://localhost:4200/web/reset-password?email={EMAIL}&code={CODE}
+      paymentReturn: http://localhost:4200/web/orders/detail/
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: INFO
+    org.springframework.security: INFO
+    com.natsukashiiz.shop: DEBUG
+  file:
+    path: logs
+    name: logs/logs.log

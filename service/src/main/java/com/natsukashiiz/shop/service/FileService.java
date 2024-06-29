@@ -3,7 +3,7 @@ package com.natsukashiiz.shop.service;
 import com.natsukashiiz.shop.common.ServerProperties;
 import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.exception.FileException;
-import com.natsukashiiz.shop.model.response.FileStoreResponse;
+import com.natsukashiiz.shop.model.resposne.FileStoreResponse;
 import com.natsukashiiz.shop.utils.RandomUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;

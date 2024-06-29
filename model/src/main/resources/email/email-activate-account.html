@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        /* เพิ่มสไตล์เพิ่มเติมที่นี่ */
+        body {
+            background-color: #fafbfc;
+            margin: 0;
+            padding: 0;
+        }
+
+        .main-container {
+            background-color: #fff;
+            padding-bottom: 20px;
+            padding-top: 20px;
+        }
+
+        .text-container {
+            text-align: center;
+            font-size: 16px;
+            font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+            padding-left: 25px;
+            padding-right: 25px;
+        }
+
+        .verification-code {
+            background-color: #20c997;
+            font-size: 24px;
+            font-weight: bold;
+            display: inline-block;
+            padding: 10px;
+            margin-top: 10px;
+            font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+        }
+
+        .verification-link {
+            color: #007bff; /* Set the color you prefer for links */
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+<div class="main-container">
+    <div class="text-container">
+        <p>สวัสดี,</p>
+        <p>กรุณาใช้รหัสยืนยันด้านล่างนี้:</p>
+        <span class="verification-code">${CODE}</span>
+        <p><a class="verification-link" href="${LINK}">หรือคลิก</a></p>
+        <p>หากคุณไม่ได้ขอรหัสนี้ คุณสามารถเพิกเฉยต่ออีเมลนี้หรือแจ้งให้เราทราบได้</p>
+        <p>ขอบคุณ!<br />ทีมร้าน</p>
+    </div>
+</div>
+</body>
+
+</html>

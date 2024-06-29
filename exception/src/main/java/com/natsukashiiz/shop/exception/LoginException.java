@@ -12,4 +12,8 @@ public class LoginException extends BaseException {
     public static LoginException invalidEmail() {
         return new LoginException("invalid.email");
     }
+
+    public static BaseException invalidUsername() {
+        return new LoginException("invalid.username");
+    }
 }

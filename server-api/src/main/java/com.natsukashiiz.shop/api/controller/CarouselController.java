@@ -1,7 +1,7 @@
 package com.natsukashiiz.shop.api.controller;
 
-import com.natsukashiiz.shop.model.response.CarouselResponse;
-import com.natsukashiiz.shop.service.CarouselService;
+import com.natsukashiiz.shop.api.model.response.CarouselResponse;
+import com.natsukashiiz.shop.api.service.CarouselService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

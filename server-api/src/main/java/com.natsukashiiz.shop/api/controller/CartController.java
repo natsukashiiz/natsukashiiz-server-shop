@@ -1,8 +1,8 @@
 package com.natsukashiiz.shop.api.controller;
 
 import com.natsukashiiz.shop.exception.BaseException;
-import com.natsukashiiz.shop.model.request.CartRequest;
-import com.natsukashiiz.shop.service.CartService;
+import com.natsukashiiz.shop.api.model.request.CartRequest;
+import com.natsukashiiz.shop.api.service.CartService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;

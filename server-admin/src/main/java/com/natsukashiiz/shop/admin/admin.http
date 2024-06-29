@@ -1,0 +1,32 @@
+### Auth
+#### Login
+POST http://localhost:820/v1/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin"
+}
+
+#### Sign Up
+POST http://localhost:820/v1/auth/sign-up
+Content-Type: application/json
+
+{
+  "username": "admin_http",
+  "password": "admin_http",
+  "role": "ADMIN"
+}
+
+#### Refresh Token
+POST http://localhost:820/v1/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "xxxxx"
+}
+
+### User
+#### Get Users
+GET http://localhost:820/v1/users
+Authorization: Bearer eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxIiwicm9sZXMiOlsiQURNSU4iXSwiaXNzIjoiaHR0cDpcL1wvbG9jYWxob3N0OjQyMDBcLyIsInZlcmlmaWVkIjp0cnVlLCJleHAiOjE3NTExODE1ODIsInR5cGUiOiJBQ0NFU1MiLCJpYXQiOjE3MTk2NDU1ODIsImp0aSI6IjdiYmQzYzEwNzUzZDQ2MDk5ODE1YWQyMTQ0YzE0MTkwIn0.LOPRleR9vDR7ECOWGL4U47OkPicTX0x1Ksl113uQHqg-P4tViJ0wJxn9GLWTqM9dgZTq6dyPO5NeGGM-k8vMhyf8gf4j7-q_HqrdngNbU-9yQ9io_GDZXGw_1c0e9X7r-OEqVBaCDS0THgU4gux42hQOO7wMEIS_zF5t-UEexRrD15OzTu43oKZcftHZ0qHqKwmJiZZ0ki6wZV8Bd7tid__J1C5j4e4TR1vArC0y4Y0eke8_tMoKz7SyFRZ9EADybQ_tTWRsxdoXUZqxpp3uOMd3Jdakc-Yk_jCZPBX1JRyzztiVKDeaD-FrGTRfL3dMkE8JnfjalOcHb1zfi_Okvw

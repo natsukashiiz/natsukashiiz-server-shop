@@ -41,6 +41,9 @@ shop:
   jwt:
     pvKey: classpath:app.key
     pubKey: classpath:app.pub
+    expiration:
+      access: 1h
+      refresh: 1d
   google:
     clientId: 213921102049-buchqc6diom118vnsidm9fito3cr51dd.apps.googleusercontent.com
   payment:

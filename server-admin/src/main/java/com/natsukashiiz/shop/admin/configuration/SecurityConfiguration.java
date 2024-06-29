@@ -69,9 +69,6 @@ public class SecurityConfiguration implements WebMvcConfigurer {
                                         "/v*/notifications/subscribe/**",
                                         "/v*/auth/**")
                                 .permitAll()
-
-                                .antMatchers(HttpMethod.GET, "/v*/users/**").permitAll()
-
                                 .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 ->
