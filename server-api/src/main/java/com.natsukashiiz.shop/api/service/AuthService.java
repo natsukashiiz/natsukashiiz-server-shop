@@ -6,7 +6,7 @@ import com.natsukashiiz.shop.entity.Account;
 import com.natsukashiiz.shop.entity.LoginHistory;
 import com.natsukashiiz.shop.exception.*;
 import com.natsukashiiz.shop.api.model.request.LoginRequest;
-import com.natsukashiiz.shop.api.model.request.RefreshTokenRequest;
+import com.natsukashiiz.shop.model.request.RefreshTokenRequest;
 import com.natsukashiiz.shop.api.model.request.SignUpRequest;
 import com.natsukashiiz.shop.model.resposne.TokenResponse;
 import com.natsukashiiz.shop.repository.AccountRepository;

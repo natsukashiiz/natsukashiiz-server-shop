@@ -5,6 +5,7 @@ import com.natsukashiiz.shop.api.model.request.*;
 import com.natsukashiiz.shop.api.service.AccountService;
 import com.natsukashiiz.shop.api.service.AuthService;
 import com.natsukashiiz.shop.api.service.GoogleService;
+import com.natsukashiiz.shop.model.request.RefreshTokenRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;

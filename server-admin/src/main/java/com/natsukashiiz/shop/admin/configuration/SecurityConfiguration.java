@@ -3,7 +3,6 @@ package com.natsukashiiz.shop.admin.configuration;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
-import com.natsukashiiz.shop.common.Roles;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
@@ -126,6 +125,7 @@ public class SecurityConfiguration implements WebMvcConfigurer {
         @Override
         public Collection<GrantedAuthority> convert(Jwt jwt) {
             List<String> roles = jwt.getClaim("roles");
+
             return roles.stream()
                     .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
                     .collect(Collectors.toList());

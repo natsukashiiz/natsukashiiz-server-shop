@@ -1,10 +1,10 @@
 package com.natsukashiiz.shop.admin.controller;
 
-import com.google.api.client.auth.oauth2.RefreshTokenRequest;
 import com.natsukashiiz.shop.admin.model.request.LoginRequest;
 import com.natsukashiiz.shop.admin.model.request.SignUpRequest;
 import com.natsukashiiz.shop.admin.service.AuthService;
 import com.natsukashiiz.shop.exception.BaseException;
+import com.natsukashiiz.shop.model.request.RefreshTokenRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;

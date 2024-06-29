@@ -1,6 +1,5 @@
 package com.natsukashiiz.shop.admin.service;
 
-import com.google.api.client.auth.oauth2.RefreshTokenRequest;
 import com.natsukashiiz.shop.common.Roles;
 import com.natsukashiiz.shop.entity.Admin;
 import com.natsukashiiz.shop.exception.AuthException;
@@ -9,6 +8,7 @@ import com.natsukashiiz.shop.exception.LoginException;
 import com.natsukashiiz.shop.exception.SignUpException;
 import com.natsukashiiz.shop.admin.model.request.LoginRequest;
 import com.natsukashiiz.shop.admin.model.request.SignUpRequest;
+import com.natsukashiiz.shop.model.request.RefreshTokenRequest;
 import com.natsukashiiz.shop.model.resposne.TokenResponse;
 import com.natsukashiiz.shop.repository.AdminRepository;
 import com.natsukashiiz.shop.service.TokenService;
