@@ -188,7 +188,11 @@ public class DevApplication implements ApplicationRunner {
 
         Product product = new Product();
         product.setCategory(categoryRepository.findById((long) faker.number().numberBetween(1, 10)).orElse(null));
-        product.setName(commerce.productName());
+
+        do {
+            product.setName(commerce.productName());
+        } while (productRepository.existsByNameIgnoreCase(product.getName()));
+
         product.setDescription(faker.lorem().paragraph(faker.number().numberBetween(10, 100)));
         product.setViews(Long.parseLong(String.valueOf(faker.number().numberBetween(1, 1000))));
         product.setOrders(Long.parseLong(String.valueOf(faker.number().numberBetween(1, 1000))));

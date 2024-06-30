@@ -8,4 +8,6 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
     Page<Product> findByNameContainingOrCategoryId(String name, Long categoryId, Pageable pageable);
+
+    boolean existsByNameIgnoreCase(String name);
 }
