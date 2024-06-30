@@ -3,7 +3,7 @@ package com.natsukashiiz.shop.api.service;
 import com.natsukashiiz.shop.entity.Notification;
 import com.natsukashiiz.shop.api.model.NotificationPayload;
 import com.natsukashiiz.shop.api.model.response.NotificationResponse;
-import com.natsukashiiz.shop.repository.AccountRepository;
+import com.natsukashiiz.shop.repository.UserRepository;
 import com.natsukashiiz.shop.repository.NotificationRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -20,7 +20,7 @@ public class PushNotificationService {
 
     public Map<Long, SseEmitter> emitters;
     private final NotificationRepository notificationRepository;
-    private final AccountRepository accountRepository;
+    private final UserRepository userRepository;
 
     public SseEmitter subscribe(Long accountId) {
         log.debug("Subscribe-[next]. accountId:{}", accountId);
@@ -40,7 +40,7 @@ public class PushNotificationService {
         log.debug("PushTo-[next]. request:{}", request);
 
         Notification notify = notificationRepository.save(request.getNotification());
-        SseEmitter emitter = emitters.get(request.getAccount().getId());
+        SseEmitter emitter = emitters.get(request.getUser().getId());
         if (emitter != null) {
             try {
                 emitter.send(
@@ -49,8 +49,8 @@ public class PushNotificationService {
                                 .data(NotificationResponse.build(notify))
                 );
             } catch (IOException e) {
-                emitters.remove(request.getAccount().getId());
-                log.warn("PushTo-[io exception]. accountId:{}", request.getAccount().getId(), e);
+                emitters.remove(request.getUser().getId());
+                log.warn("PushTo-[io exception]. accountId:{}", request.getUser().getId(), e);
             }
         }
     }

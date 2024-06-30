@@ -10,7 +10,7 @@ import javax.persistence.ManyToOne;
 
 @Getter
 @Setter
-@Entity(name = "sp_orders_items")
+@Entity(name = "nss_order_items")
 public class OrderItem extends BaseEntity {
 
     @ManyToOne

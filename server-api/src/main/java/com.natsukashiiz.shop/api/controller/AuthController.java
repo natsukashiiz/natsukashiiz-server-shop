@@ -2,7 +2,7 @@ package com.natsukashiiz.shop.api.controller;
 
 import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.api.model.request.*;
-import com.natsukashiiz.shop.api.service.AccountService;
+import com.natsukashiiz.shop.api.service.UserService;
 import com.natsukashiiz.shop.api.service.AuthService;
 import com.natsukashiiz.shop.api.service.GoogleService;
 import com.natsukashiiz.shop.model.request.RefreshTokenRequest;
@@ -19,7 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 public class AuthController {
     private final AuthService authService;
     private final GoogleService googleService;
-    private final AccountService accountService;
+    private final UserService accountService;
 
     @Operation(summary = "Login", description = "Login for get Token use apis")
     @PostMapping("/login")

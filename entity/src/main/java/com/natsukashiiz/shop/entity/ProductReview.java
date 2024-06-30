@@ -9,11 +9,11 @@ import javax.persistence.ManyToOne;
 
 @Getter
 @Setter
-@Entity(name = "sp_products_reviews")
+@Entity(name = "nss_product_reviews")
 public class ProductReview extends BaseEntity {
 
     @ManyToOne
-    private Account account;
+    private User user;
 
     @ManyToOne
     private Product product;

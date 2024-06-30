@@ -8,11 +8,11 @@ import javax.persistence.*;
 
 @Getter
 @Setter
-@Entity(name = "sp_notifications")
+@Entity(name = "nss_notifications")
 public class Notification extends BaseEntity {
 
     @ManyToOne
-    private Account account;
+    private User user;
 
     @Enumerated(EnumType.ORDINAL)
     private OrderStatus type;

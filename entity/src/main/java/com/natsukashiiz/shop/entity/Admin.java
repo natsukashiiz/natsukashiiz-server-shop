@@ -9,7 +9,7 @@ import javax.persistence.*;
 @Getter
 @Setter
 @Entity
-@Table(name = "sp_admins")
+@Table(name = "nss_administers")
 public class Admin extends BaseEntity {
 
     @Column(unique = true, nullable = false, length = 32)

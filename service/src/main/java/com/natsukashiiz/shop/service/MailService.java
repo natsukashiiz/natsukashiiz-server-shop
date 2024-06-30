@@ -44,7 +44,7 @@ public class MailService {
         mailSender.send(message);
     }
 
-    public void sendActiveAccount(String email, String code, String link) throws BaseException {
+    public void sendActiveUser(String email, String code, String link) throws BaseException {
         String html;
 
         try {

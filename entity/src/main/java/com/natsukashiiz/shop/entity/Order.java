@@ -14,7 +14,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
-@Entity(name = "sp_orders")
+@Entity(name = "nss_orders")
 @DynamicUpdate
 public class Order {
 
@@ -26,7 +26,7 @@ public class Order {
     private UUID id;
 
     @ManyToOne
-    private Account account;
+    private User user;
 
     @Column(nullable = false, length = 20, columnDefinition = "VARCHAR(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci")
     private String firstName;

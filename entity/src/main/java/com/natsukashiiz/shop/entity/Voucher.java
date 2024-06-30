@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
-@Table(name = "sp_vouchers")
+@Table(name = "nss_vouchers")
 public class Voucher extends BaseEntity {
 
     @Column(nullable = false, unique = true, length = 5)

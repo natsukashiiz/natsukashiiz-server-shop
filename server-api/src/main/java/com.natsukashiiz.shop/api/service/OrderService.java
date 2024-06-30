@@ -40,7 +40,7 @@ public class OrderService {
     private final OrderItemRepository itemRepository;
     private final ProductOptionRepository productOptionRepository;
     private final CartRepository cartRepository;
-    private final AccountVoucherRepository accountVoucherRepository;
+    private final UserVoucherRepository userVoucherRepository;
     private final VoucherRepository voucherRepository;
     private final AuthService authService;
     private final PushNotificationService pushNotificationService;
@@ -76,14 +76,14 @@ public class OrderService {
     }
 
     public List<OrderResponse> queryAllOrderByStatus(String status) throws BaseException {
-        Account account = authService.getAccount();
+        User user = authService.getUser();
 
         List<Order> orders;
         if (!Objects.equals(status.toUpperCase(), "ALL")) {
             OrderStatus orderStatus = OrderStatus.valueOf(status.toUpperCase());
-            orders = orderRepository.findAllByAccountAndStatusOrderByCreatedAtDesc(account, orderStatus);
+            orders = orderRepository.findAllByUserAndStatusOrderByCreatedAtDesc(user, orderStatus);
         } else {
-            orders = orderRepository.findAllByAccountOrderByCreatedAtDesc(account);
+            orders = orderRepository.findAllByUserOrderByCreatedAtDesc(user);
         }
 
         return orders.stream()
@@ -92,11 +92,11 @@ public class OrderService {
     }
 
     public OrderResponse queryOrderById(String orderId) throws BaseException {
-        Account account = authService.getAccount();
+        User user = authService.getUser();
 
-        Optional<Order> orderOptional = orderRepository.findByIdAndAccount(UUID.fromString(orderId), account);
+        Optional<Order> orderOptional = orderRepository.findByIdAndUser(UUID.fromString(orderId), user);
         if (!orderOptional.isPresent()) {
-            log.warn("QueryOrderById-[block]:(order not found). orderId:{}, accountId:{}", orderId, account.getId());
+            log.warn("QueryOrderById-[block]:(order not found). orderId:{}, accountId:{}", orderId, user.getId());
             throw OrderException.invalid();
         }
 
@@ -104,19 +104,19 @@ public class OrderService {
     }
 
     public OrderCheckoutResponse checkout(CheckoutRequest request) throws BaseException {
-        Account account = authService.getAccount();
+        User user = authService.getUser();
 
-        List<Cart> carts = cartRepository.findAllByAccountAndSelectedIsTrue(account);
+        List<Cart> carts = cartRepository.findAllByUserAndSelectedIsTrue(user);
         if (carts.isEmpty()) {
-            log.warn("Checkout-[block]:(cart selected is empty). request:{}, accountId:{}", request, account.getId());
+            log.warn("Checkout-[block]:(cart selected is empty). request:{}, accountId:{}", request, user.getId());
             throw CartException.selectedEmpty();
         }
 
         OrderCheckoutResponse response = new OrderCheckoutResponse();
 
-        Optional<Address> addressOptional = addressRepository.findByAccountAndMainIsTrue(account);
+        Optional<Address> addressOptional = addressRepository.findByUserAndMainIsTrue(user);
         if (!addressOptional.isPresent()) {
-            log.warn("Checkout-[block]:(address not found). request:{}, accountId:{}", request, account.getId());
+            log.warn("Checkout-[block]:(address not found). request:{}, accountId:{}", request, user.getId());
             throw AddressException.invalid();
         }
         Address address = addressOptional.get();
@@ -133,7 +133,7 @@ public class OrderService {
             ProductOption option = cart.getProductOption();
 
             if (option.getQuantity() - cart.getQuantity() < 0) {
-                log.warn("Checkout-[block]:(insufficient quantity). request:{}, productId:{}, optionId:{}, accountId:{}", request, product.getId(), option.getId(), account.getId());
+                log.warn("Checkout-[block]:(insufficient quantity). request:{}, productId:{}, optionId:{}, accountId:{}", request, product.getId(), option.getId(), user.getId());
                 throw ProductException.insufficient();
             }
 
@@ -153,14 +153,14 @@ public class OrderService {
         if (!ObjectUtils.isEmpty(request.getVoucherId())) {
             Optional<Voucher> voucherOptional = voucherRepository.findById(request.getVoucherId());
             if (!voucherOptional.isPresent()) {
-                log.warn("Checkout-[block]:(voucher not found). request:{}, accountId:{}", request, account.getId());
+                log.warn("Checkout-[block]:(voucher not found). request:{}, accountId:{}", request, user.getId());
                 throw VoucherException.invalid();
             }
             Voucher voucher = voucherOptional.get();
-            AccountVoucher accountVoucher = accountVoucherRepository.findByAccountAndVoucher(account, voucher).orElseThrow(VoucherException::notClaimed);
+            UserVoucher userVoucher = userVoucherRepository.findByUserAndVoucher(user, voucher).orElseThrow(VoucherException::notClaimed);
 
-            if (accountVoucher.getUsed()) {
-                log.warn("Checkout-[block]:(voucher already used). request:{}, accountId:{}", request, account.getId());
+            if (userVoucher.getUsed()) {
+                log.warn("Checkout-[block]:(voucher already used). request:{}, accountId:{}", request, user.getId());
                 throw VoucherException.alreadyUsed();
             }
 
@@ -171,14 +171,14 @@ public class OrderService {
                 voucher.setStatus(VoucherStatus.INACTIVE);
                 voucherRepository.save(voucher);
 
-                log.warn("Checkout-[block]:(voucher expired). request:{}, accountId:{}", request, account.getId());
+                log.warn("Checkout-[block]:(voucher expired). request:{}, accountId:{}", request, user.getId());
                 throw VoucherException.expired();
             }
 
             if (Objects.nonNull(voucher.getProduct())) {
                 boolean isContain = items.stream().anyMatch(item -> item.getProduct().getId().equals(voucher.getProduct().getId()));
                 if (!isContain) {
-                    log.warn("Checkout-[block]:(voucher not applicable for this product). request:{}, accountId:{}", request, account.getId());
+                    log.warn("Checkout-[block]:(voucher not applicable for this product). request:{}, accountId:{}", request, user.getId());
                     throw VoucherException.notUsedForProduct();
                 }
             }
@@ -186,14 +186,14 @@ public class OrderService {
             if (Objects.nonNull(voucher.getCategory())) {
                 boolean isContain = items.stream().anyMatch(item -> item.getProduct().getCategory().getId().equals(voucher.getCategory().getId()));
                 if (!isContain) {
-                    log.warn("Checkout-[block]:(voucher not applicable for this category). request:{}, accountId:{}", request, account.getId());
+                    log.warn("Checkout-[block]:(voucher not applicable for this category). request:{}, accountId:{}", request, user.getId());
                     throw VoucherException.notUsedForCategory();
                 }
             }
 
             if (voucher.getMinOrderPrice() > 0) {
                 if (response.getTotalPay() < voucher.getMinOrderPrice()) {
-                    log.warn("Checkout-[block]:(voucher min order price not reached). request:{}, accountId:{}", request, account.getId());
+                    log.warn("Checkout-[block]:(voucher min order price not reached). request:{}, accountId:{}", request, user.getId());
                     throw VoucherException.minOrderPrice();
                 }
             }
@@ -205,14 +205,14 @@ public class OrderService {
             } else if (DiscountType.PERCENT.equals(voucher.getDiscountType())) {
                 totalDiscount = Math.min(voucher.getMaxDiscount(), (response.getTotalPay() * voucher.getDiscount()) / 100);
             } else {
-                log.warn("Checkout-[block]:(Voucher discount type not supported). request:{}, accountId:{}", request, account.getId());
+                log.warn("Checkout-[block]:(Voucher discount type not supported). request:{}, accountId:{}", request, user.getId());
                 throw VoucherException.invalid();
             }
 
             response.setTotalDiscount(totalDiscount);
         }
 
-        response.setVouchers(accountVoucherRepository.findAllByAccountAndUsedIsFalseAndVoucherStatusAndVoucherMinOrderPriceLessThanEqual(account, VoucherStatus.ACTIVE, response.getTotalPay())
+        response.setVouchers(userVoucherRepository.findAllByUserAndUsedIsFalseAndVoucherStatusAndVoucherMinOrderPriceLessThanEqual(user, VoucherStatus.ACTIVE, response.getTotalPay())
                 .stream()
                 .filter(e -> {
                     if (Objects.nonNull(e.getVoucher().getProduct())) {
@@ -234,11 +234,11 @@ public class OrderService {
 
     @Transactional(rollbackOn = BaseException.class)
     public OrderResponse createOrder(CreateOrderRequest request) throws BaseException {
-        Account account = authService.getAccount();
+        User user = authService.getUser();
 
-        Optional<Address> addressOptional = addressRepository.findByAccountAndMainIsTrue(authService.getAccount());
+        Optional<Address> addressOptional = addressRepository.findByUserAndMainIsTrue(authService.getUser());
         if (!addressOptional.isPresent()) {
-            log.warn("Buy-[block]:(main address not found). request:{}, accountId:{}", request, account.getId());
+            log.warn("Buy-[block]:(main address not found). request:{}, accountId:{}", request, user.getId());
             throw AddressException.invalid();
         }
 
@@ -247,7 +247,7 @@ public class OrderService {
         Map<Long, ProductOption> productOptionMap = productOptionRepository.findAllById(orderItems.stream().map(CreateOrderRequest.OrderItem::getOptionId).collect(Collectors.toSet())).stream().collect(Collectors.toMap(ProductOption::getId, Function.identity()));
 
         Order order = new Order();
-        order.setAccount(account);
+        order.setUser(user);
         order.setFirstName(address.getFirstName());
         order.setLastName(address.getLastName());
         order.setMobile(address.getMobile());
@@ -261,19 +261,19 @@ public class OrderService {
         for (CreateOrderRequest.OrderItem orderItem : orderItems) {
             ProductOption productOption = productOptionMap.get(orderItem.getOptionId());
             if (Objects.isNull(productOption)) {
-                log.warn("Buy-[block]:(not found product option). request:{}, accountId:{}", request, account.getId());
+                log.warn("Buy-[block]:(not found product option). request:{}, accountId:{}", request, user.getId());
                 throw ProductException.invalid();
             }
             Product product = productOption.getProduct();
             Category category = product.getCategory();
 
             if (productOption.getQuantity() - orderItem.getQuantity() < 0) {
-                log.warn("Buy-[block]:(insufficient quantity of product option). request:{}, productId:{}, optionId:{}, accountId:{}", request, product.getId(), productOption.getId(), account.getId());
+                log.warn("Buy-[block]:(insufficient quantity of product option). request:{}, productId:{}, optionId:{}, accountId:{}", request, product.getId(), productOption.getId(), user.getId());
                 throw ProductException.insufficient();
             }
 
             productOptionRepository.decreaseQuantity(productOption.getId(), orderItem.getQuantity());
-            cartRepository.deleteByProductOptionAndAccount(productOption, account);
+            cartRepository.deleteByProductOptionAndUser(productOption, user);
 
             double totalPrice = productOption.getPrice() * orderItem.getQuantity();
 
@@ -299,10 +299,10 @@ public class OrderService {
 
         if (!ObjectUtils.isEmpty(request.getVoucherId())) {
             Voucher voucher = voucherRepository.findById(request.getVoucherId()).orElseThrow(VoucherException::invalid);
-            AccountVoucher accountVoucher = accountVoucherRepository.findByAccountAndVoucher(account, voucher).orElseThrow(VoucherException::notClaimed);
+            UserVoucher userVoucher = userVoucherRepository.findByUserAndVoucher(user, voucher).orElseThrow(VoucherException::notClaimed);
 
-            if (accountVoucher.getUsed()) {
-                log.warn("Buy-[block]:(voucher already used). request:{}, accountId:{}", request, account.getId());
+            if (userVoucher.getUsed()) {
+                log.warn("Buy-[block]:(voucher already used). request:{}, accountId:{}", request, user.getId());
                 throw VoucherException.alreadyUsed();
             }
 
@@ -313,14 +313,14 @@ public class OrderService {
                 voucher.setStatus(VoucherStatus.INACTIVE);
                 voucherRepository.save(voucher);
 
-                log.warn("Buy-[block]:(voucher expired). request:{}, accountId:{}", request, account.getId());
+                log.warn("Buy-[block]:(voucher expired). request:{}, accountId:{}", request, user.getId());
                 throw VoucherException.expired();
             }
 
             if (Objects.nonNull(voucher.getProduct())) {
                 boolean isContain = items.stream().anyMatch(item -> item.getProductId().equals(voucher.getProduct().getId()));
                 if (!isContain) {
-                    log.warn("Buy-[block]:(voucher not applicable for this product). request:{}, accountId:{}", request, account.getId());
+                    log.warn("Buy-[block]:(voucher not applicable for this product). request:{}, accountId:{}", request, user.getId());
                     throw VoucherException.notUsedForProduct();
                 }
             }
@@ -328,14 +328,14 @@ public class OrderService {
             if (Objects.nonNull(voucher.getCategory())) {
                 boolean isContain = items.stream().anyMatch(item -> item.getCategoryId().equals(voucher.getCategory().getId()));
                 if (!isContain) {
-                    log.warn("Buy-[block]:(voucher not applicable for this category). request:{}, accountId:{}", request, account.getId());
+                    log.warn("Buy-[block]:(voucher not applicable for this category). request:{}, accountId:{}", request, user.getId());
                     throw VoucherException.notUsedForCategory();
                 }
             }
 
             if (voucher.getMinOrderPrice() > 0) {
                 if (totalPay < voucher.getMinOrderPrice()) {
-                    log.warn("Buy-[block]:(voucher min order price not reached). request:{}, accountId:{}", request, account.getId());
+                    log.warn("Buy-[block]:(voucher min order price not reached). request:{}, accountId:{}", request, user.getId());
                     throw VoucherException.minOrderPrice();
                 }
             }
@@ -347,7 +347,7 @@ public class OrderService {
             } else if (DiscountType.PERCENT.equals(voucher.getDiscountType())) {
                 totalDiscount = Math.min(voucher.getMaxDiscount(), totalPay * voucher.getDiscount() / 100);
             } else {
-                log.warn("Buy-[block]:(voucher discount type not supported). request:{}, accountId:{}", request, account.getId());
+                log.warn("Buy-[block]:(voucher discount type not supported). request:{}, accountId:{}", request, user.getId());
                 throw VoucherException.invalid();
             }
 
@@ -358,8 +358,8 @@ public class OrderService {
 
             order.setTotalDiscount(voucher.getDiscount());
 
-            accountVoucher.setUsed(Boolean.TRUE);
-            accountVoucherRepository.save(accountVoucher);
+            userVoucher.setUsed(Boolean.TRUE);
+            userVoucherRepository.save(userVoucher);
         }
 
         order.setActualPay(totalPay);
@@ -377,11 +377,11 @@ public class OrderService {
 //        tasks.put(order.getId(), schedule);
 
         NotificationPayload payload = new NotificationPayload();
-        payload.setAccount(order.getAccount());
+        payload.setUser(order.getUser());
         payload.setType(NotificationType.ORDER);
 
         Notification notify = new Notification();
-        notify.setAccount(order.getAccount());
+        notify.setUser(order.getUser());
         notify.setType(order.getStatus());
         notify.setEventId(order.getId().toString());
         notify.setTitle("กรุณาชำระเงิน");
@@ -396,28 +396,28 @@ public class OrderService {
 
     @Transactional(rollbackOn = BaseException.class)
     public PayOrderResponse payOrder(PayOrderRequest request) throws BaseException {
-        Account account = authService.getAccount();
+        User user = authService.getUser();
 
         if (ObjectUtils.isEmpty(request.getOrderId())) {
-            log.warn("PayOrder-[block]:(invalid order id). request:{}, accountId:{}", request, account.getId());
+            log.warn("PayOrder-[block]:(invalid order id). request:{}, accountId:{}", request, user.getId());
             throw PaymentException.invalidOrder();
         }
 
         if (ObjectUtils.isEmpty(request.getSource())) {
-            log.warn("PayOrder-[block]:(invalid source). request:{}, accountId:{}", request, account.getId());
+            log.warn("PayOrder-[block]:(invalid source). request:{}, accountId:{}", request, user.getId());
             throw PaymentException.invalidSource();
         }
 
-        Optional<Order> orderOptional = orderRepository.findByIdAndAccount(UUID.fromString(request.getOrderId()), account);
+        Optional<Order> orderOptional = orderRepository.findByIdAndUser(UUID.fromString(request.getOrderId()), user);
         if (!orderOptional.isPresent()) {
-            log.warn("PayOrder-[block]:(order not found). request:{}, accountId:{}", request, account.getId());
+            log.warn("PayOrder-[block]:(order not found). request:{}, accountId:{}", request, user.getId());
             throw OrderException.invalid();
         }
 
         Order order = orderOptional.get();
 
         if (order.getStatus() != OrderStatus.PENDING) {
-            log.warn("PayOrder-[block]:(status not pending). request:{}, accountId:{}", request, account.getId());
+            log.warn("PayOrder-[block]:(status not pending). request:{}, accountId:{}", request, user.getId());
             throw OrderException.invalid();
         }
 
@@ -425,7 +425,7 @@ public class OrderService {
             Charge charge = omisePaymentService.charge(order.getTotalPay(), request.getSource(), order.getId(), order.getPayExpire());
 
             if (ObjectUtils.isEmpty(charge.getId())) {
-                log.warn("PayOrder-[block]:(invalid chargeId). request:{}, accountId:{}", request, account.getId());
+                log.warn("PayOrder-[block]:(invalid chargeId). request:{}, accountId:{}", request, user.getId());
                 throw PaymentException.invalid();
             }
 
@@ -461,10 +461,10 @@ public class OrderService {
 
     @Transactional(rollbackOn = BaseException.class)
     public OrderResponse cancelOrder(String orderId) throws BaseException {
-        Account account = authService.getAccount();
+        User user = authService.getUser();
 
         if (ObjectUtils.isEmpty(orderId)) {
-            log.warn("CancelOrder-[block]:(invalid order id). orderId:{}, accountId:{}", orderId, account.getId());
+            log.warn("CancelOrder-[block]:(invalid order id). orderId:{}, accountId:{}", orderId, user.getId());
             throw PaymentException.invalidOrder();
         }
 
@@ -472,7 +472,7 @@ public class OrderService {
                 .orElseThrow(OrderException::invalid);
 
         if (order.getStatus() != OrderStatus.PENDING) {
-            log.warn("CancelOrder-[block]:(status not pending). orderId:{}, accountId:{}", orderId, account.getId());
+            log.warn("CancelOrder-[block]:(status not pending). orderId:{}, accountId:{}", orderId, user.getId());
             throw OrderException.invalid();
         }
 
@@ -526,11 +526,11 @@ public class OrderService {
                     }
 
                     NotificationPayload payload = new NotificationPayload();
-                    payload.setAccount(order.getAccount());
+                    payload.setUser(order.getUser());
                     payload.setType(NotificationType.ORDER);
 
                     Notification notify = new Notification();
-                    notify.setAccount(order.getAccount());
+                    notify.setUser(order.getUser());
                     notify.setEventId(order.getId().toString());
                     notify.setTitle("การชำระเงิน");
                     notify.setIsRead(Boolean.FALSE);

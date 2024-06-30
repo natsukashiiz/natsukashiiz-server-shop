@@ -1,6 +1,6 @@
 package com.natsukashiiz.shop.repository;
 
-import com.natsukashiiz.shop.entity.Account;
+import com.natsukashiiz.shop.entity.User;
 import com.natsukashiiz.shop.entity.ProductViewHistory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -10,9 +10,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ProductViewHistoryRepository extends JpaRepository<ProductViewHistory, Long> {
-    List<ProductViewHistory> findAllByAccount(Account account);
+    List<ProductViewHistory> findAllByUser(User user);
 
-    Page<ProductViewHistory> findAllByAccount(Account account, Pageable pageable);
+    Page<ProductViewHistory> findAllByUser(User user, Pageable pageable);
 
-    Optional<ProductViewHistory> findFirstByAccountAndProductIdOrderByCreatedAtDesc(Account account, Long productId);
+    Optional<ProductViewHistory> findFirstByUserAndProductIdOrderByCreatedAtDesc(User user, Long productId);
 }

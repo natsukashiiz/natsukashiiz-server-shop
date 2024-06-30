@@ -13,7 +13,7 @@ import java.io.Serializable;
 @Getter
 @Setter
 @ToString
-@Entity(name = "sp_products_images")
+@Entity(name = "nss_product_images")
 public class ProductImage extends BaseEntity implements Serializable {
 
     @ManyToOne

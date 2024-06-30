@@ -9,4 +9,12 @@ public class RedisKeyUtils {
     public static String accountResetPasswordCodeKey(String email) {
         return "ACCOUNT:RESET_PASSWORD:" + email;
     }
+
+    public static String authAccessTokenKey(Long userId) {
+        return "AUTH:ACCESS_TOKEN:" + userId;
+    }
+
+    public static String authRefreshTokenKey(Long userId) {
+        return "AUTH:REFRESH_TOKEN:" + userId;
+    }
 }

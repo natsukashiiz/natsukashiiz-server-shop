@@ -10,11 +10,11 @@ import javax.persistence.ManyToOne;
 @Getter
 @Setter
 @ToString
-@Entity(name = "sp_login_histories")
+@Entity(name = "nss_login_histories")
 public class LoginHistory extends BaseEntity {
 
     @ManyToOne
-    private Account account;
+    private User user;
 
     private String ip;
     private String userAgent;

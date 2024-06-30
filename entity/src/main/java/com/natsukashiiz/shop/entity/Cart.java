@@ -9,7 +9,7 @@ import javax.persistence.*;
 
 @Getter
 @Setter
-@Entity(name = "sp_cart")
+@Entity(name = "nss_cart")
 @DynamicInsert
 @DynamicUpdate
 public class Cart {
@@ -19,7 +19,7 @@ public class Cart {
     private Long id;
 
     @ManyToOne
-    private Account account;
+    private User user;
 
     @ManyToOne
     private Product product;

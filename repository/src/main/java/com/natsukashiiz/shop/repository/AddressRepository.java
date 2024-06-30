@@ -1,6 +1,6 @@
 package com.natsukashiiz.shop.repository;
 
-import com.natsukashiiz.shop.entity.Account;
+import com.natsukashiiz.shop.entity.User;
 import com.natsukashiiz.shop.entity.Address;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -11,24 +11,24 @@ import java.util.Optional;
 
 public interface AddressRepository extends JpaRepository<Address, Long> {
 
-    boolean existsByAccountAndMain(Account account, boolean main);
+    boolean existsByUserAndMain(User user, boolean main);
 
-    Long countByAccount(Account account);
+    Long countByUser(User user);
 
-    Optional<Address> findByAccountAndMain(Account account, boolean main);
-    Optional<Address> findByAccountAndMainIsTrue(Account account);
+    Optional<Address> findByUserAndMain(User user, boolean main);
+    Optional<Address> findByUserAndMainIsTrue(User user);
 
-    List<Address> findByAccount(Account account);
-
-    @Modifying
-    @Query("UPDATE sp_addresses SET main = false WHERE account.id = :accountId")
-    void removeMainByAccountId(Long accountId);
+    List<Address> findByUser(User user);
 
     @Modifying
-    @Query("UPDATE sp_addresses SET main = true WHERE id = :addressId AND account.id = :accountId")
-    void setMain(Long addressId, Long accountId);
+    @Query("UPDATE nss_addresses SET main = false WHERE user.id = :userId")
+    void removeMainByUserId(Long userId);
 
-    boolean existsByIdAndAccount(Long addressId, Account account);
+    @Modifying
+    @Query("UPDATE nss_addresses SET main = true WHERE id = :addressId AND user.id = :userId")
+    void setMain(Long addressId, Long userId);
 
-    Optional<Address> findByIdAndAccount(Long id, Account account);
+    boolean existsByIdAndUser(Long addressId, User user);
+
+    Optional<Address> findByIdAndUser(Long id, User user);
 }

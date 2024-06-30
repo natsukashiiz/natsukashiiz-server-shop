@@ -35,7 +35,7 @@ public class ProductReviewResponse implements Serializable {
         response.setContent(review.getContent());
         response.setRating(review.getRating());
         response.setCreatedAt(review.getCreatedAt());
-        response.setProfile(ProfileResponse.build(review.getAccount()));
+        response.setProfile(ProfileResponse.build(review.getUser()));
         return response;
     }
 }

@@ -1,6 +1,6 @@
 package com.natsukashiiz.shop.api.service;
 
-import com.natsukashiiz.shop.entity.Account;
+import com.natsukashiiz.shop.entity.User;
 import com.natsukashiiz.shop.entity.Point;
 import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.api.model.response.PointResponse;
@@ -17,8 +17,8 @@ public class PointService {
     private final AuthService authService;
 
     public PointResponse queryPoint() throws BaseException {
-        Account account = authService.getAccount();
-        Point point = pointRepository.findByAccount(account).get();
+        User user = authService.getUser();
+        Point point = pointRepository.findByUser(user).get();
         return PointResponse.build(point);
     }
 }

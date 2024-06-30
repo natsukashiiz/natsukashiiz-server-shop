@@ -4,7 +4,7 @@ import com.natsukashiiz.shop.common.PaginationRequest;
 import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.api.model.request.ChangePasswordRequest;
 import com.natsukashiiz.shop.api.model.request.UpdateProfileRequest;
-import com.natsukashiiz.shop.api.service.AccountService;
+import com.natsukashiiz.shop.api.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +17,7 @@ import javax.servlet.http.HttpServletRequest;
 @AllArgsConstructor
 public class ProfileController {
 
-    private final AccountService accountService;
+    private final UserService accountService;
 
     @Operation(summary = "Get Profile", description = "Get my profile")
     @GetMapping
@@ -48,8 +48,8 @@ public class ProfileController {
     }
 
     @DeleteMapping
-    public ResponseEntity<?> deleteAccount() throws BaseException {
-        accountService.deleteAccount();
+    public ResponseEntity<?> deleteUser() throws BaseException {
+        accountService.deleteUser();
         return ResponseEntity.ok().build();
     }
 

@@ -1,6 +1,6 @@
 package com.natsukashiiz.shop.api.service;
 
-import com.natsukashiiz.shop.entity.Account;
+import com.natsukashiiz.shop.entity.User;
 import com.natsukashiiz.shop.entity.Notification;
 import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.exception.NotificationException;
@@ -21,23 +21,23 @@ public class NotificationService {
     private final AuthService authService;
 
     public List<NotificationResponse> queryAllNotification() throws BaseException {
-        Account account = authService.getAccount();
-        List<Notification> notifications = notificationRepository.findAllByAccount(account);
+        User user = authService.getUser();
+        List<Notification> notifications = notificationRepository.findAllByUser(user);
         return NotificationResponse.buildList(notifications);
     }
 
     public void readNotificationById(Long notificationId) throws BaseException {
-        Account account = authService.getAccount();
-        if (!notificationRepository.existsByIdAndAccount(notificationId, account)) {
-            log.warn("Read-[block]:(notification not found). notificationId:{}, accountId:{}", notificationId, account.getId());
+        User user = authService.getUser();
+        if (!notificationRepository.existsByIdAndUser(notificationId, user)) {
+            log.warn("Read-[block]:(notification not found). notificationId:{}, accountId:{}", notificationId, user.getId());
             throw NotificationException.invalid();
         }
 
-        notificationRepository.updateRead(notificationId, account.getId());
+        notificationRepository.updateRead(notificationId, user.getId());
     }
 
     public void readAllNotification() throws BaseException {
-        Account account = authService.getAccount();
-        notificationRepository.updateReadAll(account.getId());
+        User user = authService.getUser();
+        notificationRepository.updateReadAll(user.getId());
     }
 }

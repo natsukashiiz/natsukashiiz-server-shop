@@ -1,27 +1,38 @@
 package com.natsukashiiz.shop.admin.controller;
 
-import com.natsukashiiz.shop.admin.model.response.QueryUserResponse;
-import com.natsukashiiz.shop.repository.AccountRepository;
+import com.natsukashiiz.shop.entity.User;
 import lombok.AllArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
-import java.util.stream.Collectors;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/v1/users")
 @AllArgsConstructor
 public class UserController {
-
-    private final AccountRepository accountRepository;
+    // query all, query by id, create, update, delete
 
     @GetMapping
-    public List<QueryUserResponse> getUsers() {
-        return accountRepository.findAll()
-                .stream()
-                .map(QueryUserResponse::build)
-                .collect(Collectors.toList());
+    public ResponseEntity<?> queryUsers() {
+        return ResponseEntity.ok("Query all users");
+    }
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<?> queryUserById(@PathVariable Long userId) {
+        return ResponseEntity.ok(String.format("Query user by id: %d", userId));
+    }
+
+    @PostMapping
+    public ResponseEntity<?> createUser(@RequestBody User user) {
+        return ResponseEntity.ok(String.format("Create user: %s", user));
+    }
+
+    @PutMapping("/{userId}")
+    public ResponseEntity<?> updateUser(@PathVariable Long userId, @RequestBody User user) {
+        return ResponseEntity.ok(String.format("Update user by id: %d, %s", userId, user));
+    }
+
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long userId) {
+        return ResponseEntity.ok(String.format("Delete user by id: %d", userId));
     }
 }

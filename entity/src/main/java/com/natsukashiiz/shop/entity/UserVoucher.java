@@ -11,11 +11,11 @@ import javax.persistence.Table;
 @Getter
 @Setter
 @Entity
-@Table(name = "sp_account_vouchers")
-public class AccountVoucher extends BaseEntity {
+@Table(name = "nss_user_vouchers")
+public class UserVoucher extends BaseEntity {
 
     @ManyToOne
-    private Account account;
+    private User user;
 
     @ManyToOne
     private Voucher voucher;

@@ -13,7 +13,7 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
-@Entity(name = "sp_categories")
+@Entity(name = "nss_categories")
 public class Category extends BaseEntity implements Serializable {
 
     @Column(nullable = false, unique = true, columnDefinition = "VARCHAR(100) CHARACTER SET utf8mb4")

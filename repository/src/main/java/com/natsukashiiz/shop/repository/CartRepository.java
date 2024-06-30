@@ -1,6 +1,6 @@
 package com.natsukashiiz.shop.repository;
 
-import com.natsukashiiz.shop.entity.Account;
+import com.natsukashiiz.shop.entity.User;
 import com.natsukashiiz.shop.entity.Cart;
 import com.natsukashiiz.shop.entity.ProductOption;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,21 +10,21 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CartRepository extends JpaRepository<Cart, Long> {
-    List<Cart> findByAccount(Account account);
-    Long countByAccount(Account account);
+    List<Cart> findByUser(User user);
+    Long countByUser(User user);
 
-    @Query("SELECT SUM(c.quantity) FROM sp_cart c WHERE c.account = :account")
-    Integer sumQuantityByAccount(Account account);
+    @Query("SELECT SUM(c.quantity) FROM nss_cart c WHERE c.user = :user")
+    Integer sumQuantityByUser(User user);
 
-    Optional<Cart> findByIdAndAccount(Long id, Account account);
+    Optional<Cart> findByIdAndUser(Long id, User user);
 
-    Optional<Cart> findByProductOptionAndAccount(ProductOption productOption, Account account);
-    Optional<Cart> findByAccountAndProductOption(Account account, ProductOption productOption);
+    Optional<Cart> findByProductOptionAndUser(ProductOption productOption, User user);
+    Optional<Cart> findByUserAndProductOption(User user, ProductOption productOption);
 
-    boolean existsByProductOptionAndAccount(ProductOption productOption, Account account);
+    boolean existsByProductOptionAndUser(ProductOption productOption, User user);
 
-    void deleteByProductOptionAndAccount(ProductOption productOption, Account account);
-    List<Cart> findAllByAccountAndSelectedIsTrue(Account account);
+    void deleteByProductOptionAndUser(ProductOption productOption, User user);
+    List<Cart> findAllByUserAndSelectedIsTrue(User user);
 
-    boolean existsByIdAndAccount(Long id, Account account);
+    boolean existsByIdAndUser(Long id, User user);
 }

@@ -11,11 +11,11 @@ import java.io.Serializable;
 @Getter
 @Setter
 @ToString
-@Entity(name = "sp_account_socials")
-public class AccountSocial extends BaseEntity implements Serializable {
+@Entity(name = "nss_user_socials")
+public class UserSocial extends BaseEntity implements Serializable {
 
     @ManyToOne
-    private Account account;
+    private User user;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)

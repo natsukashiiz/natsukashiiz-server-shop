@@ -13,7 +13,7 @@ import java.io.Serializable;
 @Getter
 @Setter
 @ToString
-@Entity(name = "sp_products_options")
+@Entity(name = "nss_product_options")
 public class ProductOption extends BaseEntity implements Serializable {
 
     @ManyToOne

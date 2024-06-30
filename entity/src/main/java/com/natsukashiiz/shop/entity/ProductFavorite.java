@@ -10,11 +10,11 @@ import javax.persistence.Table;
 @Getter
 @Setter
 @Entity
-@Table(name = "sp_products_favorites")
+@Table(name = "nss_products_favorites")
 public class ProductFavorite extends BaseEntity {
 
     @ManyToOne
-    private Account account;
+    private User user;
 
     @ManyToOne
     private Product product;

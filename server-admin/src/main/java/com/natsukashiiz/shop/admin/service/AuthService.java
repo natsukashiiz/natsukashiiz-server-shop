@@ -1,5 +1,7 @@
 package com.natsukashiiz.shop.admin.service;
 
+import com.natsukashiiz.shop.common.AdminPermissions;
+import com.natsukashiiz.shop.common.AdminRoles;
 import com.natsukashiiz.shop.common.Roles;
 import com.natsukashiiz.shop.entity.Admin;
 import com.natsukashiiz.shop.exception.AuthException;
@@ -12,9 +14,11 @@ import com.natsukashiiz.shop.model.request.RefreshTokenRequest;
 import com.natsukashiiz.shop.model.resposne.TokenResponse;
 import com.natsukashiiz.shop.repository.AdminRepository;
 import com.natsukashiiz.shop.service.TokenService;
+import com.natsukashiiz.shop.utils.RedisKeyUtils;
 import com.natsukashiiz.shop.utils.ValidationUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,7 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @Log4j2
@@ -33,6 +37,7 @@ public class AuthService {
     private final AdminRepository adminRepository;
     private final TokenService tokenService;
     private final PasswordEncoder passwordEncoder;
+    private RedisTemplate<String, String> redisTemplate;
 
     public TokenResponse login(LoginRequest request, HttpServletRequest httpServletRequest) throws BaseException {
         if (ValidationUtils.invalidUsername(request.getUsername())) {
@@ -108,6 +113,19 @@ public class AuthService {
         }
 
         Admin admin = adminOptional.get();
+
+        String redisRefreshTokenKey = RedisKeyUtils.authRefreshTokenKey(admin.getId());
+        String redisRefreshTokenValue = redisTemplate.opsForValue().get(redisRefreshTokenKey);
+        if (ObjectUtils.isEmpty(redisRefreshTokenValue)) {
+            log.warn("Refresh-[block]:(not found redis refresh token). adminId:{}", admin.getId());
+            throw AuthException.unauthorized();
+        }
+
+        if (!jwt.getId().equals(redisRefreshTokenValue)) {
+            log.warn("Refresh-[block]:(refresh token not match). adminId:{}", admin.getId());
+            throw AuthException.unauthorized();
+        }
+
         return createTokenResponse(admin, httpServletRequest);
     }
 
@@ -149,7 +167,21 @@ public class AuthService {
             throw AuthException.unauthorized();
         }
 
-        return adminOptional.get();
+        Admin admin = adminOptional.get();
+
+        String redisAccessTokenKey = RedisKeyUtils.authAccessTokenKey(admin.getId());
+        String redisAccessTokenValue = redisTemplate.opsForValue().get(redisAccessTokenKey);
+        if (ObjectUtils.isEmpty(redisAccessTokenValue)) {
+            log.warn("GetAdmin-[block]:(not found redis access token). adminId:{}", admin.getId());
+            throw AuthException.unauthorized();
+        }
+
+        if (!jwt.getId().equals(redisAccessTokenValue)) {
+            log.warn("GetAdmin-[block]:(access token not match). adminId:{}", admin.getId());
+            throw AuthException.unauthorized();
+        }
+
+        return admin;
     }
 
     public boolean anonymous() {
@@ -163,8 +195,27 @@ public class AuthService {
 
     public TokenResponse createTokenResponse(Admin admin, HttpServletRequest httpServletRequest) {
 
-        String accessToken = tokenService.generateAccessToken(admin.getId(), Boolean.TRUE, Roles.ADMIN);
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role", admin.getRole());
+
+        Set<String> permissions;
+        if (admin.getRole().equals(AdminRoles.SUPER_ADMIN)) {
+            permissions = new HashSet<>();
+            for (AdminPermissions permission : AdminPermissions.values()) {
+                permissions.add(permission.getPermission());
+            }
+        } else {
+            permissions = Collections.singleton(AdminPermissions.ADMIN_READ.getPermission());
+        }
+        claims.put("authorities", permissions);
+
+        String accessToken = tokenService.generateAccessToken(admin.getId(), claims);
+        String redisAccessTokenKey = RedisKeyUtils.authAccessTokenKey(admin.getId());
+        redisTemplate.opsForValue().set(redisAccessTokenKey, tokenService.decode(accessToken).getId());
+
         String refreshToken = tokenService.generateRefreshToken(admin.getId());
+        String redisRefreshTokenKey = RedisKeyUtils.authRefreshTokenKey(admin.getId());
+        redisTemplate.opsForValue().set(redisRefreshTokenKey, tokenService.decode(refreshToken).getId());
 
         return TokenResponse.build(accessToken, refreshToken);
     }

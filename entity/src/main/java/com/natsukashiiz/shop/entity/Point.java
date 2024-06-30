@@ -10,14 +10,14 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-@Entity(name = "sp_point")
+@Entity(name = "nss_point")
 public class Point {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @OneToOne
-    private Account account;
+    private User user;
 
     @Column(nullable = false)
     private Double point;

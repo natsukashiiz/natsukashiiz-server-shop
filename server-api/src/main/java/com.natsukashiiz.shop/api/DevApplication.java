@@ -33,16 +33,16 @@ public class DevApplication implements ApplicationRunner {
     private final CategoryRepository categoryRepository;
     private final CarouselRepository carouselRepository;
     private final ProductReviewRepository productReviewRepository;
-    private final AccountRepository accountRepository;
+    private final UserRepository userRepository;
     private final VoucherRepository voucherRepository;
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
         log.debug("DevApplication running...");
 
-        long accountCount = accountRepository.count();
+        long accountCount = userRepository.count();
         if (accountCount < 10) {
-            initAccounts();
+            initUsers();
         }
 
         long carouselCount = carouselRepository.count();
@@ -116,18 +116,15 @@ public class DevApplication implements ApplicationRunner {
 
         Category category = new Category();
 
-        category.setName(faker.commerce().department());
-        while (categoryRepository.existsByNameIgnoreCase(category.getName())) {
+        do {
             category.setName(faker.commerce().department());
-        }
+        } while (categoryRepository.existsByNameIgnoreCase(category.getName()));
 
         category.setSort(faker.number().numberBetween(0, 99));
 
-        category.setThumbnail(randomCategoryImage());
-
-        while (category.getThumbnail() == null) {
+        do {
             category.setThumbnail(randomCategoryImage());
-        }
+        } while (category.getThumbnail() == null);
 
         categoryRepository.save(category);
     }
@@ -156,11 +153,10 @@ public class DevApplication implements ApplicationRunner {
 
         Carousel carousel = new Carousel();
         carousel.setTitle(faker.commerce().productName());
-        carousel.setImageUrl(randomCarouselImage());
 
-        while(carousel.getImageUrl() == null) {
+        do {
             carousel.setImageUrl(randomCarouselImage());
-        }
+        } while (carousel.getImageUrl() == null);
 
         carousel.setSort(faker.number().numberBetween(0, 99));
         carouselRepository.save(carousel);
@@ -205,12 +201,11 @@ public class DevApplication implements ApplicationRunner {
         for (int x = 0; x < optionLen; x++) {
             ProductOption option = new ProductOption();
             option.setProduct(ps);
-            option.setName(commerce.color());
 
             // check if option name already exists in options
-            while (options.stream().anyMatch(o -> o.getName().equals(option.getName()))) {
+            do {
                 option.setName(commerce.color());
-            }
+            } while (options.stream().anyMatch(o -> o.getName().equals(option.getName())));
 
             option.setPrice(faker.number().randomDouble(2, 1000, 50000));
             option.setQuantity(faker.number().numberBetween(1, 100));
@@ -253,11 +248,10 @@ public class DevApplication implements ApplicationRunner {
         for (int x = 0; x < imgLen; x++) {
             ProductImage image = new ProductImage();
             image.setProduct(ps);
-            image.setUrl(randomProductImage());
 
-            while (image.getUrl() == null) {
+            do {
                 image.setUrl(randomProductImage());
-            }
+            } while (image.getUrl() == null);
 
             image.setSort(faker.number().numberBetween(0, 99));
 
@@ -279,13 +273,13 @@ public class DevApplication implements ApplicationRunner {
         List<ProductReview> reviews = new ArrayList<>();
         int reviewLen = faker.number().numberBetween(10, 30);
         for (int x = 0; x < reviewLen; x++) {
-            Account account = accountRepository.findById((long) faker.number().numberBetween(1, 50)).orElse(null);
-            if (account == null) {
+            User user = userRepository.findById((long) faker.number().numberBetween(1, 50)).orElse(null);
+            if (user == null) {
                 continue;
             }
 
             ProductReview review = new ProductReview();
-            review.setAccount(account);
+            review.setUser(user);
             review.setProduct(ps);
             review.setRating(Float.parseFloat(String.valueOf(faker.number().numberBetween(1, 5))));
             review.setContent(faker.lorem().paragraph(faker.number().numberBetween(3, 15)));
@@ -294,13 +288,13 @@ public class DevApplication implements ApplicationRunner {
         productReviewRepository.saveAll(reviews);
     }
 
-    private void initAccounts() {
+    private void initUsers() {
         log.debug("Initializing accounts...");
 
         ExecutorService executorService = Executors.newFixedThreadPool(10);
 
         for (int i = 0; i < 10; i++) {
-            executorService.submit(this::randomAddAccount);
+            executorService.submit(this::randomAddUser);
         }
 
         executorService.shutdown();
@@ -310,23 +304,23 @@ public class DevApplication implements ApplicationRunner {
             log.error("Error while waiting for tasks to finish", e);
         }
 
-        log.debug("Accounts initialized");
+        log.debug("Users initialized");
     }
 
-    private void randomAddAccount() {
+    private void randomAddUser() {
         Faker faker = new Faker();
 
-        Account account = new Account();
-        account.setEmail(faker.internet().emailAddress());
+        User user = new User();
+        user.setEmail(faker.internet().emailAddress());
 
-        account.setNickName(RandomUtils.randomNickName());
-        while (accountRepository.existsByNickName(account.getNickName())) {
-            account.setNickName(RandomUtils.randomNickName());
-        }
+        do {
+            user.setNickName(RandomUtils.randomNickName());
+        } while (userRepository.existsByNickName(user.getNickName()));
 
-        account.setPassword(faker.internet().password());
-        account.setVerified(faker.bool().bool());
-        accountRepository.save(account);
+        user.setPassword(faker.internet().password());
+        user.setVerified(faker.bool().bool());
+        user.setDeleted(faker.bool().bool());
+        userRepository.save(user);
     }
 
     private void initVouchers() {
@@ -352,11 +346,10 @@ public class DevApplication implements ApplicationRunner {
         Faker faker = new Faker();
 
         Voucher voucher = new Voucher();
-        voucher.setCode(randomVoucherCode());
 
-        while (voucherRepository.existsByCodeIgnoreCase(voucher.getCode())) {
+        do {
             voucher.setCode(randomVoucherCode());
-        }
+        } while (voucherRepository.existsByCodeIgnoreCase(voucher.getCode()));
 
         DiscountType discountType = faker.options().option(DiscountType.PERCENT, DiscountType.AMOUNT);
         if (discountType == DiscountType.PERCENT) {
@@ -373,11 +366,10 @@ public class DevApplication implements ApplicationRunner {
         voucher.setBeginAt(randomBeginAt());
         voucher.setExpiredAt(randomExpiredAt(voucher.getBeginAt()));
         voucher.setStatus(VoucherStatus.ACTIVE);
-        voucher.setThumbnail(randomVoucherImage());
 
-        while (voucher.getThumbnail() == null) {
+        do {
             voucher.setThumbnail(randomVoucherImage());
-        }
+        } while (voucher.getThumbnail() == null);
 
         if (faker.bool().bool()) {
             voucher.setProduct(productRepository.findById((long) faker.number().numberBetween(1, 100)).orElse(null));

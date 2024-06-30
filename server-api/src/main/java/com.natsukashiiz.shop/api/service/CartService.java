@@ -1,6 +1,6 @@
 package com.natsukashiiz.shop.api.service;
 
-import com.natsukashiiz.shop.entity.Account;
+import com.natsukashiiz.shop.entity.User;
 import com.natsukashiiz.shop.entity.Cart;
 import com.natsukashiiz.shop.entity.ProductOption;
 import com.natsukashiiz.shop.exception.BaseException;
@@ -29,9 +29,9 @@ public class CartService {
     private final ProductOptionRepository productOptionRepository;
 
     public CartResponse queryAllCart() throws BaseException {
-        Account account = authService.getAccount();
+        User user = authService.getUser();
 
-        List<Cart> carts = cartRepository.findByAccount(account);
+        List<Cart> carts = cartRepository.findByUser(user);
         List<CartItemResponse> items = CartItemResponse.buildList(carts);
 
         CartResponse response = new CartResponse();
@@ -45,32 +45,32 @@ public class CartService {
     }
 
     public CartResponse updateCart(List<CartRequest> requests) throws BaseException {
-        Account account = authService.getAccount();
+        User user = authService.getUser();
 
         for (CartRequest request : requests) {
             Optional<ProductOption> optionOptional = productOptionRepository.findById(request.getOptionId());
             if (!optionOptional.isPresent()) {
-                log.warn("UpdateCart-[block]:(product option not found). request:{}, accountId:{}", request, account.getId());
+                log.warn("UpdateCart-[block]:(product option not found). request:{}, accountId:{}", request, user.getId());
                 throw ProductException.invalid();
             }
             ProductOption productOption = optionOptional.get();
 
             if (!Objects.equals(productOption.getProduct().getId(), request.getProductId())) {
-                log.warn("UpdateCart-[block]:(invalid product). request:{}, accountId:{}", request, account.getId());
+                log.warn("UpdateCart-[block]:(invalid product). request:{}, accountId:{}", request, user.getId());
                 throw ProductException.invalid();
             }
 
             if ((productOption.getQuantity() - request.getQuantity()) < 0) {
-                log.warn("UpdateCart-[block]:(product option insufficient). request:{}, accountId:{}", request, account.getId());
+                log.warn("UpdateCart-[block]:(product option insufficient). request:{}, accountId:{}", request, user.getId());
                 throw ProductException.insufficient();
             }
 
             Cart cart = new Cart();
-            cart.setAccount(account);
+            cart.setUser(user);
             cart.setProduct(productOption.getProduct());
             cart.setProductOption(productOption);
 
-            cartRepository.findByAccountAndProductOption(account, productOption)
+            cartRepository.findByUserAndProductOption(user, productOption)
                     .ifPresent(c -> cart.setId(c.getId()));
 
             cart.setQuantity(request.getQuantity());
@@ -82,10 +82,10 @@ public class CartService {
     }
 
     public CartResponse delete(Long cartId) throws BaseException {
-        Account account = authService.getAccount();
+        User user = authService.getUser();
 
-        if (!cartRepository.existsByIdAndAccount(cartId, account)) {
-            log.warn("Delete-[block]:(cart not found). cartId:{}, accountId:{}", cartId, account.getId());
+        if (!cartRepository.existsByIdAndUser(cartId, user)) {
+            log.warn("Delete-[block]:(cart not found). cartId:{}, accountId:{}", cartId, user.getId());
             throw CartException.invalid();
         }
 
@@ -95,7 +95,7 @@ public class CartService {
     }
 
     public Long countCart() throws BaseException {
-        Account account = authService.getAccount();
-        return cartRepository.countByAccount(account);
+        User user = authService.getUser();
+        return cartRepository.countByUser(user);
     }
 }

@@ -2,14 +2,14 @@ package com.natsukashiiz.shop.api.service;
 
 import com.natsukashiiz.shop.common.Roles;
 import com.natsukashiiz.shop.common.ServerProperties;
-import com.natsukashiiz.shop.entity.Account;
+import com.natsukashiiz.shop.entity.User;
 import com.natsukashiiz.shop.entity.LoginHistory;
 import com.natsukashiiz.shop.exception.*;
 import com.natsukashiiz.shop.api.model.request.LoginRequest;
 import com.natsukashiiz.shop.model.request.RefreshTokenRequest;
 import com.natsukashiiz.shop.api.model.request.SignUpRequest;
 import com.natsukashiiz.shop.model.resposne.TokenResponse;
-import com.natsukashiiz.shop.repository.AccountRepository;
+import com.natsukashiiz.shop.repository.UserRepository;
 import com.natsukashiiz.shop.repository.LoginHistoryRepository;
 import com.natsukashiiz.shop.service.MailService;
 import com.natsukashiiz.shop.service.RedisService;
@@ -29,13 +29,15 @@ import org.springframework.util.ObjectUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
 @Log4j2
 @AllArgsConstructor
 public class AuthService {
-    private final AccountRepository accountRepository;
+    private final UserRepository userRepository;
     private final TokenService tokenService;
     private final PasswordEncoder passwordEncoder;
     private final MailService mailService;
@@ -49,24 +51,24 @@ public class AuthService {
             throw LoginException.invalidEmail();
         }
 
-        Optional<Account> accountOptional = accountRepository.findByEmail(request.getEmail());
+        Optional<User> accountOptional = userRepository.findByEmail(request.getEmail());
         if (!accountOptional.isPresent()) {
             log.warn("Login-[block]:(not found account). request:{}", request);
             throw LoginException.invalid();
         }
 
-        Account account = accountOptional.get();
-        if (passwordNotMatch(request.getPassword(), account.getPassword())) {
+        User user = accountOptional.get();
+        if (passwordNotMatch(request.getPassword(), user.getPassword())) {
             log.warn("Login-[block]:(password not matches). request:{}", request);
             throw LoginException.invalid();
         }
 
-        if (account.getDeleted()) {
+        if (user.getDeleted()) {
             log.warn("Login-[block]:(account deleted). request:{}", request);
-            throw AccountException.deleted();
+            throw UserException.deleted();
         }
 
-        return createTokenResponse(account, httpServletRequest);
+        return createTokenResponse(user, httpServletRequest);
     }
 
     public TokenResponse signUp(SignUpRequest request, HttpServletRequest httpServletRequest) throws BaseException {
@@ -75,30 +77,30 @@ public class AuthService {
             throw LoginException.invalidEmail();
         }
 
-        if (accountRepository.existsByEmail(request.getEmail())) {
+        if (userRepository.existsByEmail(request.getEmail())) {
             log.warn("SignUp-[block]:(exists email). request:{}", request);
             throw SignUpException.emailDuplicate();
         }
 
-        Account account = new Account();
-        account.setEmail(request.getEmail());
+        User user = new User();
+        user.setEmail(request.getEmail());
 
         do {
-            account.setNickName(RandomUtils.randomNickName());
-        } while (accountRepository.existsByNickName(account.getNickName()));
+            user.setNickName(RandomUtils.randomNickName());
+        } while (userRepository.existsByNickName(user.getNickName()));
 
-        account.setPassword(passwordEncoder.encode(request.getPassword()));
-        account.setVerified(Boolean.FALSE);
-        account.setDeleted(Boolean.FALSE);
-        accountRepository.save(account);
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setVerified(Boolean.FALSE);
+        user.setDeleted(Boolean.FALSE);
+        userRepository.save(user);
 
         String code = RandomUtils.Number6Characters();
-        mailService.sendActiveAccount(account.getEmail(), code, serverProperties.getVerification().replace("{CODE}", code));
+        mailService.sendActiveUser(user.getEmail(), code, serverProperties.getVerification().replace("{CODE}", code));
 
-        String redisKey = RedisKeyUtils.accountVerifyCodeKey(account.getEmail());
+        String redisKey = RedisKeyUtils.accountVerifyCodeKey(user.getEmail());
         redisService.setValueByKey(redisKey, code, Duration.ofMinutes(5).toMillis());
 
-        return createTokenResponse(account, httpServletRequest);
+        return createTokenResponse(user, httpServletRequest);
     }
 
     public TokenResponse refresh(RefreshTokenRequest request, HttpServletRequest httpServletRequest) throws BaseException {
@@ -128,47 +130,47 @@ public class AuthService {
             throw AuthException.unauthorized();
         }
 
-        Optional<Account> accountOptional = accountRepository.findByIdAndEmail(accountId, email);
+        Optional<User> accountOptional = userRepository.findByIdAndEmail(accountId, email);
         if (!accountOptional.isPresent()) {
             log.warn("Refresh-[block]:(not found account). email:{}, accountId:{}", email, accountId);
             throw AuthException.unauthorized();
         }
 
-        Account account = accountOptional.get();
-        if (!account.getVerified()) {
+        User user = accountOptional.get();
+        if (!user.getVerified()) {
             log.warn("Refresh-[block]:(account not verify). email:{}, accountId:{}", email, accountId);
-            throw AccountException.notVerify();
+            throw UserException.notVerify();
         }
 
-        return createTokenResponse(account, httpServletRequest, false);
+        return createTokenResponse(user, httpServletRequest, false);
     }
 
-    public Account getAccount() throws BaseException {
-        return getAccount(true);
+    public User getUser() throws BaseException {
+        return getUser(true);
     }
 
-    public Account getAccount(boolean checkVerified) throws BaseException {
+    public User getUser(boolean checkVerified) throws BaseException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null) {
-            log.warn("GetAccount-[block]:(authentication is null)");
+            log.warn("GetUser-[block]:(authentication is null)");
             throw AuthException.unauthorized();
         }
 
         if (!authentication.isAuthenticated()) {
-            log.warn("GetAccount-[block]:(not authenticated)");
+            log.warn("GetUser-[block]:(not authenticated)");
             throw AuthException.unauthorized();
         }
 
         Jwt jwt = (Jwt) authentication.getCredentials();
 
         if (jwt == null) {
-            log.warn("GetAccount-[block]:(jwt is null)");
+            log.warn("GetUser-[block]:(jwt is null)");
             throw AuthException.unauthorized();
         }
 
         if (!tokenService.isAccessToken(jwt)) {
-            log.warn("GetAccount-[block]:(not access token)");
+            log.warn("GetUser-[block]:(not access token)");
             throw AuthException.unauthorized();
         }
 
@@ -176,22 +178,22 @@ public class AuthService {
         String email = jwt.getClaimAsString("email");
 
         if (ObjectUtils.isEmpty(accountId) || ObjectUtils.isEmpty(email)) {
-            log.warn("GetAccount-[block]:(accountId or email is empty). accountId:{}, email:{}", accountId, email);
+            log.warn("GetUser-[block]:(accountId or email is empty). accountId:{}, email:{}", accountId, email);
             throw AuthException.unauthorized();
         }
 
-        Optional<Account> accountOptional = accountRepository.findByIdAndEmail(Long.parseLong(accountId), email);
+        Optional<User> accountOptional = userRepository.findByIdAndEmail(Long.parseLong(accountId), email);
         if (!accountOptional.isPresent()) {
-            log.warn("GetAccount-[block]:(not found account). accountId:{}, email:{}", accountId, email);
+            log.warn("GetUser-[block]:(not found account). accountId:{}, email:{}", accountId, email);
             throw AuthException.unauthorized();
         }
 
-        Account account = accountOptional.get();
+        User user = accountOptional.get();
 
         if (checkVerified) {
-            if (!account.getVerified()) {
-                log.warn("GetAccount-[block]:(account not verify). accountId:{}, email:{}", accountId, email);
-                throw AccountException.notVerify();
+            if (!user.getVerified()) {
+                log.warn("GetUser-[block]:(account not verify). accountId:{}, email:{}", accountId, email);
+                throw UserException.notVerify();
             }
         }
 
@@ -207,7 +209,7 @@ public class AuthService {
         return !passwordEncoder.matches(raw, hash);
     }
 
-    public TokenResponse createTokenResponse(Account account, HttpServletRequest httpServletRequest, boolean enableLoginLog) {
+    public TokenResponse createTokenResponse(User user, HttpServletRequest httpServletRequest, boolean enableLoginLog) {
 
         String userAgent = ServletUtils.getUserAgent(httpServletRequest);
         String ipAddress = ServletUtils.getIpAddress(httpServletRequest);
@@ -216,7 +218,7 @@ public class AuthService {
 
         if (enableLoginLog) {
             LoginHistory loginHistory = new LoginHistory();
-            loginHistory.setAccount(account);
+            loginHistory.setUser(user);
             loginHistory.setIp(ipAddress);
             loginHistory.setUserAgent(userAgent);
             loginHistory.setDevice(deviceName);
@@ -224,13 +226,16 @@ public class AuthService {
             loginHistoryRepository.save(loginHistory);
         }
 
-        String accessToken = tokenService.generateAccessToken(account.getId(), account.getVerified(), Roles.USER);
-        String refreshToken = tokenService.generateRefreshToken(account.getId());
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("verified", user.getVerified());
+
+        String accessToken = tokenService.generateAccessToken(user.getId(), claims);
+        String refreshToken = tokenService.generateRefreshToken(user.getId());
 
         return TokenResponse.build(accessToken, refreshToken);
     }
 
-    public TokenResponse createTokenResponse(Account account, HttpServletRequest httpServletRequest) {
-        return createTokenResponse(account, httpServletRequest, true);
+    public TokenResponse createTokenResponse(User user, HttpServletRequest httpServletRequest) {
+        return createTokenResponse(user, httpServletRequest, true);
     }
 }

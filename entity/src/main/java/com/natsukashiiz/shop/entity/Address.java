@@ -12,12 +12,12 @@ import javax.persistence.ManyToOne;
 @Getter
 @Setter
 @ToString
-@Entity(name = "sp_addresses")
+@Entity(name = "nss_addresses")
 @DynamicUpdate
 public class Address extends BaseEntity {
 
     @ManyToOne
-    private Account account;
+    private User user;
 
     @Column(nullable = false, columnDefinition = "VARCHAR(30) CHARSET utf8mb4")
     private String firstName;

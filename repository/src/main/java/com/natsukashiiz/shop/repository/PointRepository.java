@@ -1,6 +1,6 @@
 package com.natsukashiiz.shop.repository;
 
-import com.natsukashiiz.shop.entity.Account;
+import com.natsukashiiz.shop.entity.User;
 import com.natsukashiiz.shop.entity.Point;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -11,8 +11,8 @@ import java.util.Optional;
 
 public interface PointRepository extends JpaRepository<Point, Long> {
     @Modifying
-    @Query("UPDATE sp_point SET point = point + :point WHERE account.id = :accountId")
-    void increasePoint(@Param("accountId") long accountId, @Param("point") double point);
+    @Query("UPDATE nss_point SET point = point + :point WHERE user.id = :userId")
+    void increasePoint(@Param("userId") long userId, @Param("point") double point);
 
-    Optional<Point> findByAccount(Account account);
+    Optional<Point> findByUser(User user);
 }

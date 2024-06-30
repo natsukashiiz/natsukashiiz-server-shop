@@ -12,6 +12,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Objects;
 
 @Service
@@ -22,19 +23,22 @@ public class TokenService {
     private final JwtDecoder decoder;
     private final ServerProperties properties;
 
-    public String generateAccessToken(Long id, Boolean verified, Roles role) {
+    public String generateAccessToken(Long id, Map<String, Object> claims) {
         Instant now = Instant.now();
-        JwtClaimsSet claims = JwtClaimsSet.builder()
+
+        JwtClaimsSet.Builder builder = JwtClaimsSet.builder()
                 .issuer(properties.getBaseUrl())
                 .issuedAt(now)
                 .expiresAt(now.plus(properties.getJwtAccessExpiration()))
                 .id(RandomUtils.notSymbol())
-                .subject(String.valueOf(id))
-                .claim("verified", verified)
-                .claim("type", TokenType.ACCESS)
-                .claim("roles", Collections.singletonList(role.name()))
-                .build();
-        return this.encoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+                .subject(String.valueOf(id));
+
+        if (claims != null) {
+            claims.forEach(builder::claim);
+        }
+
+        JwtClaimsSet jwtClaimsSet = builder.build();
+        return this.encoder.encode(JwtEncoderParameters.from(jwtClaimsSet)).getTokenValue();
     }
 
     public String generateRefreshToken(Long id) {

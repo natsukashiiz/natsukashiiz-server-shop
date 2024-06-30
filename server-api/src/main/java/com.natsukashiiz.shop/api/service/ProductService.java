@@ -87,13 +87,13 @@ public class ProductService {
         Product product = findProductById(productId);
 
         if (!authService.anonymous()) {
-            Account account = authService.getAccount();
-            Optional<ProductViewHistory> productViewHistory = viewHistoryRepository.findFirstByAccountAndProductIdOrderByCreatedAtDesc(account, product.getId());
+            User user = authService.getUser();
+            Optional<ProductViewHistory> productViewHistory = viewHistoryRepository.findFirstByUserAndProductIdOrderByCreatedAtDesc(user, product.getId());
             ProductViewHistory saveHistory = new ProductViewHistory();
             if (productViewHistory.isPresent()) {
                 ProductViewHistory history = productViewHistory.get();
                 if (history.getCreatedAt().plusHours(1).isBefore(LocalDateTime.now())) {
-                    saveHistory.setAccount(account);
+                    saveHistory.setUser(user);
                     saveHistory.setProduct(product);
                     viewHistoryRepository.save(saveHistory);
 
@@ -101,7 +101,7 @@ public class ProductService {
                     productRepository.save(product);
                 }
             } else {
-                saveHistory.setAccount(account);
+                saveHistory.setUser(user);
                 saveHistory.setProduct(product);
                 viewHistoryRepository.save(saveHistory);
 
@@ -126,22 +126,22 @@ public class ProductService {
 
     @Transactional
     public void createReview(Long productId, ProductReviewRequest request) throws BaseException {
-        Account account = authService.getAccount();
+        User user = authService.getUser();
 
         if (ObjectUtils.isEmpty(productId)) {
-            log.warn("CreateReview-[block]:(productId empty). productId: {}, request:{}, accountId:{}", productId, request, account.getId());
+            log.warn("CreateReview-[block]:(productId empty). productId: {}, request:{}, accountId:{}", productId, request, user.getId());
             throw ProductException.invalid();
         }
 
         if (ValidationUtils.invalidRating(request.getRating())) {
-            log.warn("CreateReview-[block]:(invalid rating). productId: {}, request:{}, accountId:{}", productId, request, account.getId());
+            log.warn("CreateReview-[block]:(invalid rating). productId: {}, request:{}, accountId:{}", productId, request, user.getId());
             throw ProductException.invalidReviewRating();
         }
 
         Product product = findProductById(productId);
         {
             ProductReview review = new ProductReview();
-            review.setAccount(account);
+            review.setUser(user);
             review.setProduct(product);
             review.setContent(request.getContent());
             review.setRating(request.getRating());
@@ -159,7 +159,7 @@ public class ProductService {
     }
 
     public PageResponse<List<ProductViewHistoryResponse>> queryViewHistory(PaginationRequest pagination) throws BaseException {
-        Page<ProductViewHistory> page = viewHistoryRepository.findAllByAccount(authService.getAccount(), pagination);
+        Page<ProductViewHistory> page = viewHistoryRepository.findAllByUser(authService.getUser(), pagination);
         List<ProductViewHistoryResponse> responses = page.getContent().stream().map(ProductViewHistoryResponse::build).collect(Collectors.toList());
 
         return new PageResponse<>(responses, page.getTotalElements());
@@ -167,14 +167,14 @@ public class ProductService {
 
     public boolean favorite(Long productId) throws BaseException {
         Product product = findProductById(productId);
-        Account account = authService.getAccount();
-        Optional<ProductFavorite> favoriteOptional = favoriteRepository.findByAccountAndProduct(account, product);
+        User user = authService.getUser();
+        Optional<ProductFavorite> favoriteOptional = favoriteRepository.findByUserAndProduct(user, product);
         if (favoriteOptional.isPresent()) {
             favoriteRepository.delete(favoriteOptional.get());
             return false;
         } else {
             ProductFavorite favorite = new ProductFavorite();
-            favorite.setAccount(account);
+            favorite.setUser(user);
             favorite.setProduct(product);
             favoriteRepository.save(favorite);
             return true;
@@ -182,8 +182,8 @@ public class ProductService {
     }
 
     public PageResponse<List<ProductFavoriteResponse>> queryFavorite(PaginationRequest pagination) throws BaseException {
-        Account account = authService.getAccount();
-        Page<ProductFavorite> page = favoriteRepository.findAllByAccount(account, pagination);
+        User user = authService.getUser();
+        Page<ProductFavorite> page = favoriteRepository.findAllByUser(user, pagination);
         List<ProductFavoriteResponse> products = ProductFavoriteResponse.buildList(page.getContent());
         return new PageResponse<>(products, page.getTotalElements());
     }
@@ -193,8 +193,8 @@ public class ProductService {
             return false;
         } else {
             Product product = findProductById(productId);
-            Account account = authService.getAccount();
-            return favoriteRepository.existsByAccountAndProduct(account, product);
+            User user = authService.getUser();
+            return favoriteRepository.existsByUserAndProduct(user, product);
         }
     }
 }

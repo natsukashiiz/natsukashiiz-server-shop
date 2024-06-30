@@ -1,13 +1,13 @@
 package com.natsukashiiz.shop.api.service;
 
 import com.natsukashiiz.shop.common.VoucherStatus;
-import com.natsukashiiz.shop.entity.Account;
-import com.natsukashiiz.shop.entity.AccountVoucher;
+import com.natsukashiiz.shop.entity.User;
+import com.natsukashiiz.shop.entity.UserVoucher;
 import com.natsukashiiz.shop.entity.Voucher;
 import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.exception.VoucherException;
 import com.natsukashiiz.shop.api.model.response.VoucherResponse;
-import com.natsukashiiz.shop.repository.AccountVoucherRepository;
+import com.natsukashiiz.shop.repository.UserVoucherRepository;
 import com.natsukashiiz.shop.repository.VoucherRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -26,7 +26,7 @@ import java.util.Optional;
 public class VoucherService {
     private final VoucherRepository voucherRepository;
     private final AuthService authService;
-    private final AccountVoucherRepository accountVoucherRepository;
+    private final UserVoucherRepository userVoucherRepository;
 
     public List<VoucherResponse> queryAllVoucher() throws BaseException {
 
@@ -43,8 +43,8 @@ public class VoucherService {
         List<VoucherResponse> responses = VoucherResponse.buildList(vouchers);
 
         if (!authService.anonymous()) {
-            Account account = authService.getAccount();
-            accountVoucherRepository.findAllByAccount(account)
+            User user = authService.getUser();
+            userVoucherRepository.findAllByUser(user)
                     .stream()
                     .map(e -> e.getVoucher().getId())
                     .forEach(id -> responses.stream().filter(e -> e.getId().equals(id)).forEach(e -> e.setClaimed(Boolean.TRUE)));
@@ -64,33 +64,33 @@ public class VoucherService {
 
     @Transactional
     public void claimVoucher(Long voucherId) throws BaseException {
-        Account account = authService.getAccount();
+        User user = authService.getUser();
 
         Optional<Voucher> voucherOptional = voucherRepository.findById(voucherId);
         if (!voucherOptional.isPresent()) {
-            log.warn("ClaimVoucher-[block]:(voucher not found). voucherId:{}, accountId:{}", voucherId, account.getId());
+            log.warn("ClaimVoucher-[block]:(voucher not found). voucherId:{}, accountId:{}", voucherId, user.getId());
             throw VoucherException.invalid();
         }
 
         Voucher voucher = voucherOptional.get();
 
-        if (accountVoucherRepository.existsByVoucherAndAccount(voucher, account)) {
-            log.warn("ClaimVoucher-[block]:(voucher already claimed). voucherId:{}, accountId:{}", voucherId, account.getId());
+        if (userVoucherRepository.existsByVoucherAndUser(voucher, user)) {
+            log.warn("ClaimVoucher-[block]:(voucher already claimed). voucherId:{}, accountId:{}", voucherId, user.getId());
             throw VoucherException.alreadyClaimed();
         }
 
         if (VoucherStatus.INACTIVE.equals(voucher.getStatus())) {
-            log.warn("ClaimVoucher-[block]:(voucher not available). voucherId:{}, accountId:{}", voucherId, account.getId());
+            log.warn("ClaimVoucher-[block]:(voucher not available). voucherId:{}, accountId:{}", voucherId, user.getId());
             throw VoucherException.notAvailable();
         }
 
         if (voucher.getQuantity() <= 0) {
-            log.warn("ClaimVoucher-[block]:(voucher not enough). voucherId:{}, accountId:{}", voucherId, account.getId());
+            log.warn("ClaimVoucher-[block]:(voucher not enough). voucherId:{}, accountId:{}", voucherId, user.getId());
             throw VoucherException.notEnough();
         }
 
         if (voucher.getExpiredAt().isBefore(LocalDateTime.now())) {
-            log.warn("ClaimVoucher-[block]:(voucher expired). voucherId:{}, accountId:{}", voucherId, account.getId());
+            log.warn("ClaimVoucher-[block]:(voucher expired). voucherId:{}, accountId:{}", voucherId, user.getId());
             throw VoucherException.expired();
         }
 
@@ -102,10 +102,10 @@ public class VoucherService {
 
         voucherRepository.save(voucher);
 
-        AccountVoucher accountVoucher = new AccountVoucher();
-        accountVoucher.setVoucher(voucher);
-        accountVoucher.setAccount(account);
-        accountVoucher.setUsed(Boolean.FALSE);
-        accountVoucherRepository.save(accountVoucher);
+        UserVoucher userVoucher = new UserVoucher();
+        userVoucher.setVoucher(voucher);
+        userVoucher.setUser(user);
+        userVoucher.setUsed(Boolean.FALSE);
+        userVoucherRepository.save(userVoucher);
     }
 }

@@ -1,7 +1,7 @@
 package com.natsukashiiz.shop.api.service;
 
-import com.natsukashiiz.shop.entity.Account;
 import com.natsukashiiz.shop.entity.Address;
+import com.natsukashiiz.shop.entity.User;
 import com.natsukashiiz.shop.exception.AddressException;
 import com.natsukashiiz.shop.exception.BaseException;
 import com.natsukashiiz.shop.api.model.request.CreateAddressRequest;
@@ -27,10 +27,10 @@ public class AddressService {
     private final AuthService authService;
 
     public AddressResponse queryMainAddress() throws BaseException {
-        Account account = authService.getAccount();
-        Optional<Address> addressOptional = addressRepository.findByAccountAndMainIsTrue(account);
+        User user = authService.getUser();
+        Optional<Address> addressOptional = addressRepository.findByUserAndMainIsTrue(user);
         if (!addressOptional.isPresent()) {
-            log.warn("QueryMainAddress-[block]:(not found main address). accountId:{}", account.getId());
+            log.warn("QueryMainAddress-[block]:(not found main address). accountId:{}", user.getId());
             throw AddressException.invalid();
         }
 
@@ -38,44 +38,44 @@ public class AddressService {
     }
 
     public List<AddressResponse> queryAllAddress() throws BaseException {
-        Account account = authService.getAccount();
-        return addressRepository.findByAccount(account)
+        User user = authService.getUser();
+        return addressRepository.findByUser(user)
                 .stream()
                 .map(AddressResponse::build)
                 .collect(Collectors.toList());
     }
 
     public AddressResponse createAddress(CreateAddressRequest request) throws BaseException {
-        Account account = authService.getAccount();
+        User user = authService.getUser();
 
         if (ObjectUtils.isEmpty(request.getFirstName())) {
-            log.warn("CreateAddress-[block]:(invalid first name). request:{}, accountId:{}", request, account.getId());
+            log.warn("CreateAddress-[block]:(invalid first name). request:{}, accountId:{}", request, user.getId());
             throw AddressException.invalid();
         }
 
         if (ObjectUtils.isEmpty(request.getLastName())) {
-            log.warn("CreateAddress-[block]:(invalid last name). request:{}, accountId:{}", request, account.getId());
+            log.warn("CreateAddress-[block]:(invalid last name). request:{}, accountId:{}", request, user.getId());
             throw AddressException.invalid();
         }
 
         if (ObjectUtils.isEmpty(request.getMobile())) {
-            log.warn("CreateAddress-[block]:(invalid mobile). request:{}, accountId:{}", request, account.getId());
+            log.warn("CreateAddress-[block]:(invalid mobile). request:{}, accountId:{}", request, user.getId());
             throw AddressException.invalid();
         }
 
         if (ObjectUtils.isEmpty(request.getAddress())) {
-            log.warn("CreateAddress-[block]:(invalid address). request:{}, accountId:{}", request, account.getId());
+            log.warn("CreateAddress-[block]:(invalid address). request:{}, accountId:{}", request, user.getId());
             throw AddressException.invalid();
         }
 
         Address address = new Address();
-        address.setAccount(account);
+        address.setUser(user);
         address.setFirstName(request.getFirstName());
         address.setLastName(request.getLastName());
         address.setMobile(request.getMobile());
         address.setAddress(request.getAddress());
 
-        if (addressRepository.countByAccount(account) == 0) {
+        if (addressRepository.countByUser(user) == 0) {
             address.setMain(Boolean.TRUE);
         } else {
             address.setMain(Boolean.FALSE);
@@ -86,16 +86,16 @@ public class AddressService {
 
     @Transactional(rollbackOn = BaseException.class)
     public AddressResponse updateAddress(UpdateAddressRequest request) throws BaseException {
-        Account account = authService.getAccount();
+        User user = authService.getUser();
 
         if (ObjectUtils.isEmpty(request.getId())) {
-            log.warn("UpdateAddress-[block]:(invalid address id). request:{}, accountId:{}", request, account.getId());
+            log.warn("UpdateAddress-[block]:(invalid address id). request:{}, accountId:{}", request, user.getId());
             throw AddressException.invalid();
         }
 
-        Optional<Address> addressOptional = addressRepository.findByIdAndAccount(request.getId(), account);
+        Optional<Address> addressOptional = addressRepository.findByIdAndUser(request.getId(), user);
         if (!addressOptional.isPresent()) {
-            log.warn("UpdateAddress-[block]:(not found address). request:{} accountId:{}", request, account.getId());
+            log.warn("UpdateAddress-[block]:(not found address). request:{} accountId:{}", request, user.getId());
             throw AddressException.invalid();
         }
 
@@ -107,7 +107,7 @@ public class AddressService {
         address.setAddress(request.getAddress());
 
         if (request.isMain()) {
-            Address main = addressRepository.findByAccountAndMainIsTrue(account).get();
+            Address main = addressRepository.findByUserAndMainIsTrue(user).get();
             main.setMain(Boolean.FALSE);
             addressRepository.save(main);
         }
@@ -118,9 +118,9 @@ public class AddressService {
     }
 
     public void deleteAddressById(Long addressId) throws BaseException {
-        Account account = authService.getAccount();
-        if (!addressRepository.existsByIdAndAccount(addressId, account)) {
-            log.warn("DeleteAddressById-[block]:(not found address). addressId:{}, accountId:{}", addressId, account.getId());
+        User user = authService.getUser();
+        if (!addressRepository.existsByIdAndUser(addressId, user)) {
+            log.warn("DeleteAddressById-[block]:(not found address). addressId:{}, accountId:{}", addressId, user.getId());
             throw AddressException.invalid();
         }
 

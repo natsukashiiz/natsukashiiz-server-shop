@@ -13,7 +13,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @ToString
-@Entity(name = "sp_reports")
+@Entity(name = "nss_reports")
 @DynamicUpdate
 public class Report extends BaseEntity {
 

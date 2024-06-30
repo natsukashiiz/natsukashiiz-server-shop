@@ -1,5 +1,6 @@
 package com.natsukashiiz.shop.api.model.request;
 
+import com.natsukashiiz.shop.entity.User;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -7,7 +8,7 @@ import lombok.ToString;
 import java.io.Serializable;
 
 /**
- * DTO for {@link com.natsukashiiz.shop.entity.Account}
+ * DTO for {@link User}
  */
 @Getter
 @Setter

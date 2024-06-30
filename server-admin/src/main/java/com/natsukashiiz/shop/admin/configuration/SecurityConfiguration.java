@@ -3,6 +3,8 @@ package com.natsukashiiz.shop.admin.configuration;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
+import com.natsukashiiz.shop.common.AdminPermissions;
+import com.natsukashiiz.shop.common.AdminRoles;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
@@ -34,6 +36,7 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -68,6 +71,13 @@ public class SecurityConfiguration implements WebMvcConfigurer {
                                         "/v*/notifications/subscribe/**",
                                         "/v*/auth/**")
                                 .permitAll()
+
+                                .antMatchers("/v*/managers/**").hasRole(AdminRoles.SUPER_ADMIN.name())
+                                .antMatchers(HttpMethod.GET, "/v*/products/**").hasAuthority(AdminPermissions.ADMIN_READ.getPermission())
+                                .antMatchers(HttpMethod.POST, "/v*/products/**").hasAuthority(AdminPermissions.ADMIN_WRITE.getPermission())
+                                .antMatchers(HttpMethod.PUT, "/v*/products/**").hasAuthority(AdminPermissions.ADMIN_UPDATE.getPermission())
+                                .antMatchers(HttpMethod.DELETE, "/v*/products/**").hasAuthority(AdminPermissions.ADMIN_DELETE.getPermission())
+
                                 .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 ->
@@ -124,11 +134,19 @@ public class SecurityConfiguration implements WebMvcConfigurer {
 
         @Override
         public Collection<GrantedAuthority> convert(Jwt jwt) {
-            List<String> roles = jwt.getClaim("roles");
+            List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
 
-            return roles.stream()
-                    .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
-                    .collect(Collectors.toList());
+            List<String> roles = jwt.getClaim("roles");
+            if (roles != null) {
+                grantedAuthorities.addAll(roles.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList()));
+            }
+
+            List<String> authorities = jwt.getClaim("authorities");
+            if (authorities != null) {
+                grantedAuthorities.addAll(authorities.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList()));
+            }
+
+            return grantedAuthorities;
         }
 
         @Override

@@ -14,7 +14,7 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
-@Entity(name = "sp_products")
+@Entity(name = "nss_products")
 public class Product extends BaseEntity implements Serializable {
 
     @Column(nullable = false, unique = true, columnDefinition = "VARCHAR(50) CHARSET utf8mb4")
