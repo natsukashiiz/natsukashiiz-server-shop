@@ -13,6 +13,15 @@ spring:
       ddl-auto: update
       dialect: org.hibernate.dialect.MySQL5Dialect
       format_sql: true
+    properties:
+      javax:
+        persistence:
+          schema-generation:
+            create-source: metadata
+            scripts:
+              action: create
+              create-target: sql/schema.sql
+              drop-target: sql/drop.sql
   redis:
     host: 212.80.213.8
     port: 6379
