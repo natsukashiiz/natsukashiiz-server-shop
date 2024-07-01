@@ -1,6 +1,9 @@
 package com.natsukashiiz.shop.utils;
 
 
+import io.swagger.models.auth.In;
+
+import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
@@ -27,5 +30,29 @@ public class ValidationUtils {
 
     public static boolean invalidRating(Float rating) {
         return Objects.isNull(rating) || rating < 1 || rating > 5;
+    }
+
+    public static boolean invalidVoucherCode(String code) {
+        return Objects.isNull(code) || code.length() > 5;
+    }
+
+    public static boolean invalidMaxValue(Double value, Double max) {
+        return Objects.isNull(value) || value > max;
+    }
+
+    public static boolean invalidLessThanZero(Double value) {
+        return Objects.isNull(value) || value < 0;
+    }
+
+    public static boolean invalidLessThanZero(Integer value) {
+        return Objects.isNull(value) || value < 0;
+    }
+
+    public static boolean invalidBeginAt(LocalDateTime beginAt) {
+        return Objects.isNull(beginAt) || beginAt.isBefore(LocalDateTime.now());
+    }
+
+    public static boolean invalidExpiredAt(LocalDateTime beginAt, LocalDateTime endAt) {
+        return Objects.isNull(endAt) || endAt.isBefore(beginAt);
     }
 }

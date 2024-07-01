@@ -46,4 +46,8 @@ public class UserException extends BaseException {
     public static BaseException invalidVerified() {
         return new UserException("verified.invalid");
     }
+
+    public static BaseException emailExist() {
+        return new UserException("email.exist");
+    }
 }
