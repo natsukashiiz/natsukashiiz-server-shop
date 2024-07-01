@@ -1,4 +1,4 @@
-package com.natsukashiiz.shop.model.resposne;
+package com.natsukashiiz.shop.file.model;
 
 import lombok.Getter;
 import lombok.Setter;

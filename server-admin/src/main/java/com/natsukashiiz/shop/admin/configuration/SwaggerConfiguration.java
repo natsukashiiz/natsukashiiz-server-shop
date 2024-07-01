@@ -1,5 +1,6 @@
 package com.natsukashiiz.shop.admin.configuration;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import springfox.documentation.builders.PathSelectors;
@@ -28,8 +29,8 @@ public class SwaggerConfiguration {
 
     private ApiInfo apiInfo() {
         return new ApiInfo(
-                "Shop API",
-                "API for shop management system for natsukashiiz",
+                "Shop Admin API",
+                "Admin API for shop management system for natsukashiiz",
                 "1.0.0",
                 "Terms of service",
                 new Contact("natsukashiiz", "www.natsukashiiz.xyz", "natsukashiiz.dev@gmail.com"),

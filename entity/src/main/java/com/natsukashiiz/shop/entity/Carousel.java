@@ -3,6 +3,7 @@ package com.natsukashiiz.shop.entity;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -12,6 +13,7 @@ import java.io.Serializable;
 @Setter
 @ToString
 @Entity(name = "nss_carousels")
+@DynamicUpdate
 public class Carousel extends BaseEntity implements Serializable {
 
     @Column(nullable = false, columnDefinition = "VARCHAR(50) CHARSET utf8mb4")

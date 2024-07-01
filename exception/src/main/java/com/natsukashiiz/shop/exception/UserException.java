@@ -34,4 +34,16 @@ public class UserException extends BaseException {
     public static BaseException nickNameExist() {
         return new UserException("nickName.exist");
     }
+
+    public static BaseException invalidEmail() {
+        return new UserException("email.invalid");
+    }
+
+    public static BaseException invalidNickName() {
+        return new UserException("nickName.invalid");
+    }
+
+    public static BaseException invalidVerified() {
+        return new UserException("verified.invalid");
+    }
 }

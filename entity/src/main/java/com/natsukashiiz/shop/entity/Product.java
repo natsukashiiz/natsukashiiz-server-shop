@@ -9,6 +9,7 @@ import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.List;
 
 @Getter
@@ -25,11 +26,11 @@ public class Product extends BaseEntity implements Serializable {
 
     @OneToMany(mappedBy = "product")
     @ToString.Exclude
-    private List<ProductOption> options;
+    private Collection<ProductOption> options;
 
     @OneToMany(mappedBy = "product")
     @ToString.Exclude
-    private List<ProductImage> images;
+    private Collection<ProductImage> images;
 
     @Column(nullable = false, columnDefinition = "TEXT CHARSET utf8mb4")
     private String description;

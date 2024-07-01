@@ -1,16 +1,15 @@
 package com.natsukashiiz.shop.api.service;
 
-import com.natsukashiiz.shop.common.Roles;
-import com.natsukashiiz.shop.common.ServerProperties;
-import com.natsukashiiz.shop.entity.User;
-import com.natsukashiiz.shop.entity.LoginHistory;
-import com.natsukashiiz.shop.exception.*;
 import com.natsukashiiz.shop.api.model.request.LoginRequest;
-import com.natsukashiiz.shop.model.request.RefreshTokenRequest;
 import com.natsukashiiz.shop.api.model.request.SignUpRequest;
+import com.natsukashiiz.shop.common.ServerProperties;
+import com.natsukashiiz.shop.entity.LoginHistory;
+import com.natsukashiiz.shop.entity.User;
+import com.natsukashiiz.shop.exception.*;
+import com.natsukashiiz.shop.model.request.RefreshTokenRequest;
 import com.natsukashiiz.shop.model.resposne.TokenResponse;
-import com.natsukashiiz.shop.repository.UserRepository;
 import com.natsukashiiz.shop.repository.LoginHistoryRepository;
+import com.natsukashiiz.shop.repository.UserRepository;
 import com.natsukashiiz.shop.service.MailService;
 import com.natsukashiiz.shop.service.RedisService;
 import com.natsukashiiz.shop.service.TokenService;
@@ -175,16 +174,15 @@ public class AuthService {
         }
 
         String accountId = authentication.getName();
-        String email = jwt.getClaimAsString("email");
 
-        if (ObjectUtils.isEmpty(accountId) || ObjectUtils.isEmpty(email)) {
-            log.warn("GetUser-[block]:(accountId or email is empty). accountId:{}, email:{}", accountId, email);
+        if (ObjectUtils.isEmpty(accountId)) {
+            log.warn("GetUser-[block]:(accountId is empty)");
             throw AuthException.unauthorized();
         }
 
-        Optional<User> accountOptional = userRepository.findByIdAndEmail(Long.parseLong(accountId), email);
+        Optional<User> accountOptional = userRepository.findById(Long.parseLong(accountId));
         if (!accountOptional.isPresent()) {
-            log.warn("GetUser-[block]:(not found account). accountId:{}, email:{}", accountId, email);
+            log.warn("GetUser-[block]:(not found account). accountId:{}", accountId);
             throw AuthException.unauthorized();
         }
 
@@ -192,7 +190,7 @@ public class AuthService {
 
         if (checkVerified) {
             if (!user.getVerified()) {
-                log.warn("GetUser-[block]:(account not verify). accountId:{}, email:{}", accountId, email);
+                log.warn("GetUser-[block]:(account not verify). accountId:{}", accountId);
                 throw UserException.notVerify();
             }
         }

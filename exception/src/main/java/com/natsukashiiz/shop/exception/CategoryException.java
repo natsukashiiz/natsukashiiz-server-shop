@@ -21,4 +21,16 @@ public class CategoryException extends BaseException {
     public static CategoryException insufficient() {
         return new CategoryException("quantity.insufficient");
     }
+
+    public static BaseException invalidName() {
+        return new CategoryException("invalid.name");
+    }
+
+    public static BaseException invalidThumbnail() {
+        return new CategoryException("invalid.thumbnail");
+    }
+
+    public static BaseException invalidSort() {
+        return new CategoryException("invalid.sort");
+    }
 }

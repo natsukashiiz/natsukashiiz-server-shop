@@ -33,7 +33,7 @@ public class Application {
     String omiseSecretKey;
 
     @Value("${shop.web.url.paymentReturn}")
-    private String paymentReturnUrl;
+    String paymentReturnUrl;
 
     @Bean
     OmisePaymentService paymentService() {

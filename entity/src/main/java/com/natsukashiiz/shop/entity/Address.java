@@ -21,12 +21,16 @@ public class Address extends BaseEntity {
 
     @Column(nullable = false, columnDefinition = "VARCHAR(30) CHARSET utf8mb4")
     private String firstName;
+
     @Column(nullable = false, columnDefinition = "VARCHAR(30) CHARSET utf8mb4")
     private String lastName;
-    @Column(nullable = false)
+
+    @Column(length = 10)
     private String mobile;
+
     @Column(nullable = false, columnDefinition = "VARCHAR(100) CHARSET utf8mb4")
     private String address;
+
     @Column(nullable = false)
     private boolean main;
 }

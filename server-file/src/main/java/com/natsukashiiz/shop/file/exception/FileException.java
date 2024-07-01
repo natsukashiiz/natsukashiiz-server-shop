@@ -1,4 +1,6 @@
-package com.natsukashiiz.shop.exception;
+package com.natsukashiiz.shop.file.exception;
+
+import com.natsukashiiz.shop.exception.BaseException;
 
 public class FileException extends BaseException {
 

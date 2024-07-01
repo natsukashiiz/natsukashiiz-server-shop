@@ -1,6 +1,9 @@
 package com.natsukashiiz.shop.admin.controller;
 
-import com.natsukashiiz.shop.entity.Carousel;
+import com.natsukashiiz.shop.admin.model.dto.CarouselDTO;
+import com.natsukashiiz.shop.admin.service.CarouselService;
+import com.natsukashiiz.shop.common.PaginationRequest;
+import com.natsukashiiz.shop.exception.BaseException;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,30 +13,31 @@ import org.springframework.web.bind.annotation.*;
 @AllArgsConstructor
 public class CarouselController {
 
-    // query all, query by id, create, update, delete
+    private final CarouselService carouselService;
 
     @GetMapping
-    public ResponseEntity<?> queryCarousels() {
-        return ResponseEntity.ok("Query all carousels");
+    public ResponseEntity<?> queryAllCarousels(CarouselDTO request, PaginationRequest pagination) {
+        return ResponseEntity.ok(carouselService.queryAllCarousels(request, pagination));
     }
 
     @GetMapping("/{carouselId}")
-    public ResponseEntity<?> queryCarouselById(@PathVariable Long carouselId) {
-        return ResponseEntity.ok(String.format("Query carousel by id: %d", carouselId));
+    public ResponseEntity<?> queryCarouselById(@PathVariable Long carouselId) throws BaseException {
+        return ResponseEntity.ok(carouselService.queryCarouselById(carouselId));
     }
 
     @PostMapping
-    public ResponseEntity<?> createCarousel(@RequestBody Carousel carousel) {
-        return ResponseEntity.ok(String.format("Create carousel: %s", carousel));
+    public ResponseEntity<?> createCarousel(@RequestBody CarouselDTO request) throws BaseException {
+        return ResponseEntity.ok(carouselService.createCarousel(request));
     }
 
     @PutMapping("/{carouselId}")
-    public ResponseEntity<?> updateCarousel(@PathVariable Long carouselId, @RequestBody Carousel carousel) {
-        return ResponseEntity.ok(String.format("Update carousel by id: %d, %s", carouselId, carousel));
+    public ResponseEntity<?> updateCarouselById(@PathVariable Long carouselId, @RequestBody CarouselDTO request) throws BaseException {
+        return ResponseEntity.ok(carouselService.updateCarouselById(carouselId, request));
     }
 
     @DeleteMapping("/{carouselId}")
-    public ResponseEntity<?> deleteCarousel(@PathVariable Long carouselId) {
-        return ResponseEntity.ok(String.format("Delete carousel by id: %d", carouselId));
+    public ResponseEntity<?> deleteCarouselById(@PathVariable Long carouselId) throws BaseException {
+        carouselService.deleteCarouselById(carouselId);
+        return ResponseEntity.ok().build();
     }
 }

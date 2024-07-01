@@ -1,4 +1,4 @@
-package com.natsukashiiz.shop.admin.model.response;
+package com.natsukashiiz.shop.admin.model.dto;
 
 import com.natsukashiiz.shop.entity.User;
 import lombok.Getter;
@@ -9,24 +9,24 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
- * DTO for {@link User}
+ * Response for {@link com.natsukashiiz.shop.entity.User}
  */
 @Getter
 @Setter
 @ToString
-public class QueryUserResponse implements Serializable {
+public class UserDTO implements Serializable {
     private Long id;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
     private String email;
     private String nickName;
     private String avatar;
     private Boolean verified;
     private Boolean deleted;
     private LocalDateTime deletedAt;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 
-    public static QueryUserResponse build(User user) {
-        QueryUserResponse response = new QueryUserResponse();
+    public static UserDTO fromEntity(User user) {
+        UserDTO response = new UserDTO();
         response.setId(user.getId());
         response.setEmail(user.getEmail());
         response.setNickName(user.getNickName());
@@ -37,5 +37,19 @@ public class QueryUserResponse implements Serializable {
         response.setCreatedAt(user.getCreatedAt());
         response.setUpdatedAt(user.getUpdatedAt());
         return response;
+    }
+
+    public User toEntity() {
+        User user = new User();
+        user.setId(id);
+        user.setEmail(email);
+        user.setNickName(nickName);
+        user.setAvatar(avatar);
+        user.setVerified(verified);
+        user.setDeleted(deleted);
+        user.setDeletedAt(deletedAt);
+        user.setCreatedAt(createdAt);
+        user.setUpdatedAt(updatedAt);
+        return user;
     }
 }

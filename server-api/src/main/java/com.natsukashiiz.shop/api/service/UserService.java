@@ -11,10 +11,10 @@ import com.natsukashiiz.shop.api.model.request.ForgotPasswordRequest;
 import com.natsukashiiz.shop.api.model.request.ResetPasswordRequest;
 import com.natsukashiiz.shop.api.model.request.UpdateProfileRequest;
 import com.natsukashiiz.shop.api.model.response.*;
+import com.natsukashiiz.shop.model.resposne.PageResponse;
 import com.natsukashiiz.shop.model.resposne.TokenResponse;
 import com.natsukashiiz.shop.repository.UserRepository;
 import com.natsukashiiz.shop.repository.LoginHistoryRepository;
-import com.natsukashiiz.shop.service.FileService;
 import com.natsukashiiz.shop.service.MailService;
 import com.natsukashiiz.shop.service.RedisService;
 import com.natsukashiiz.shop.utils.RandomUtils;
@@ -44,7 +44,6 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final ServerProperties serverProperties;
     private final LoginHistoryRepository loginHistoryRepository;
-    private final FileService fileService;
 
     public ProfileResponse queryProfile() throws BaseException {
         User user = authService.getUser();
@@ -179,8 +178,6 @@ public class UserService {
 
     public ProfileResponse deleteAvatar() throws BaseException {
         User user = authService.getUser();
-
-        fileService.deleteWithUrl(user.getAvatar());
 
         user.setAvatar(null);
         User update = userRepository.save(user);

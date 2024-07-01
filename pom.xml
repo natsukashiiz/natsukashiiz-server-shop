@@ -32,6 +32,7 @@
         <module>model</module>
         <module>tool</module>
         <module>server-admin</module>
+        <module>server-file</module>
     </modules>
     <scm>
         <connection/>

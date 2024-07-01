@@ -1,5 +1,8 @@
 package com.natsukashiiz.shop.admin.controller;
 
+import com.natsukashiiz.shop.admin.model.dto.OrderDTO;
+import com.natsukashiiz.shop.admin.service.OrderService;
+import com.natsukashiiz.shop.common.PaginationRequest;
 import com.natsukashiiz.shop.entity.Order;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -9,11 +12,12 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/v1/orders")
 @AllArgsConstructor
 public class OrderController {
-    // query all, query by id, create, update, delete
+
+    private final OrderService orderService;
 
     @GetMapping
-    public ResponseEntity<?> queryOrders() {
-        return ResponseEntity.ok("Query all orders");
+    public ResponseEntity<?> queryAllOrders(OrderDTO request, PaginationRequest pagination) {
+        return ResponseEntity.ok(orderService.queryAllOrders(request, pagination));
     }
 
     @GetMapping("/{orderId}")

@@ -31,7 +31,8 @@ public class TokenService {
                 .issuedAt(now)
                 .expiresAt(now.plus(properties.getJwtAccessExpiration()))
                 .id(RandomUtils.notSymbol())
-                .subject(String.valueOf(id));
+                .subject(String.valueOf(id))
+                .claim("type", TokenType.ACCESS.name());
 
         if (claims != null) {
             claims.forEach(builder::claim);

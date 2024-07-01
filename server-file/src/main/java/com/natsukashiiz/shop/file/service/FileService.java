@@ -1,9 +1,9 @@
-package com.natsukashiiz.shop.service;
+package com.natsukashiiz.shop.file.service;
 
-import com.natsukashiiz.shop.common.ServerProperties;
 import com.natsukashiiz.shop.exception.BaseException;
-import com.natsukashiiz.shop.exception.FileException;
-import com.natsukashiiz.shop.model.resposne.FileStoreResponse;
+import com.natsukashiiz.shop.file.common.FileProperties;
+import com.natsukashiiz.shop.file.exception.FileException;
+import com.natsukashiiz.shop.file.model.FileStoreResponse;
 import com.natsukashiiz.shop.utils.RandomUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -27,7 +27,7 @@ import java.nio.file.StandardCopyOption;
 @AllArgsConstructor
 public class FileService {
 
-    private final ServerProperties properties;
+    private final FileProperties properties;
 
     public FileStoreResponse store(MultipartFile file) throws BaseException {
         log.debug("Store-[next]. file:{}", file);

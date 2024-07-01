@@ -1,5 +1,5 @@
 
-@accessToken = eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxIiwicm9sZSI6IlNVUEVSX0FETUlOIiwiaXNzIjoiaHR0cDpcL1wvbG9jYWxob3N0OjQyMDBcL3dlYiIsImV4cCI6MTcxOTc1NDM2MywiaWF0IjoxNzE5NzUwNzYzLCJqdGkiOiI2NDM5ZTA5OGRhZWI0NGNhOTMxOTliOTA4OWMwODBkNCIsImF1dGhvcml0aWVzIjpbIkFETUlOOkRFTEVURSIsIkFETUlOOlJFQUQiLCJBRE1JTjpVUERBVEUiLCJBRE1JTjpXUklURSJdfQ.g72FOyQaWOgyR2O4zR6bXsRijHLJWGOzIvmIc7tIjUfUJg3lqi4lLf-UcpvYsKSgsapfkcqGwBYwNXD8XbXigub0asOHEiwKmwHDlWoMhibRof10mNPJvJxyyK1nBAVb_A15eeoVZ31xLofqFQ-g9SXhD-SZLkGQnVYWesIjAG-u3pgcuE1KuTejuQlkC1WRUK8ztgUW7wfR3mTkyyp0Q77kANShEU7K8vfFtMrmtXbGFE_TwzYSek-iaL8vEH-ew7AMq_lAbhf88fnre-LCd0phnefdgChUvptiHZpNZDw2hAnV5Tt1sAwlMyvhjan2ej_FbgcjXzMbyhxyINcMNw
+@accessToken = eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxIiwicm9sZSI6IlNVUEVSX0FETUlOIiwiaXNzIjoiaHR0cDpcL1wvbG9jYWxob3N0OjQyMDBcLyIsImV4cCI6MTc1MTM1NzYyNywidHlwZSI6IkFDQ0VTUyIsImlhdCI6MTcxOTgyMTYyNywianRpIjoiYmE2ZWRmNTExZWQ1NGRmZTg4NjA4ZjY4NTJmMWRjYzkiLCJhdXRob3JpdGllcyI6WyJBRE1JTjpERUxFVEUiLCJBRE1JTjpSRUFEIiwiQURNSU46VVBEQVRFIiwiQURNSU46V1JJVEUiXX0.kiG2J0R_xeJx4myxr2-tnsVLcO0iNGRjSauYiOgc3BukuMWwVcIAGRDkbzkgPvxTbnH05dF7nfarUrvpWoviS5T1HnbImPrEM4xlv58T3OMYbdghsLc98zimldms86fUjxJ_IvoBoCybzfUDskJrJf8dFvjcMCHSz2q4MmFHlUuX9L5_6ZMcCtM7WPhTbKHo-Grnug9yQaoXpxsdfGkB7nY_1D9ODNs-oKgvCdM0UM799MBYQd8jsC-IId1IjlUEmmMDZhLmHTsmMYbPtnmvDfrh_hocuHwBKY_865ey4yjdikuE8iSsqR7cz-A35MGsciO5fywbBOAJH7Fnv6c7Rg
 @refreshToken = eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxIiwiaXNzIjoiaHR0cDpcL1wvbG9jYWxob3N0OjQyMDBcLyIsImV4cCI6MTcxOTcyOTI5NCwidHlwZSI6IlJFRlJFU0giLCJpYXQiOjE3MTk2NDI4OTQsImp0aSI6ImY5ZjhhMzg1MTRlNDQxMzNhYWE3YWU5MTM1Y2I3YTJjIn0.SGhCAO0fbQjHRhyFMGGc-Ko6Jeb-m_nYBM-Wr7cPZIPV8hEdnMilXizif0NEFIITRay4i0kMQMZ-0A0qFWO6n6XGcMwoStClyvd-W9evr4ki13UpoY32DLOkkwSCZvVyhFp1qruODIZbtYfVGMi2s8V9TRKwUasfktdwF__CAfYX3Ih3Zx33NLaKKSgLzIasBXNyPXl2v-cwlzmEPen7l66tv6TRWDmTyS_pNrrKL8dW9tFcxfB3-dI0ew3qZIYGbmOF0SYbv0hgwPwyV3oEOmCiuXEBtwb3bsthP9JXhJLkyDRAKBlxul3QeC4y-6q5KPxLJwcf7ImAjLO70ehbKg
 
 
@@ -40,4 +40,54 @@ Authorization: Bearer {{accessToken}}
 
 #### Get Products
 GET http://localhost:820/v1/products
+Authorization: Bearer {{accessToken}}
+
+#### Get Carousels
+GET http://localhost:820/v1/carousels
+Authorization: Bearer {{accessToken}}
+
+### Create Carousel
+POST http://localhost:820/v1/carousels
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "title": "{{$isoTimestamp}}",
+  "imageUrl": "{{$random.uuid}}",
+  "sort": {{$randomInt}}
+}
+
+### Get Carousel
+GET http://localhost:820/v1/carousels/11
+Authorization: Bearer {{accessToken}}
+
+### Update Carousel
+PUT http://localhost:820/v1/carousels/11
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+    "title": "{{$isoTimestamp}}",
+    "imageUrl": "{{$random.uuid}}",
+    "sort": {{$randomInt}}
+}
+
+### Delete Carousel
+DELETE http://localhost:820/v1/carousels/11
+Authorization: Bearer {{accessToken}}
+
+### Get Categories
+GET http://localhost:820/v1/categories?size=1&page=1
+Authorization: Bearer {{accessToken}}
+
+### Get Products
+GET http://localhost:820/v1/products?size=1&page=1
+Authorization: Bearer {{accessToken}}
+
+### Get Users
+GET http://localhost:820/v1/users?size=1&page=1
+Authorization: Bearer {{accessToken}}
+
+### Get Vouchers
+GET http://localhost:820/v1/vouchers?size=1&page=1
 Authorization: Bearer {{accessToken}}

@@ -1,6 +1,9 @@
 package com.natsukashiiz.shop.admin.controller;
 
-import com.natsukashiiz.shop.entity.Voucher;
+import com.natsukashiiz.shop.admin.model.dto.VoucherDTO;
+import com.natsukashiiz.shop.admin.service.VoucherService;
+import com.natsukashiiz.shop.common.PaginationRequest;
+import com.natsukashiiz.shop.exception.BaseException;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -9,30 +12,32 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/v1/vouchers")
 @AllArgsConstructor
 public class VoucherController {
-    // query all, query by id, create, update, delete
+
+    private final VoucherService voucherService;
 
     @GetMapping
-    public ResponseEntity<?> queryVouchers() {
-        return ResponseEntity.ok("Query all vouchers");
+    public ResponseEntity<?> queryAllCategories(VoucherDTO request, PaginationRequest pagination) {
+        return ResponseEntity.ok(voucherService.queryAllCategories(request, pagination));
     }
 
     @GetMapping("/{voucherId}")
-    public ResponseEntity<?> queryVoucherById(@PathVariable Long voucherId) {
-        return ResponseEntity.ok(String.format("Query voucher by id: %d", voucherId));
+    public ResponseEntity<?> queryVoucherById(@PathVariable Long voucherId) throws BaseException {
+        return ResponseEntity.ok(voucherService.queryVoucherById(voucherId));
     }
 
     @PostMapping
-    public ResponseEntity<?> createVoucher(@RequestBody Voucher voucher) {
-        return ResponseEntity.ok(String.format("Create voucher: %s", voucher));
+    public ResponseEntity<?> createVoucher(@RequestBody VoucherDTO request) throws BaseException {
+        return ResponseEntity.ok(voucherService.createVoucher(request));
     }
 
     @PutMapping("/{voucherId}")
-    public ResponseEntity<?> updateVoucher(@PathVariable Long voucherId, @RequestBody Voucher voucher) {
-        return ResponseEntity.ok(String.format("Update voucher by id: %d, %s", voucherId, voucher));
+    public ResponseEntity<?> updateVoucherById(@PathVariable Long voucherId, @RequestBody VoucherDTO request) throws BaseException {
+        return ResponseEntity.ok(voucherService.updateVoucherById(voucherId, request));
     }
 
     @DeleteMapping("/{voucherId}")
-    public ResponseEntity<?> deleteVoucher(@PathVariable Long voucherId) {
-        return ResponseEntity.ok(String.format("Delete voucher by id: %d", voucherId));
+    public ResponseEntity<?> deleteVoucherById(@PathVariable Long voucherId) throws BaseException {
+        voucherService.deleteVoucherById(voucherId);
+        return ResponseEntity.ok().build();
     }
 }

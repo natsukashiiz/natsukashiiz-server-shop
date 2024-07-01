@@ -1,6 +1,9 @@
 package com.natsukashiiz.shop.admin.controller;
 
-import com.natsukashiiz.shop.entity.Category;
+import com.natsukashiiz.shop.admin.model.dto.CategoryDTO;
+import com.natsukashiiz.shop.admin.service.CategoryService;
+import com.natsukashiiz.shop.common.PaginationRequest;
+import com.natsukashiiz.shop.exception.BaseException;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,30 +13,31 @@ import org.springframework.web.bind.annotation.*;
 @AllArgsConstructor
 public class CategoryController {
 
-    // query all, query by id, create, update, delete
+    private final CategoryService categoryService;
 
     @GetMapping
-    public ResponseEntity<?> queryCategories() {
-        return ResponseEntity.ok("Query all categories");
+    public ResponseEntity<?> queryAllCategories(CategoryDTO request, PaginationRequest pagination) {
+        return ResponseEntity.ok(categoryService.queryAllCategories(request, pagination));
     }
 
     @GetMapping("/{categoryId}")
-    public ResponseEntity<?> queryCategoryById(@PathVariable Long categoryId) {
-        return ResponseEntity.ok(String.format("Query category by id: %d", categoryId));
+    public ResponseEntity<?> queryCategoryById(@PathVariable Long categoryId) throws BaseException {
+        return ResponseEntity.ok(categoryService.queryCategoryById(categoryId));
     }
 
     @PostMapping
-    public ResponseEntity<?> createCategory(@RequestBody Category category) {
-        return ResponseEntity.ok(String.format("Create category: %s", category));
+    public ResponseEntity<?> createCategory(@RequestBody CategoryDTO request) throws BaseException {
+        return ResponseEntity.ok(categoryService.createCategory(request));
     }
 
     @PutMapping("/{categoryId}")
-    public ResponseEntity<?> updateCategory(@PathVariable Long categoryId, @RequestBody Category category) {
-        return ResponseEntity.ok(String.format("Update category by id: %d, %s", categoryId, category));
+    public ResponseEntity<?> updateCategoryById(@PathVariable Long categoryId, @RequestBody CategoryDTO request) throws BaseException {
+        return ResponseEntity.ok(categoryService.updateCategoryById(categoryId, request));
     }
 
     @DeleteMapping("/{categoryId}")
-    public ResponseEntity<?> deleteCategory(@PathVariable Long categoryId) {
-        return ResponseEntity.ok(String.format("Delete category by id: %d", categoryId));
+    public ResponseEntity<?> deleteCategoryById(@PathVariable Long categoryId) throws BaseException {
+        categoryService.deleteCategoryById(categoryId);
+        return ResponseEntity.ok().build();
     }
 }

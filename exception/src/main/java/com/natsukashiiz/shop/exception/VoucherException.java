@@ -50,4 +50,52 @@ public class VoucherException extends BaseException {
     public static BaseException notUsedForCategory() {
         return new VoucherException("not.used.for.category");
     }
+
+    public static BaseException invalidCode() {
+        return new VoucherException("invalid.code");
+    }
+
+    public static BaseException invalidDiscount() {
+        return new VoucherException("invalid.discount");
+    }
+
+    public static BaseException invalidDiscountType() {
+        return new VoucherException("invalid.discount.type");
+    }
+
+    public static BaseException invalidMaxDiscount() {
+        return new VoucherException("invalid.max.discount");
+    }
+
+    public static BaseException invalidMinOrderPrice() {
+        return new VoucherException("invalid.min.order.price");
+    }
+
+    public static BaseException invalidQuantity() {
+        return new VoucherException("invalid.quantity");
+    }
+
+    public static BaseException invalidProduct() {
+        return new VoucherException("invalid.product");
+    }
+
+    public static BaseException invalidCategory() {
+        return new VoucherException("invalid.category");
+    }
+
+    public static BaseException invalidBeginAt() {
+        return new VoucherException("invalid.begin.at");
+    }
+
+    public static BaseException invalidExpiredAt() {
+        return new VoucherException("invalid.expired.at");
+    }
+
+    public static BaseException invalidStatus() {
+        return new VoucherException("invalid.status");
+    }
+
+    public static BaseException invalidThumbnail() {
+        return new VoucherException("invalid.thumbnail");
+    }
 }

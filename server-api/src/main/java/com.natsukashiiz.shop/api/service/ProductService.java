@@ -7,6 +7,7 @@ import com.natsukashiiz.shop.exception.ProductException;
 import com.natsukashiiz.shop.api.model.request.ProductReviewRequest;
 import com.natsukashiiz.shop.api.model.request.QueryProductRequest;
 import com.natsukashiiz.shop.api.model.response.*;
+import com.natsukashiiz.shop.model.resposne.PageResponse;
 import com.natsukashiiz.shop.repository.ProductFavoriteRepository;
 import com.natsukashiiz.shop.repository.ProductRepository;
 import com.natsukashiiz.shop.repository.ProductReviewRepository;

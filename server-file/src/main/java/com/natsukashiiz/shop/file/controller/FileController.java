@@ -1,7 +1,7 @@
-package com.natsukashiiz.shop.admin.controller;
+package com.natsukashiiz.shop.file.controller;
 
 import com.natsukashiiz.shop.exception.BaseException;
-import com.natsukashiiz.shop.service.FileService;
+import com.natsukashiiz.shop.file.service.FileService;
 import lombok.AllArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;

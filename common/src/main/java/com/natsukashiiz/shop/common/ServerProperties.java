@@ -22,15 +22,6 @@ public class ServerProperties {
     @Value("${shop.web.url.resetPassword}")
     private String resetPassword;
 
-    @Value("#{T(java.nio.file.Paths).get('${shop.files.upload-dir}')}")
-    private Path fileUploadDir;
-
-    @Value("${shop.files.allowed-types}")
-    private List<String> fileAllowedTypes;
-
-    @Value("${shop.files.base-url}")
-    private String fileBaseUrl;
-
     @Value("${shop.jwt.expiration.access}")
     private Duration jwtAccessExpiration;
 

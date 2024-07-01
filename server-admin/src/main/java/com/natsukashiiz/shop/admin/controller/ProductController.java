@@ -1,5 +1,8 @@
 package com.natsukashiiz.shop.admin.controller;
 
+import com.natsukashiiz.shop.admin.model.dto.ProductDTO;
+import com.natsukashiiz.shop.admin.service.ProductService;
+import com.natsukashiiz.shop.common.PaginationRequest;
 import com.natsukashiiz.shop.entity.Product;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -9,11 +12,12 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/v1/products")
 @AllArgsConstructor
 public class ProductController {
-    // query all, query by id, create, update, delete
+
+    private final ProductService productService;
 
     @GetMapping
-    public ResponseEntity<?> queryProducts() {
-        return ResponseEntity.ok("Query all products");
+    public ResponseEntity<?> queryAllProducts(ProductDTO request, PaginationRequest pagination) {
+        return ResponseEntity.ok(productService.queryAllProduct(request, pagination));
     }
 
     @GetMapping("/{productId}")

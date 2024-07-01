@@ -1,8 +1,7 @@
-package com.natsukashiiz.shop.api.model.response;
+package com.natsukashiiz.shop.model.resposne;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.io.Serializable;

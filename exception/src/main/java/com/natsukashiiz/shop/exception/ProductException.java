@@ -29,4 +29,24 @@ public class ProductException extends BaseException {
     public static ProductException invalidReviewRating() {
         return new ProductException("review.rating.invalid");
     }
+
+    public static BaseException invalidName() {
+        return new ProductException("invalid.name");
+    }
+
+    public static BaseException invalidCategory() {
+        return new ProductException("invalid.category");
+    }
+
+    public static BaseException invalidOptions() {
+        return new ProductException("invalid.options");
+    }
+
+    public static BaseException invalidImages() {
+        return new ProductException("invalid.images");
+    }
+
+    public static BaseException invalidDescription() {
+        return new ProductException("invalid.description");
+    }
 }
