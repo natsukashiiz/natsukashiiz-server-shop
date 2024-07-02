@@ -52,9 +52,6 @@ public class SecurityConfiguration implements WebMvcConfigurer {
     @Value("${shop.jwt.pvKey}")
     RSAPrivateKey jwtPrivateKey;
 
-    @Value("${shop.google.clientId}")
-    String googleClientId;
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -120,14 +117,6 @@ public class SecurityConfiguration implements WebMvcConfigurer {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public GoogleIdTokenVerifier googleIdTokenVerifier() {
-        return new GoogleIdTokenVerifier
-                .Builder(new NetHttpTransport(), new JacksonFactory())
-                .setAudience(Collections.singleton(googleClientId))
-                .build();
     }
 
     private final class CustomJwtGrantedAuthoritiesConverter implements Converter<Jwt, Collection<GrantedAuthority>> {

@@ -117,27 +117,26 @@ public class AuthService {
         }
 
         Long accountId = Long.parseLong(jwt.getSubject());
-        String email = jwt.getClaimAsString("email");
 
         if (!tokenService.isRefreshToken(jwt)) {
             log.warn("Refresh-[block]:(not refresh token)");
             throw AuthException.unauthorized();
         }
 
-        if (ObjectUtils.isEmpty(email) || ObjectUtils.isEmpty(accountId)) {
-            log.warn("Refresh-[block]:(email or accountId is empty). email:{}, accountId:{}", email, accountId);
+        if ( ObjectUtils.isEmpty(accountId)) {
+            log.warn("Refresh-[block]:(accountId is empty)");
             throw AuthException.unauthorized();
         }
 
-        Optional<User> accountOptional = userRepository.findByIdAndEmail(accountId, email);
+        Optional<User> accountOptional = userRepository.findById(accountId);
         if (!accountOptional.isPresent()) {
-            log.warn("Refresh-[block]:(not found account). email:{}, accountId:{}", email, accountId);
+            log.warn("Refresh-[block]:(not found account). accountId:{}", accountId);
             throw AuthException.unauthorized();
         }
 
         User user = accountOptional.get();
         if (!user.getVerified()) {
-            log.warn("Refresh-[block]:(account not verify). email:{}, accountId:{}", email, accountId);
+            log.warn("Refresh-[block]:(account not verify). accountId:{}", accountId);
             throw UserException.notVerify();
         }
 
