@@ -1,3 +1,5 @@
+server:
+  port: 900
 spring:
   main:
     allow-circular-references: true
@@ -42,22 +44,10 @@ shop:
     expiration:
       access: 1h
       refresh: 1d
-  google:
-    clientId: 213921102049-buchqc6diom118vnsidm9fito3cr51dd.apps.googleusercontent.com
-  payment:
-    omise:
-      pubKey: pkey_test_5un4a0mz82obwpz257q
-      secretKey: skey_test_5un49ncyly5rx5dpjwi
   files:
     upload-dir: /web/uploads
     allowed-types: image/jpeg, image/png
-    base-url: https://shop.natsukashiiz.online/api/v1/files/
-  web:
-    url:
-      base: https://shop.natsukashiiz.online
-      verification: https://shop.natsukashiiz.online/verification?code={CODE}
-      resetPassword: https://shop.natsukashiiz.online/reset-password?email={EMAIL}&code={CODE}
-      paymentReturn: https://shop.natsukashiiz.online/profile/history/orders/
+    base-url: https://shop.natsukashiiz.online/files/v1/files/
 
 logging:
   level:

@@ -96,10 +96,9 @@ public class GoogleService {
             User user = new User();
             user.setEmail(payload.getEmail());
 
-            user.setNickName(RandomUtils.randomNickName());
-            while (userRepository.existsByNickName(user.getNickName())) {
+            do {
                 user.setNickName(RandomUtils.randomNickName());
-            }
+            } while (userRepository.existsByNickName(user.getNickName()));
 
             user.setPassword(passwordEncoder.encode(RandomUtils.notSymbol() + payload.getSubject()));
             user.setVerified(Boolean.TRUE);

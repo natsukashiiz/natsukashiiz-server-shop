@@ -8,7 +8,6 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.List;
 
 @Getter
@@ -28,5 +27,5 @@ public class Category extends BaseEntity implements Serializable {
 
     @OneToMany(mappedBy = "category")
     @ToString.Exclude
-    private Collection<Product> products;
+    private List<Product> products;
 }

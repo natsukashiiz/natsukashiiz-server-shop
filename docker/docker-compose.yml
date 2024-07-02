@@ -1,0 +1,8 @@
+version: '3'
+services:
+  shop-server-api:
+    build: .
+    container_name: shop-server-api
+    restart: unless-stopped
+    ports:
+      - 910:910

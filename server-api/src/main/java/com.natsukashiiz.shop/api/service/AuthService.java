@@ -225,6 +225,7 @@ public class AuthService {
         }
 
         Map<String, Object> claims = new HashMap<>();
+        claims.put("email", user.getEmail());
         claims.put("verified", user.getVerified());
 
         String accessToken = tokenService.generateAccessToken(user.getId(), claims);

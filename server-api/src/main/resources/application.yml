@@ -1,3 +1,5 @@
+server:
+  port: 910
 spring:
   main:
     allow-circular-references: true
@@ -48,10 +50,6 @@ shop:
     omise:
       pubKey: pkey_test_5un4a0mz82obwpz257q
       secretKey: skey_test_5un49ncyly5rx5dpjwi
-  files:
-    upload-dir: /web/uploads
-    allowed-types: image/jpeg, image/png
-    base-url: https://shop.natsukashiiz.online/api/v1/files/
   web:
     url:
       base: https://shop.natsukashiiz.online
